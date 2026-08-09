@@ -1,0 +1,2039 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Painel Retro & Caçamba</title>
+
+<link rel="manifest" href='data:application/manifest+json,{"name": "Painel Retro e Caçamba", "short_name": "Painel", "start_url": ".", "display": "standalone", "background_color": "#F4F6F9", "theme_color": "#1E293B", "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/2954/2954848.png", "sizes": "512x512", "type": "image/png"}]}'>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Painel">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Work+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+<style>
+  :root {
+    --bg-page: #F4F6F9;
+    --card-bg: #FFFFFF;
+    --header-bg: #1E293B;
+    --text-dark: #1E293B;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    --accent-retro: #0F766E;
+    --accent-caca: #8C422A;
+    --accent: #0F766E;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 15px 0;
+    font-family: 'Work Sans', sans-serif;
+    background: var(--bg-page);
+    color: var(--text-dark);
+  }
+  .app { max-width: 980px; margin: 0 auto; background: var(--card-bg); border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border-color); }
+
+  header { background: var(--header-bg); color: #fff; padding: 20px 24px 0; }
+  .header-top { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; }
+  header h1 { margin: 0; font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 700; }
+  .sub-desc { font-size: 0.78rem; color: #94A3B8; margin-top: 3px; }
+  .header-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .badges-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+  #badgeConexao { font-size:0.7rem; font-weight:700; white-space:nowrap; }
+  #badgePapel { font-size:0.66rem; font-weight:700; background:rgba(255,255,255,0.15); padding:3px 9px; border-radius:20px; letter-spacing:0.03em; text-align:right; }
+  .btn-sair { background:none; border:1px solid rgba(255,255,255,0.4); color:#fff; padding:4px 10px; border-radius:6px; font-size:0.7rem; cursor:pointer; }
+
+  nav.modulos { display:flex; gap:8px; padding: 14px 24px; flex-wrap:wrap; background: #0B1420; }
+  nav.modulos button { flex:1; min-width:130px; border:none; padding:11px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#1B2637; color:#B9C4D4; transition:0.2s; }
+  nav.modulos button.active { background:#fff; color:var(--header-bg); }
+  nav.modulos button.mod-retro.active { color: var(--accent-retro); }
+  nav.modulos button.mod-cacamba.active { color: var(--accent-caca); }
+
+  nav.tabs { display: flex; background: var(--header-bg); padding: 14px 20px 18px; gap: 8px; flex-wrap: wrap; }
+  nav.tabs button { flex: 1; min-width: 120px; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.83rem; cursor: pointer; transition: 0.2s; }
+  nav.tabs button.active { background: #FFFFFF; color: var(--header-bg); }
+  nav.tabs button:not(.active) { background: #334155; color: #CBD5E1; }
+
+  main.modulo-content { padding: 22px; }
+  .view { display: none; }
+  .view.active { display: block; }
+  .modulo-painel { display:none; }
+  .modulo-painel.active { display:block; }
+
+  label { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin: 14px 0 6px; color: var(--text-muted); }
+  input, select { width: 100%; padding: 12px; font-size: 0.9rem; font-family: inherit; border: 1.5px solid var(--border-color); border-radius: 8px; background: #FFFFFF; color: var(--text-dark); }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  @media (max-width: 600px) { .row3 { grid-template-columns: 1fr; } }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+
+  .tipo-selector, .maquina-selector { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px; }
+  .btn-tipo, .btn-maquina { padding: 12px; border: 1.5px solid var(--border-color); background: #fff; border-radius: 10px; font-weight: 700; font-size: 0.85rem; cursor: pointer; text-align: center; color: var(--text-dark); transition: all 0.2s ease; position:relative; }
+  .btn-tipo.active, .btn-maquina.active { background: #F1F5F9; color: var(--header-bg); border-color: var(--accent); box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+  .btn-maquina.add-custom { background:#EEF2F6; border-style:dashed; color:#556677; grid-column: span 2; }
+
+  .btn-submit { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-size: 0.95rem; font-weight: 700; cursor: pointer; margin-top: 22px; transition: 0.2s; }
+
+  .toggle-periodo { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .btn-toggle { padding: 10px 4px; border: 1.5px solid var(--border-color); background: #FFFFFF; color: var(--text-muted); font-weight: 700; font-size: 0.8rem; border-radius: 8px; cursor: pointer; text-align: center; }
+  .btn-toggle.active { background: var(--header-bg); border-color: var(--header-bg); color: #FFFFFF; }
+
+  .select-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+  .select-row.row3s { grid-template-columns: 1fr 1fr 1fr; }
+  @media (max-width:600px){ .select-row, .select-row.row3s { grid-template-columns:1fr; } }
+
+  .data-range-block { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .periodo-info-row { margin: 8px 0 14px; font-size:0.78rem; }
+  .periodo-info-row a { color: var(--accent); text-decoration:none; font-weight:600; }
+
+  .tools-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0; }
+  @media (max-width:600px){ .tools-grid { grid-template-columns: repeat(2,1fr); } }
+  .tools-btn { padding: 10px 6px; background: #fff; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; color: var(--header-bg); text-align: center; }
+  .tools-btn.excel { background: #E2F0D9; color: #1E4620; border-color: #B2D8A0; }
+  .tools-btn.pdf { background: #FCE4D6; color: #833C0C; border-color: #F8CBAD; }
+
+  .summary-dashboard { display:flex; flex-direction:column; gap:10px; margin: 12px 0 20px; }
+  .sum-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .sum-card { border-radius:10px; padding:12px 14px; }
+  .sum-card.dark { background: var(--header-bg); color:#fff; }
+  .sum-card.brown { background: var(--accent-caca); color:#fff; }
+  .sum-card.green { background: var(--accent-retro); color:#fff; }
+  .sum-title { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; opacity:0.85; }
+  .sum-value { font-size:1.15rem; font-weight:700; margin-top:3px; }
+
+  .categorias-section-title, .section-title { font-family: 'Fraunces', serif; font-size: 1.05rem; font-weight: 700; color: var(--header-bg); margin: 20px 0 10px; }
+  .categorias-grid, .maquinas-relatorio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .categoria-card, .maquina-card-rel { background: var(--header-bg); color:#fff; border-radius: 10px; padding: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+  .categoria-title { font-family:'Fraunces', serif; margin:0 0 6px; font-size:1rem; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:4px; }
+  .categoria-row { display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px; opacity:0.95; }
+  .categoria-actions, .maquina-card-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
+  .cat-btn, .maquina-card-actions button { padding:6px 4px; font-size:0.7rem; font-weight:700; border:none; border-radius:6px; cursor:pointer; text-align:center; }
+  .cat-btn.pdf, .btn-pdf-maq { background:#FCE4D6; color:#833C0C; }
+  .cat-btn.excel, .btn-excel-maq { background:#E2F0D9; color:#1E4620; }
+
+  .table-responsive { width: 100%; overflow-x: auto; background:#fff; border:1px solid var(--border-color); border-radius:10px; margin-top:10px; }
+  table.tabela-detalhada, table.data-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; text-align:left; }
+  table.tabela-detalhada th, table.data-table th { background: var(--header-bg); color: #fff; padding: 9px 6px; font-weight:600; font-size:0.68rem; text-transform:uppercase; }
+  table.tabela-detalhada td, table.data-table td { padding: 8px 6px; border-bottom: 1px solid var(--border-color); }
+  table.tabela-detalhada tr:hover, table.data-table tr:hover { background:#F8FAFC; }
+  .td-acoes, .table-actions { display:flex; gap:4px; }
+  .td-acoes button, .table-actions button { border:none; background:#F1F5F9; padding:5px 7px; border-radius:6px; cursor:pointer; font-size:0.85rem; }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--header-bg); color: #fff; padding: 10px 18px; border-radius: 8px; display: none; font-size: 0.85rem; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+
+  #loginOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.45); backdrop-filter: blur(4px); z-index: 20000; display: flex; justify-content: center; align-items: center; padding: 20px; }
+  .login-card { background: #fff; padding: 35px 30px; border-radius: 18px; max-width: 420px; width: 100%; box-shadow: 0 15px 35px rgba(0,0,0,0.25); }
+  .login-card h2 { font-family: 'Fraunces', serif; margin: 0 0 8px; font-size: 1.7rem; }
+  .login-card p { font-size: 0.88rem; color: #64748B; margin: 0 0 10px; }
+
+  .usuario-card { border: 1.5px solid var(--border-color); border-radius: 10px; padding: 14px; margin-bottom: 10px; background: #fff; }
+  .usuario-card .u-top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; }
+  .usuario-card .u-nome { font-size: 1rem; font-weight:700; }
+  .usuario-card .u-email { font-size: 0.78rem; color: var(--text-muted); }
+  .usuario-card .u-badge { display:inline-block; margin-top:5px; font-size:0.66rem; font-weight:700; padding:2px 9px; border-radius:20px; letter-spacing:0.03em; }
+  .usuario-card .u-badge.retro { background:#CCFBF1; color:#0F766E; }
+  .usuario-card .u-badge.caca { background:#FEE2C7; color:#8C422A; }
+  .usuario-card .u-status { display:inline-block; margin-top:5px; margin-left:5px; font-size:0.66rem; font-weight:700; padding:2px 9px; border-radius:20px; }
+  .usuario-card .u-status.ativo { background:#DCFCE7; color:#166534; }
+  .usuario-card .u-status.inativo { background:#FEE2E2; color:#991B1B; }
+  .usuario-card .u-acoes { display:flex; gap:8px; flex-shrink:0; }
+  .usuario-card .u-acoes button { border:none; background:#F1F5F9; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:0.9rem; }
+  .usuario-card .u-acoes-sec { width:100%; display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+
+  .comparativo-grid { display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  @media (max-width:700px){ .comparativo-grid { grid-template-columns:1fr; } }
+  .comparativo-col { border-radius: 14px; padding: 18px; color:#fff; }
+  .comparativo-col.retro { background: linear-gradient(155deg, #1E293B, #0B1420); }
+  .comparativo-col.caca { background: linear-gradient(155deg, #22303C, #0F1712); }
+  .comparativo-col h3 { font-family:'Fraunces', serif; margin: 0 0 14px; font-size: 1.15rem; }
+  .comparativo-row { display:flex; justify-content:space-between; padding: 9px 0; border-bottom:1px solid rgba(255,255,255,0.12); font-size:0.85rem; }
+  .comparativo-row span:last-child { font-family:'IBM Plex Mono', monospace; font-weight:700; }
+  .comparativo-bar-wrap { margin-top: 20px; background: rgba(255,255,255,0.08); padding: 16px; border-radius: 12px; }
+  .comparativo-bar-row { display:flex; align-items:center; gap:8px; font-size:0.78rem; margin-bottom:10px; }
+  .comparativo-bar-label { width: 100px; flex-shrink:0; font-weight:600; }
+  .comparativo-bar-track { flex:1; height:14px; background:rgba(255,255,255,0.12); border-radius:7px; overflow:hidden; }
+  .comparativo-bar-fill { height:100%; border-radius:7px; }
+  .comparativo-bar-val { width: 105px; text-align:right; font-weight:700; font-family:'IBM Plex Mono', monospace; }
+
+  .campo-msg { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
+  .km-faixa-info { font-size: 0.72rem; color: var(--accent-caca); margin-top: 4px; font-weight: 600; min-height: 14px; }
+  .money-hide { display:none !important; }
+  @media print { body * { visibility: hidden; } #areaImpressao, #areaImpressao * { visibility: visible; } }
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="login-card">
+    <h2>Acesso ao Sistema</h2>
+    <p>Informe seu e-mail e senha para entrar.</p>
+    <label>SEU E-MAIL</label>
+    <input type="email" id="inputEmailLogin" placeholder="seuemail@exemplo.com" onkeypress="tratarTeclaLogin(event)" autocomplete="username">
+    <label>SENHA DE ACESSO</label>
+    <input type="password" id="inputSenhaLogin" placeholder="Digite sua senha" onkeypress="tratarTeclaLogin(event)" autocomplete="current-password">
+    <button class="btn-submit" onclick="validarLogin()">Entrar no Sistema</button>
+  </div>
+</div>
+
+<div class="app">
+  <header>
+    <div class="header-top">
+      <div>
+        <h1 id="tituloApp">Painel de Operações</h1>
+        <div class="sub-desc" id="subtituloApp">Carregando...</div>
+      </div>
+      <div class="header-right">
+        <div class="badges-row">
+          <span id="badgeConexao">● Online</span>
+          <span id="badgePapel">ACESSO: —</span>
+        </div>
+        <button class="btn-sair" onclick="logoutGeral()">Sair</button>
+      </div>
+    </div>
+    <nav class="modulos" id="navModulos" style="display:none;">
+      <button class="mod-retro" id="btnModRetro" onclick="mudarModulo('retro')">🚜 Retroescavadeira</button>
+      <button class="mod-cacamba" id="btnModCacamba" onclick="mudarModulo('cacamba')">🚛 Caçambas</button>
+      <button id="btnModComparativo" onclick="mudarModulo('comparativo')">📊 Comparativo</button>
+      <button id="btnModUsuarios" onclick="mudarModulo('usuarios')">👥 Usuários</button>
+    </nav>
+  </header>
+
+  <!-- ===================== MÓDULO RETROESCAVADEIRA ===================== -->
+  <div id="painelRetro" class="modulo-painel">
+    <nav class="tabs">
+      <button id="rtTabCad" class="active" onclick="rtSwitchTab('cadastro')">Novo Serviço</button>
+      <button id="rtTabAbastece" onclick="rtSwitchTab('abastecimento')">⛽ Abastecimento</button>
+      <button id="rtTabPainel" onclick="rtSwitchTab('painel')">Painel</button>
+    </nav>
+    <main class="modulo-content">
+      <section id="rtViewCadastro" class="view active">
+        <label>TIPO DE SERVIÇO</label>
+        <div class="tipo-selector" id="rtTipoSelector">
+          <button type="button" class="btn-tipo active" onclick="rtSelecionarTipo('carregamento')">🏗️ Carregamento</button>
+          <button type="button" class="btn-tipo" onclick="rtSelecionarTipo('particular')">👤 Particular</button>
+        </div>
+        <label>NOME DO OPERADOR / EQUIPAMENTO</label>
+        <input type="text" id="rtCOperador" placeholder="Ex: ATEGO, RETRO CARREGAMENTO">
+        <label id="rtLabelDataServico">DATA DO SERVIÇO</label>
+        <input type="date" id="rtCDataServico">
+
+        <div id="rtBlocoCarregamento">
+          <label>LOCAL DO CARREGAMENTO</label>
+          <input type="text" id="rtCLocal" placeholder="Ex: AREAL">
+          <label>TIPO DE MATERIAL</label>
+          <input type="text" id="rtCMaterial" placeholder="Ex: Areia, Brita, Entulho">
+          <label>NOME DA CAÇAMBA</label>
+          <input type="text" id="rtCCliente" placeholder="Ex: ATEGO, MARCONES" oninput="rtAoDigitarNomeCacamba()">
+          <div class="campo-msg">Preenche sozinho: R$ 100,00 pra qualquer nome, R$ 50,00 só pra ACELLO — pode ajustar manualmente</div>
+          <div class="row2">
+            <div><label>QTD. DE CARREGAMENTO</label><input type="text" inputmode="decimal" id="rtCQtd" class="mono" placeholder="0" oninput="rtCalcularTotalCarregamento()"></div>
+            <div><label>VALOR POR CAÇAMBA (R$)</label><input type="text" inputmode="decimal" id="rtCValorCacamba" class="mono" placeholder="0,00" oninput="rtCalcularTotalCarregamento()"></div>
+          </div>
+          <div class="dono-only">
+            <label>TOTAL (R$)</label>
+            <input type="text" inputmode="decimal" id="rtCValorTotal" class="mono" placeholder="0,00">
+            <div class="campo-msg">Calcula sozinho (qtd. × valor por caçamba)</div>
+          </div>
+        </div>
+
+        <div id="rtBlocoParticular" style="display:none;">
+          <label>CLIENTE</label>
+          <input type="text" id="rtPCliente" placeholder="Nome do cliente">
+          <label>TIPO DE SERVIÇO</label>
+          <input type="text" id="rtPServico" placeholder="Ex: TERRAPLANAGEM">
+          <label>LOCAL DO SERVIÇO</label>
+          <input type="text" id="rtPLocal" placeholder="Ex: BARRAGEM, SAPATA">
+          <div class="row2">
+            <div><label>HORÍMETRO INICIAL</label><input type="text" inputmode="decimal" id="rtPHorimetroInicial" class="mono" placeholder="0,0" oninput="rtCalcularHorasParticular()"></div>
+            <div><label>HORÍMETRO FINAL</label><input type="text" inputmode="decimal" id="rtPHorimetroFinal" class="mono" placeholder="0,0" oninput="rtCalcularHorasParticular()"></div>
+          </div>
+          <div class="row2">
+            <div><label>HORAS TRABALHADAS</label><input type="text" id="rtPHorasTrabalhadas" class="mono" placeholder="0,0" readonly style="background:#F1F5F9;"></div>
+            <div><label>VALOR DA HORA (R$)</label><input type="text" inputmode="decimal" id="rtPValorHora" class="mono" placeholder="0,00" oninput="rtCalcularTotalParticular()"></div>
+          </div>
+          <div class="dono-only">
+            <label>FATURAMENTO TOTAL (R$)</label>
+            <input type="text" inputmode="decimal" id="rtPValorTotal" class="mono" placeholder="0,00">
+          </div>
+        </div>
+        <button class="btn-submit" id="rtBtnSalvar" onclick="rtSalvarServico()">Registrar Serviço</button>
+      </section>
+
+      <section id="rtViewAbastecimento" class="view">
+        <label>OPERAÇÃO DA RETROESCAVADEIRA</label>
+        <div class="tipo-selector">
+          <button type="button" class="btn-tipo active" id="rtBtnAbsCarregamento" onclick="rtSelecionarOperacaoAbastecimento('carregamento')">🏗️ Carregamento</button>
+          <button type="button" class="btn-tipo" id="rtBtnAbsParticular" onclick="rtSelecionarOperacaoAbastecimento('particular')">👤 Particular</button>
+        </div>
+        <label>DATA DO ABASTECIMENTO</label>
+        <input type="date" id="rtAData">
+        <label>NOME DO OPERADOR</label>
+        <input type="text" id="rtAOperador" placeholder="Nome do operador responsável">
+        <label>NOME DO POSTO</label>
+        <input type="text" id="rtAPosto" placeholder="Ex: POSTO SÃO JOSÉ">
+        <div class="row3">
+          <div><label>LITROS ABASTECIDOS</label><input type="text" inputmode="decimal" id="rtALitros" class="mono" placeholder="0,00" oninput="rtCalcularTotalAba()"></div>
+          <div><label>VALOR POR LITRO (R$)</label><input type="text" inputmode="decimal" id="rtAValorLitro" class="mono" placeholder="0,00" oninput="rtCalcularTotalAba()"></div>
+          <div><label>VALOR DO COMBUSTÍVEL (R$)</label><input type="text" inputmode="decimal" id="rtACombustivel" class="mono" placeholder="0,00"></div>
+        </div>
+        <button class="btn-submit" id="rtBtnSalvarAbastecimento" style="background:#9A3412;" onclick="rtSalvarAbastecimento()">Registrar Abastecimento</button>
+      </section>
+
+      <section id="rtViewPainel" class="view">
+        <div class="toggle-periodo">
+          <button id="rtBtnModoDiario" class="btn-toggle" onclick="rtSetModoFiltro('diario')">Diário</button>
+          <button id="rtBtnModoSemanal" class="btn-toggle" onclick="rtSetModoFiltro('semanal')">Semanal</button>
+          <button id="rtBtnModoMensal" class="btn-toggle" onclick="rtSetModoFiltro('mensal')">Mensal</button>
+        </div>
+        <div class="data-range-block">
+          <div><label>De (Início):</label><input type="date" id="rtFDataInicio" onchange="rtOnDataRangeChange()"></div>
+          <div><label>Até (Fim):</label><input type="date" id="rtFDataFim" onchange="rtOnDataRangeChange()"></div>
+        </div>
+        <div class="periodo-info-row"><a href="javascript:void(0)" onclick="rtLimparPeriodo()">Ver todos os períodos</a></div>
+        <div class="select-row" style="grid-template-columns:1fr;">
+          <select id="rtFMaquinaSelect" onchange="rtRenderPainel()"><option value="todos">Todos os operadores</option></select>
+        </div>
+        <div class="tools-grid dono-only">
+          <button class="tools-btn excel" onclick="rtExportarExcel()">🟢 Exportar Excel Geral</button>
+          <button class="tools-btn pdf" onclick="window.print()">📄 Imprimir Relatório</button>
+          <button class="tools-btn" onclick="rtFazerBackup()">📥 Backup JSON</button>
+          <button class="tools-btn" onclick="document.getElementById('rtInputRestaurar').click()">📤 Restaurar</button>
+        </div>
+        <input type="file" id="rtInputRestaurar" accept=".json" style="display:none" onchange="rtRestaurarBackup(event)">
+        <div class="summary-dashboard">
+          <div class="sum-row-2">
+            <div class="sum-card dark dono-only"><div class="sum-title">FATURAMENTO BRUTO</div><div class="sum-value mono" id="rtSumFaturamento">R$ 0,00</div></div>
+            <div class="sum-card dark"><div class="sum-title">QTD. LANÇAMENTOS</div><div class="sum-value mono" id="rtSumLancamentos">0</div></div>
+          </div>
+          <div class="sum-row-2">
+            <div class="sum-card brown"><div class="sum-title">COMBUSTÍVEL TOTAL</div><div class="sum-value mono" id="rtSumCombustivel">R$ 0,00</div></div>
+            <div class="sum-card brown"><div class="sum-title">LITROS ABASTECIDOS</div><div class="sum-value mono" id="rtSumLitros">0 L</div></div>
+          </div>
+          <div class="sum-card green dono-only"><div class="sum-title">VALOR LÍQUIDO TOTAL (LUCRO)</div><div class="sum-value mono" id="rtSumLiquido">R$ 0,00</div></div>
+          <div class="sum-card dark"><div class="sum-title">TOTAL DE CARREGAMENTO / HORAS</div><div class="sum-value mono" id="rtSumViagensHoras">0</div></div>
+        </div>
+        <div class="section-title dono-only" style="margin-top:20px;">Lucro por Semana (no período selecionado)</div>
+        <div class="dono-only" id="rtGraficoSemanal" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px;"></div>
+        <div class="categorias-section-title">Relatório Individual por Categoria</div>
+        <div class="categorias-grid" id="rtCategoriaCardsContainer"></div>
+        <div style="margin-top:25px;"><label style="font-size:0.82rem; margin-bottom:8px; color:var(--header-bg);">Registros Detalhados</label><div class="table-responsive" id="rtTabelaDetalhadaContainer"></div></div>
+        <div style="margin-top:25px;"><label style="font-size:0.82rem; margin-bottom:8px; color:var(--header-bg);">Registros de Abastecimentos</label><div class="table-responsive" id="rtTabelaAbastecimentosContainer"></div></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== MÓDULO CAÇAMBA / FROTA ===================== -->
+  <div id="painelCacamba" class="modulo-painel">
+    <nav class="tabs">
+      <button id="cbTabCad" class="active" onclick="cbSwitchTab('cadastro')">Novo Lançamento</button>
+      <button id="cbTabCombustivel" onclick="cbSwitchTab('combustivel')">⛽ Combustível</button>
+      <button id="cbTabPainel" onclick="cbSwitchTab('painel')">Painel & Relatórios</button>
+    </nav>
+    <main class="modulo-content">
+      <section id="cbViewCadastro" class="view active">
+        <label>SELECIONE O EQUIPAMENTO / VEÍCULO</label>
+        <div class="maquina-selector" id="cbMaquinaSelector">
+          <button type="button" class="btn-maquina active" data-nome="ATEGO" onclick="cbSelecionarMaquina(this, 'ATEGO')">ATEGO</button>
+          <button type="button" class="btn-maquina" data-nome="ACCELO" onclick="cbSelecionarMaquina(this, 'ACCELO')">ACCELO</button>
+          <button type="button" class="btn-maquina" data-nome="BOB" onclick="cbSelecionarMaquina(this, 'BOB')">BOB</button>
+          <button type="button" class="btn-maquina add-custom" id="cbBtnCustomMaq" onclick="cbAdicionarOutraMaquina()">+ Adicionar Outro Veículo</button>
+        </div>
+        <label>Motorista</label><input type="text" id="cbCMotorista" placeholder="Nome do motorista">
+        <label>Data da entrega</label><input type="date" id="cbCDataEntrega">
+        <label>Local / saída</label><input type="text" id="cbCLocalSaida" placeholder="Local de saída">
+        <label>Entrega / destino</label><input type="text" id="cbCDestino" placeholder="Destino da entrega">
+        <label>Tipo de Material</label><input type="text" id="cbCTipoMaterial" placeholder="Ex: Areia, Brita...">
+        <label>Cliente</label><input type="text" id="cbCCliente" placeholder="Nome do cliente">
+        <label>Km percorrido</label>
+        <input type="number" id="cbCKm" class="mono" step="0.1" placeholder="0" oninput="cbCalcularValorPorKm()">
+        <div id="cbCKmFaixaInfo" class="km-faixa-info dono-only"></div>
+        <label>Qtd. de viagens</label><input type="number" id="cbCQtdViagens" class="mono" step="1" placeholder="0" oninput="cbCalcularTotalFrete('qtd')">
+        <div class="dono-only"><label>Valor por viagem (R$)</label><input type="number" id="cbCValorViagem" class="mono" step="0.01" placeholder="0,00" oninput="cbCalcularTotalFrete('valor')"></div>
+        <div class="dono-only"><label>Valor total (R$)</label><input type="number" id="cbCValorTotal" class="mono" step="0.01" placeholder="0,00" oninput="cbCalcularTotalFrete('total')"></div>
+        <button class="btn-submit" id="cbBtnSalvar" onclick="cbSalvarServico()">Registrar Serviço</button>
+      </section>
+
+      <section id="cbViewCombustivel" class="view">
+        <label style="margin-top:0;">Veículo / Máquina (Caçamba)</label>
+        <select id="cbCCombMaquina"></select>
+        <label>Motorista</label><input type="text" id="cbCCombMotorista" placeholder="Nome do motorista">
+        <label>Data do abastecimento</label><input type="date" id="cbCCombData">
+        <label>Nome do posto</label><input type="text" id="cbCCombPosto" placeholder="Ex: Posto Ipiranga Centro">
+        <label>Litros abastecidos</label><input type="number" id="cbCCombLitros" class="mono" step="0.01" placeholder="0,00" oninput="cbCalcularTotalCombustivelTab('litros')">
+        <label>Valor por litro (R$)</label><input type="number" id="cbCCombValorPorLitro" class="mono" step="0.01" placeholder="0,00" oninput="cbCalcularTotalCombustivelTab('porLitro')">
+        <label>Valor do combustível (R$)</label><input type="number" id="cbCCombValorTotal" class="mono" step="0.01" placeholder="0,00" oninput="cbCalcularTotalCombustivelTab('total')">
+        <button class="btn-submit" id="cbBtnSalvarCombustivel" onclick="cbSalvarCombustivel()">Registrar Abastecimento</button>
+        <div class="section-title">Últimos Abastecimentos</div>
+        <div class="table-responsive">
+          <table class="data-table"><thead><tr><th>Data</th><th>Posto</th><th>Veículo / Motorista</th><th>Litros / Valor</th><th>Ações</th></tr></thead><tbody id="cbListaCombustivelTabela"></tbody></table>
+        </div>
+      </section>
+
+      <section id="cbViewPainel" class="view">
+        <div class="toggle-periodo">
+          <button id="cbBtnModoDiario" class="btn-toggle" onclick="cbSetModoFiltro('diario')">Diário</button>
+          <button id="cbBtnModoSemanal" class="btn-toggle" onclick="cbSetModoFiltro('semanal')">Semanal</button>
+          <button id="cbBtnModoMensal" class="btn-toggle" onclick="cbSetModoFiltro('mensal')">Mensal</button>
+        </div>
+        <div class="data-range-block">
+          <div><label>De (Início):</label><input type="date" id="cbFDataInicio" onchange="cbOnDataRangeChange()"></div>
+          <div><label>Até (Fim):</label><input type="date" id="cbFDataFim" onchange="cbOnDataRangeChange()"></div>
+        </div>
+        <div class="periodo-info-row"><a href="javascript:void(0)" onclick="cbLimparPeriodo()">Ver todos os períodos</a></div>
+        <div class="select-row">
+          <select id="cbFMaquinaSelect" onchange="cbRenderPainel()"><option value="todos">Todos os veículos</option></select>
+          <select id="cbFMotoristaSelect" onchange="cbRenderPainel()"><option value="todos">Todos os motoristas</option></select>
+        </div>
+        <div style="margin-bottom:16px;"><input type="text" id="cbFBuscaTexto" placeholder="🔍 Pesquisar por cliente, motorista, rota ou material..." oninput="cbRenderPainel()"></div>
+        <div class="summary-dashboard">
+          <div class="sum-row-2">
+            <div class="sum-card dark dono-only"><div class="sum-title">FATURAMENTO BRUTO</div><div class="sum-value mono" id="cbStTotal">R$ 0,00</div></div>
+            <div class="sum-card dark"><div class="sum-title">QTD. LANÇAMENTOS</div><div class="sum-value mono" id="cbStServicos">0</div></div>
+          </div>
+          <div class="sum-row-2">
+            <div class="sum-card brown"><div class="sum-title">COMBUSTÍVEL TOTAL</div><div class="sum-value mono" id="cbStCombustivel">R$ 0,00</div></div>
+            <div class="sum-card brown"><div class="sum-title">LITROS ABASTECIDOS</div><div class="sum-value mono" id="cbStLitros">0 L</div></div>
+          </div>
+          <div class="sum-card dark"><div class="sum-title">TOTAL DE VIAGENS / KM</div><div class="sum-value mono" id="cbStKmViagens">0</div></div>
+          <div class="sum-card green dono-only"><div class="sum-title">VALOR LÍQUIDO TOTAL (LUCRO)</div><div class="sum-value mono" id="cbStLiquidoGeral">R$ 0,00</div></div>
+        </div>
+        <div id="cbSecaoRelatorioVeiculo" class="dono-only"><div class="section-title">Relatório Individual por Veículo</div><div id="cbMaquinasRelatorioGrid" class="maquinas-relatorio-grid"></div></div>
+        <div id="cbSecaoGraficoSemanal" class="dono-only"><div class="section-title">Lucro por Semana (no período selecionado)</div><div id="cbGraficoSemanal" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px;"></div></div>
+        <div id="cbSecaoGraficoFaturamento" class="dono-only"><div class="section-title">Resultado por Equipamento (Faturamento x Líquido)</div><div id="cbChartMaquinas" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px;"></div></div>
+        <div id="cbRelatorioEquipePrint" style="display:none;"></div>
+        <div class="tools-grid dono-only" id="cbAdminTools">
+          <button class="tools-btn excel" onclick="cbExportarExcel()">🟢 Exportar Excel</button>
+          <button class="tools-btn pdf" onclick="cbGerarRelatorioPDF()">📄 Gerar PDF</button>
+          <button class="tools-btn" onclick="cbFazerBackup()">📥 Backup JSON</button>
+          <button class="tools-btn" onclick="document.getElementById('cbInputRestaurar').click()">📤 Restaurar</button>
+        </div>
+        <input type="file" id="cbInputRestaurar" accept=".json" style="display:none" onchange="cbRestaurarBackup(event)">
+        <div class="section-title">Registros Detalhados</div>
+        <div class="table-responsive"><table class="data-table"><thead><tr><th>Data</th><th>Veículo / Motorista</th><th>Cliente / Rota</th><th>Material / Qtd</th><th class="dono-only">Total (R$)</th><th>Ações</th></tr></thead><tbody id="cbListaServicosTabela"></tbody></table></div>
+        <div class="section-title">⛽ Combustível</div>
+        <div class="table-responsive"><table class="data-table"><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/Litro</th><th class="dono-only">Valor Total</th></tr></thead><tbody id="cbListaCombustivelPainel"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ===================== COMPARATIVO (SÓ DONO) ===================== -->
+  <div id="painelComparativo" class="modulo-painel">
+    <main class="modulo-content">
+      <div class="toggle-periodo">
+        <button id="cmpBtnModoDiario" class="btn-toggle" onclick="cmpSetModoFiltro('diario')">Diário</button>
+        <button id="cmpBtnModoSemanal" class="btn-toggle" onclick="cmpSetModoFiltro('semanal')">Semanal</button>
+        <button id="cmpBtnModoMensal" class="btn-toggle active" onclick="cmpSetModoFiltro('mensal')">Mensal</button>
+        <span></span>
+      </div>
+      <div class="data-range-block">
+        <div><label>De (Início):</label><input type="date" id="cmpDataInicio" onchange="cmpOnDataRangeChange()"></div>
+        <div><label>Até (Fim):</label><input type="date" id="cmpDataFim" onchange="cmpOnDataRangeChange()"></div>
+      </div>
+      <div class="periodo-info-row"><a href="javascript:void(0)" onclick="cmpLimparPeriodo()">Ver todos os períodos</a></div>
+      <div id="cmpConteudo"></div>
+    </main>
+  </div>
+
+  <!-- ===================== USUÁRIOS (SÓ DONO) ===================== -->
+  <div id="painelUsuarios" class="modulo-painel">
+    <main class="modulo-content">
+      <label style="margin-top:0;">NOME DO EQUIPAMENTO</label>
+      <input type="text" id="uNome" placeholder="Ex: ATEGO, BOB, ACCELO, Retroescavadeira">
+      <label>E-MAIL DE ACESSO</label>
+      <input type="email" id="uEmail" placeholder="pessoa@exemplo.com" autocomplete="off">
+      <label>SENHA</label>
+      <input type="password" id="uSenha" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+      <label>ESSE EQUIPAMENTO É DE QUAL PAINEL?</label>
+      <div class="tipo-selector">
+        <button type="button" class="btn-tipo active" id="uBtnPapelRetro" onclick="uSelecionarPapel('operador_retro')">🚜 Retroescavadeira</button>
+        <button type="button" class="btn-tipo" id="uBtnPapelCacamba" onclick="uSelecionarPapel('motorista_cacamba')">🚛 Caçamba</button>
+      </div>
+      <div id="uBlocoVeiculo" style="display:none;">
+        <label>QUAL CAÇAMBA ESSE LOGIN REPRESENTA?</label>
+        <select id="uMaquina"></select>
+        <div class="campo-msg">Qualquer motorista que entrar com esse e-mail vai ver e lançar serviços dessa caçamba, não importa quem esteja dirigindo.</div>
+      </div>
+      <button class="btn-submit" onclick="uCadastrar()">Cadastrar Usuário</button>
+      <div style="margin-top:28px;"><label style="font-size:0.82rem; margin-bottom:8px; color:var(--header-bg);">Usuários Cadastrados</label><div id="uListaContainer"></div></div>
+    </main>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">Registrado com sucesso!</div>
+
+<script>
+// ===================================================================
+// CONFIGURAÇÃO COMPARTILHADA — FIREBASE ÚNICO PARA OS DOIS MÓDULOS
+// ===================================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyBO7uL_2ce-mXcoKltQAXtk4qNXJH3-Yck",
+  authDomain: "retro-e-cacama.firebaseapp.com",
+  projectId: "retro-e-cacama",
+  storageBucket: "retro-e-cacama.firebasestorage.app",
+  messagingSenderId: "633358495476",
+  appId: "1:633358495476:web:578865d269a5ca815ff8a1",
+  measurementId: "G-61JDCLWGJ1"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(() => {});
+db.enablePersistence({ synchronizeTabs: true }).catch((err) => console.warn('Persistência offline não pôde ser ativada:', err.code));
+
+const EMAIL_DONO = "jcds1991@outlook.com";
+const colUsuarios = db.collection('usuarios');
+
+let usuarioAtual = { papel: null, uid: null, nome: null, email: null, maquina: null };
+function souDono() { return usuarioAtual.papel === 'dono'; }
+
+function showToast(m) {
+  const t = document.getElementById('toast');
+  t.textContent = m; t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 2500);
+}
+function escapeHtml(str) {
+  const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML;
+}
+function fmtMoeda(v) { return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtData(d) {
+  if(!d) return '';
+  const parts = d.split('-');
+  if(parts.length !== 3) return d;
+  return parts[2] + '/' + parts[1] + '/' + parts[0];
+}
+function fmtNomeMes(m) {
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return meses[parseInt(m) - 1] || m;
+}
+function fmtDataISO(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function getSemanaBounds(dateStr) {
+  const [a,m,d] = dateStr.split('-').map(Number);
+  const dt = new Date(a, m-1, d);
+  const day = dt.getDay();
+  const diffToMon = (day===0?-6:1) - day;
+  const seg = new Date(dt); seg.setDate(dt.getDate()+diffToMon);
+  const dom = new Date(seg); dom.setDate(seg.getDate()+6);
+  return { seg, dom };
+}
+function fmtSemanaLabel(seg, dom) {
+  const d1=String(seg.getDate()).padStart(2,'0'), m1=String(seg.getMonth()+1).padStart(2,'0');
+  const d2=String(dom.getDate()).padStart(2,'0'), m2=String(dom.getMonth()+1).padStart(2,'0');
+  const ano = seg.getFullYear();
+  return m1===m2 ? `${d1} a ${d2}/${m1}/${ano}` : `${d1}/${m1} a ${d2}/${m2}/${ano}`;
+}
+function agruparFatCombPorSemana(itensFat, campoDataFat, itensComb, campoDataComb) {
+  const semanas = new Map();
+  const add = (item, campoData, chave) => {
+    const d = item[campoData]; if(!d) return;
+    const { seg, dom } = getSemanaBounds(d);
+    const key = fmtDataISO(seg);
+    if(!semanas.has(key)) semanas.set(key, { seg, dom, fat: 0, comb: 0 });
+    semanas.get(key)[chave] += chave === 'fat' ? (item.valorTotal||0) : (item.valorCombustivel||item.combustivel||0);
+  };
+  itensFat.forEach(item => add(item, campoDataFat, 'fat'));
+  itensComb.forEach(item => add(item, campoDataComb, 'comb'));
+  return Array.from(semanas.keys()).sort().map(key => semanas.get(key));
+}
+function renderGraficoBarrasHtml(linhas, corPositivo, corNegativo) {
+  if(linhas.length === 0) return '<div style="font-size:0.75rem;color:#777;">Sem dados suficientes para o gráfico.</div>';
+  const maxAbs = Math.max(1, ...linhas.map(l => Math.abs(l.valor)));
+  return linhas.map(l => {
+    const pct = Math.round(Math.abs(l.valor)/maxAbs*100);
+    const cor = l.valor >= 0 ? corPositivo : (corNegativo||'#B91C1C');
+    return `<div style="display:flex;align-items:center;gap:8px;font-size:0.78rem;margin-bottom:8px;"><div style="width:130px;flex-shrink:0;font-weight:600;font-size:0.7rem;">${escapeHtml(l.label)}</div><div style="flex:1;height:14px;background:#E4EBF2;border-radius:7px;overflow:hidden;"><div style="height:100%;background:${cor};width:${pct}%;"></div></div><div style="width:100px;text-align:right;font-weight:700;font-size:0.75rem;">${fmtMoeda(l.valor)}</div></div>`;
+  }).join('');
+}
+let temPendenciasGlobal = false;
+function atualizarBadgeConexao() {
+  const badge = document.getElementById('badgeConexao');
+  if(!navigator.onLine) { badge.textContent = '● Offline'; badge.style.color = '#F2A65A'; }
+  else if(temPendenciasGlobal) { badge.textContent = '↻ Sincronizando...'; badge.style.color = '#F2A65A'; }
+  else { badge.textContent = '● Online'; badge.style.color = '#6FCF97'; }
+}
+window.addEventListener('online', atualizarBadgeConexao);
+window.addEventListener('offline', atualizarBadgeConexao);
+
+async function verificarSenhaDono(senha) {
+  const appTemp = firebase.initializeApp(firebaseConfig, 'verificacao-' + Date.now());
+  try {
+    await appTemp.auth().signInWithEmailAndPassword(EMAIL_DONO, senha);
+    return true;
+  } catch(err) { return false; }
+  finally {
+    await appTemp.auth().signOut().catch(() => {});
+    await appTemp.delete().catch(() => {});
+  }
+}
+
+function limparCamposLogin() {
+  const s = document.getElementById('inputSenhaLogin'), e = document.getElementById('inputEmailLogin');
+  if(s) s.value = ''; if(e) e.value = '';
+}
+function tratarTeclaLogin(event) { if(event.key === 'Enter') validarLogin(); }
+async function validarLogin() {
+  const email = document.getElementById('inputEmailLogin').value.trim().toLowerCase();
+  const senha = document.getElementById('inputSenhaLogin').value.trim();
+  const btn = document.querySelector('#loginOverlay .btn-submit');
+  if(!email) return alert('Por favor, digite seu e-mail.');
+  if(!senha) return alert('Por favor, digite sua senha.');
+  if(btn) { btn.disabled = true; btn.textContent = 'Verificando...'; }
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, senha);
+    showToast('Acesso concedido!');
+  } catch(err) {
+    alert('E-mail ou senha incorretos.');
+  } finally {
+    if(btn) { btn.disabled = false; btn.textContent = 'Entrar no Sistema'; }
+  }
+}
+function logoutGeral() {
+  if(rtUnsubscribeFirebase) { rtUnsubscribeFirebase(); rtUnsubscribeFirebase = null; }
+  if(cbUnsubscribeFirebase) { cbUnsubscribeFirebase(); cbUnsubscribeFirebase = null; }
+  rtListenerAtivo = false; cbListenerAtivo = false;
+  rtLista = []; cbLista = [];
+  firebase.auth().signOut();
+}
+
+firebase.auth().onAuthStateChanged(async (user) => {
+  const overlay = document.getElementById('loginOverlay');
+  if(!user) {
+    usuarioAtual = { papel: null, uid: null, nome: null, email: null, maquina: null };
+    if(overlay) overlay.style.display = 'flex';
+    return;
+  }
+  limparCamposLogin();
+  if(user.email === EMAIL_DONO) {
+    usuarioAtual = { papel: 'dono', uid: user.uid, nome: 'Dono', email: user.email, maquina: null };
+    if(overlay) overlay.style.display = 'none';
+    aposLogin();
+    return;
+  }
+  try {
+    const doc = await colUsuarios.doc(user.uid).get();
+    if(!doc.exists || doc.data().ativo === false) {
+      alert('Este acesso está inativo ou não foi encontrado. Fale com o Dono.');
+      await firebase.auth().signOut();
+      return;
+    }
+    const d = doc.data();
+    usuarioAtual = { papel: d.papel, uid: user.uid, nome: d.nome || user.email, email: user.email, maquina: d.maquina || null };
+    if(overlay) overlay.style.display = 'none';
+    aposLogin();
+  } catch(e) {
+    alert('Erro ao carregar seu perfil de acesso: ' + e.message);
+    await firebase.auth().signOut();
+  }
+});
+
+function aposLogin() {
+  document.body.classList.toggle('somente-leitura', usuarioAtual.papel !== 'dono');
+  document.querySelectorAll('.dono-only').forEach(el => el.style.display = souDono() ? '' : 'none');
+
+  const badgePapel = document.getElementById('badgePapel');
+  if(usuarioAtual.papel === 'dono') badgePapel.textContent = 'ACESSO: DONO — VÊ TUDO';
+  else if(usuarioAtual.papel === 'operador_retro') badgePapel.textContent = 'OPERADOR RETRO — ' + usuarioAtual.nome.toUpperCase();
+  else if(usuarioAtual.papel === 'motorista_cacamba') badgePapel.textContent = 'MOTORISTA CAÇAMBA — ' + usuarioAtual.nome.toUpperCase();
+
+  const navModulos = document.getElementById('navModulos');
+  if(souDono()) {
+    navModulos.style.display = 'flex';
+    rtIniciar();
+    cbIniciar();
+    mudarModulo('retro');
+  } else if(usuarioAtual.papel === 'operador_retro') {
+    navModulos.style.display = 'none';
+    rtIniciar();
+    mudarModulo('retro');
+  } else if(usuarioAtual.papel === 'motorista_cacamba') {
+    navModulos.style.display = 'none';
+    cbIniciar();
+    mudarModulo('cacamba');
+  } else {
+    alert('Seu perfil de acesso não é reconhecido. Fale com o Dono.');
+    firebase.auth().signOut();
+  }
+}
+
+function mudarModulo(mod) {
+  document.getElementById('painelRetro').classList.toggle('active', mod === 'retro');
+  document.getElementById('painelCacamba').classList.toggle('active', mod === 'cacamba');
+  document.getElementById('painelComparativo').classList.toggle('active', mod === 'comparativo');
+  document.getElementById('painelUsuarios').classList.toggle('active', mod === 'usuarios');
+
+  document.getElementById('btnModRetro').classList.toggle('active', mod === 'retro');
+  document.getElementById('btnModCacamba').classList.toggle('active', mod === 'cacamba');
+  document.getElementById('btnModComparativo').classList.toggle('active', mod === 'comparativo');
+  document.getElementById('btnModUsuarios').classList.toggle('active', mod === 'usuarios');
+
+  const titulo = document.getElementById('tituloApp'), sub = document.getElementById('subtituloApp');
+  const root = document.documentElement;
+  if(mod === 'retro') {
+    titulo.textContent = 'Controle da Retroescavadeira'; sub.textContent = 'Carregamento, particular e abastecimento';
+    root.style.setProperty('--accent', 'var(--accent-retro)');
+  } else if(mod === 'cacamba') {
+    titulo.textContent = 'Controle de Frota'; sub.textContent = 'Gestão de viagens e custos das caçambas';
+    root.style.setProperty('--accent', 'var(--accent-caca)');
+  } else if(mod === 'comparativo') {
+    titulo.textContent = 'Comparativo'; sub.textContent = 'Retroescavadeira x Caçambas, lado a lado';
+    cmpRenderizar();
+  } else if(mod === 'usuarios') {
+    titulo.textContent = 'Usuários'; sub.textContent = 'Quem acessa cada painel';
+    uCarregarLista();
+  }
+}
+
+// ===================================================================
+// MÓDULO RETROESCAVADEIRA
+// ===================================================================
+const rtColRef = db.collection('retro_servicos');
+let rtLista = [];
+let rtTipoAtual = "carregamento";
+let rtOperacaoAbastecimentoAtual = "carregamento";
+let rtModoFiltro = "mensal";
+let rtEditandoId = null;
+let rtEditandoAbastecimentoId = null;
+let rtTemPendencias = false;
+let rtListenerAtivo = false;
+let rtUnsubscribeFirebase = null;
+const RT_NOMES_VALOR_CINQUENTA = ['ACELLO', 'ACCELO'];
+
+function rtPertenceAoUsuario(item) {
+  if(souDono()) return true;
+  return usuarioAtual.papel === 'operador_retro';
+}
+
+function rtIniciar() {
+  document.getElementById('rtCDataServico').valueAsDate = new Date();
+  document.getElementById('rtAData').valueAsDate = new Date();
+  rtPrepararFormularioOperador();
+  if(rtListenerAtivo) return;
+  rtListenerAtivo = true;
+  rtUnsubscribeFirebase = rtColRef.onSnapshot({ includeMetadataChanges: true }, (snapshot) => {
+    const todos = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    rtLista = souDono() ? todos : todos.filter(rtPertenceAoUsuario);
+    rtTemPendencias = snapshot.metadata.hasPendingWrites;
+    temPendenciasGlobal = rtTemPendencias || cbTemPendencias;
+    atualizarBadgeConexao();
+    rtAtualizarOpcoesFiltro();
+    rtRenderPainel();
+  }, (error) => {
+    console.error(error);
+    showToast('Erro ao carregar dados da retro: ' + error.message);
+  });
+}
+
+function rtSwitchTab(tab) {
+  document.getElementById('rtTabCad').classList.toggle('active', tab==='cadastro');
+  document.getElementById('rtTabAbastece').classList.toggle('active', tab==='abastecimento');
+  document.getElementById('rtTabPainel').classList.toggle('active', tab==='painel');
+  document.getElementById('rtViewCadastro').classList.toggle('active', tab==='cadastro');
+  document.getElementById('rtViewAbastecimento').classList.toggle('active', tab==='abastecimento');
+  document.getElementById('rtViewPainel').classList.toggle('active', tab==='painel');
+  if(tab === 'painel') { rtAtualizarOpcoesFiltro(); rtRenderPainel(); }
+}
+function rtSelecionarTipo(tipo) {
+  rtTipoAtual = tipo;
+  const botoes = document.querySelectorAll('#rtTipoSelector .btn-tipo');
+  botoes[0].classList.toggle('active', tipo === 'carregamento');
+  botoes[1].classList.toggle('active', tipo === 'particular');
+  document.getElementById('rtBlocoCarregamento').style.display = tipo === 'carregamento' ? 'block' : 'none';
+  document.getElementById('rtBlocoParticular').style.display = tipo === 'particular' ? 'block' : 'none';
+  document.getElementById('rtLabelDataServico').textContent = tipo === 'carregamento' ? 'DATA DO CARREGAMENTO' : 'DATA DO SERVIÇO';
+}
+function rtSelecionarOperacaoAbastecimento(op) {
+  rtOperacaoAbastecimentoAtual = op;
+  document.getElementById('rtBtnAbsCarregamento').classList.toggle('active', op === 'carregamento');
+  document.getElementById('rtBtnAbsParticular').classList.toggle('active', op === 'particular');
+}
+function rtParseNum(id) {
+  const el = document.getElementById(id);
+  if(!el) return 0;
+  return parseFloat(el.value.trim().replace(',', '.')) || 0;
+}
+function rtAoDigitarNomeCacamba() {
+  const nome = document.getElementById('rtCCliente').value.trim().toUpperCase();
+  if(!nome) { document.getElementById('rtCValorCacamba').value = ''; rtCalcularTotalCarregamento(); return; }
+  const valor = RT_NOMES_VALOR_CINQUENTA.includes(nome) ? 50 : 100;
+  document.getElementById('rtCValorCacamba').value = valor.toFixed(2).replace('.', ',');
+  rtCalcularTotalCarregamento();
+}
+function rtCalcularTotalCarregamento() {
+  const qtd = rtParseNum('rtCQtd'), val = rtParseNum('rtCValorCacamba');
+  document.getElementById('rtCValorTotal').value = (qtd * val).toFixed(2).replace('.', ',');
+}
+function rtCalcularHorasParticular() {
+  const ini = rtParseNum('rtPHorimetroInicial'), fin = rtParseNum('rtPHorimetroFinal');
+  document.getElementById('rtPHorasTrabalhadas').value = Math.abs(fin - ini).toFixed(1).replace('.', ',');
+  rtCalcularTotalParticular();
+}
+function rtCalcularTotalParticular() {
+  const horas = rtParseNum('rtPHorasTrabalhadas'), valHora = rtParseNum('rtPValorHora');
+  document.getElementById('rtPValorTotal').value = (horas * valHora).toFixed(2).replace('.', ',');
+}
+function rtCalcularTotalAba() {
+  const litros = rtParseNum('rtALitros'), valorLitro = rtParseNum('rtAValorLitro');
+  if(litros > 0 && valorLitro > 0) document.getElementById('rtACombustivel').value = (litros * valorLitro).toFixed(2).replace('.', ',');
+}
+function rtSalvarServico() {
+  const operador = document.getElementById('rtCOperador').value.trim() || (rtTipoAtual === 'carregamento' ? 'RETRO CARREGAMENTO' : 'RETRO PARTICULAR');
+  const dataServico = document.getElementById('rtCDataServico').value;
+  if(!dataServico) return alert('Por favor, preencha a data.');
+  const idServico = rtEditandoId ? rtEditandoId : ('r_' + Date.now());
+  let servicoData = { tipo: rtTipoAtual, operador, dataServico, isAbastecimento: false };
+  if(!souDono()) { servicoData.operadorUid = usuarioAtual.uid; servicoData.operadorEmail = usuarioAtual.email; }
+  if(rtTipoAtual === 'carregamento') {
+    const local = document.getElementById('rtCLocal').value.trim();
+    const cliente = document.getElementById('rtCCliente').value.trim();
+    const material = document.getElementById('rtCMaterial').value.trim();
+    const qtd = rtParseNum('rtCQtd'), valorCacamba = rtParseNum('rtCValorCacamba'), valorTotal = rtParseNum('rtCValorTotal');
+    if(!cliente) return alert('Por favor, preencha o Nome da Caçamba.');
+    Object.assign(servicoData, { maquina: operador.toUpperCase(), local, cliente, material, qtd, valorCacamba, valorTotal });
+  } else {
+    const cliente = document.getElementById('rtPCliente').value.trim();
+    const servico = document.getElementById('rtPServico').value.trim();
+    const local = document.getElementById('rtPLocal').value.trim();
+    const horimetroInicial = rtParseNum('rtPHorimetroInicial'), horimetroFinal = rtParseNum('rtPHorimetroFinal');
+    const horasTrabalhadas = rtParseNum('rtPHorasTrabalhadas'), valorHora = rtParseNum('rtPValorHora'), valorTotal = rtParseNum('rtPValorTotal');
+    if(!cliente) return alert('Por favor, preencha o Nome do cliente.');
+    Object.assign(servicoData, { maquina: operador.toUpperCase(), cliente, servicoDesc: servico, local, horimetroInicial, horimetroFinal, horasTrabalhadas, valorHora, valorTotal });
+  }
+  rtColRef.doc(idServico).set(servicoData, { merge: true }).catch(err => alert('Erro ao salvar: ' + err.message));
+  const msg = rtEditandoId ? 'Alterações salvas com sucesso!' : 'Registrado com sucesso!';
+  rtResetForm();
+  showToast(msg + (!navigator.onLine ? ' (offline)' : ''));
+  rtSwitchTab('painel');
+}
+function rtSalvarAbastecimento() {
+  const operador = document.getElementById('rtAOperador').value.trim() || 'OPERADOR';
+  const dataServico = document.getElementById('rtAData').value;
+  const posto = document.getElementById('rtAPosto').value.trim() || '-';
+  const litros = rtParseNum('rtALitros'), valorLitro = rtParseNum('rtAValorLitro'), combustivel = rtParseNum('rtACombustivel');
+  if(!dataServico) return alert('Por favor, preencha a data do abastecimento.');
+  if(litros <= 0 && combustivel <= 0) return alert('Informe a quantidade de litros ou o valor do combustível.');
+  const idAbastecimento = rtEditandoAbastecimentoId ? rtEditandoAbastecimentoId : ('abs_' + Date.now());
+  let absData = { isAbastecimento: true, operacaoAbastecimento: rtOperacaoAbastecimentoAtual, maquina: 'RETROESCAVADEIRA', operador, dataServico, posto, litros, valorLitro, combustivel, valorTotal: 0 };
+  if(!souDono()) { absData.operadorUid = usuarioAtual.uid; absData.operadorEmail = usuarioAtual.email; }
+  rtColRef.doc(idAbastecimento).set(absData, { merge: true }).catch(err => alert('Erro ao salvar abastecimento: ' + err.message));
+  const msg = rtEditandoAbastecimentoId ? 'Abastecimento atualizado!' : 'Abastecimento registrado com sucesso!';
+  rtResetFormAbastecimento();
+  showToast(msg);
+  rtSwitchTab('painel');
+}
+function rtResetFormAbastecimento() {
+  rtEditandoAbastecimentoId = null;
+  document.getElementById('rtBtnSalvarAbastecimento').textContent = "Registrar Abastecimento";
+  document.getElementById('rtAData').valueAsDate = new Date();
+  ['rtAOperador','rtAPosto','rtALitros','rtAValorLitro','rtACombustivel'].forEach(id => document.getElementById(id).value = '');
+  rtSelecionarOperacaoAbastecimento('carregamento');
+  rtPrepararFormularioOperador();
+}
+function rtEditarServico(id) {
+  const item = rtLista.find(x => x.id === id);
+  if(!item) return;
+  if(item.isAbastecimento) {
+    rtEditandoAbastecimentoId = id;
+    rtSelecionarOperacaoAbastecimento(item.operacaoAbastecimento || 'carregamento');
+    document.getElementById('rtAData').value = item.dataServico || '';
+    document.getElementById('rtAOperador').value = item.operador || '';
+    document.getElementById('rtAPosto').value = item.posto || '';
+    document.getElementById('rtALitros').value = (item.litros||0).toString().replace('.', ',');
+    document.getElementById('rtAValorLitro').value = (item.valorLitro||0).toString().replace('.', ',');
+    document.getElementById('rtACombustivel').value = (item.combustivel||0).toString().replace('.', ',');
+    document.getElementById('rtBtnSalvarAbastecimento').textContent = "Salvar Alterações";
+    rtSwitchTab('abastecimento');
+    showToast('Modo de edição de Abastecimento');
+    return;
+  }
+  rtEditandoId = id;
+  const t = item.tipo || (item.servicoDesc ? "particular" : "carregamento");
+  rtSelecionarTipo(t);
+  document.getElementById('rtCOperador').value = item.operador || item.maquina || '';
+  document.getElementById('rtCDataServico').value = item.dataServico || '';
+  if(t === 'carregamento') {
+    document.getElementById('rtCLocal').value = item.local || '';
+    document.getElementById('rtCCliente').value = item.cliente || '';
+    document.getElementById('rtCMaterial').value = item.material || '';
+    document.getElementById('rtCQtd').value = (item.qtd||0).toString().replace('.', ',');
+    document.getElementById('rtCValorCacamba').value = (item.valorCacamba||0).toString().replace('.', ',');
+    document.getElementById('rtCValorTotal').value = (item.valorTotal||0).toString().replace('.', ',');
+  } else {
+    document.getElementById('rtPCliente').value = item.cliente || '';
+    document.getElementById('rtPServico').value = item.servicoDesc || '';
+    document.getElementById('rtPLocal').value = item.local || '';
+    document.getElementById('rtPHorimetroInicial').value = (item.horimetroInicial||0).toString().replace('.', ',');
+    document.getElementById('rtPHorimetroFinal').value = (item.horimetroFinal||0).toString().replace('.', ',');
+    document.getElementById('rtPHorasTrabalhadas').value = (item.horasTrabalhadas||0).toString().replace('.', ',');
+    document.getElementById('rtPValorHora').value = (item.valorHora||0).toString().replace('.', ',');
+    document.getElementById('rtPValorTotal').value = (item.valorTotal||0).toString().replace('.', ',');
+  }
+  const btn = document.getElementById('rtBtnSalvar');
+  btn.textContent = "Salvar Alterações"; btn.style.background = "#9A3412";
+  rtSwitchTab('cadastro');
+  showToast('Modo de edição ativado');
+}
+function rtResetForm() {
+  rtEditandoId = null;
+  const btn = document.getElementById('rtBtnSalvar');
+  btn.textContent = "Registrar Serviço"; btn.style.background = "var(--accent)";
+  document.getElementById('rtCOperador').value = '';
+  document.getElementById('rtCDataServico').valueAsDate = new Date();
+  ['rtCLocal','rtCCliente','rtCMaterial','rtCQtd','rtCValorCacamba','rtCValorTotal','rtPCliente','rtPServico','rtPLocal','rtPHorimetroInicial','rtPHorimetroFinal','rtPHorasTrabalhadas','rtPValorHora','rtPValorTotal'].forEach(id => document.getElementById(id).value = '');
+  rtSelecionarTipo('carregamento');
+  rtPrepararFormularioOperador();
+}
+function rtPrepararFormularioOperador() {
+  const campo = document.getElementById('rtCOperador'), campoAbs = document.getElementById('rtAOperador');
+  if(!souDono() && usuarioAtual.papel === 'operador_retro') {
+    if(campo) { campo.value = ''; campo.readOnly = false; campo.style.background = ''; }
+    if(campoAbs) { campoAbs.value = ''; campoAbs.readOnly = false; campoAbs.style.background = ''; }
+  } else {
+    if(campo) { campo.readOnly = false; campo.style.background = ''; }
+    if(campoAbs) { campoAbs.readOnly = false; campoAbs.style.background = ''; }
+  }
+}
+async function rtExcluirServico(id) {
+  const senha = prompt('Digite a senha do Dono para excluir o registro:');
+  if(senha === null) return;
+  if(!(await verificarSenhaDono(senha))) return alert('Senha incorreta!');
+  if(confirm('Deseja excluir este registro?')) {
+    rtColRef.doc(id).delete().then(() => showToast('Registro excluído.')).catch(err => alert('Erro ao excluir: ' + err.message));
+  }
+}
+function rtCopiarComprovante(id) {
+  const item = rtLista.find(x => x.id === id);
+  if(!item) return;
+  if(item.isAbastecimento) {
+    const texto = `*COMPROVANTE DE ABASTECIMENTO*\n----------------------------------\nData: ${fmtData(item.dataServico)}\nOperador: ${item.operador||'-'}\nOperação: ${(item.operacaoAbastecimento||'-').toUpperCase()}\nPosto: ${item.posto||'-'}\nLitros: ${item.litros||0} L\nValor/L: ${fmtMoeda(item.valorLitro||0)}\n*Valor Total: ${fmtMoeda(item.combustivel||0)}*`;
+    navigator.clipboard.writeText(texto).then(() => showToast('Comprovante de abastecimento copiado!'));
+    return;
+  }
+  const tipo = item.tipo || (item.servicoDesc ? 'particular' : 'carregamento');
+  const titulo = tipo === 'carregamento' ? 'COMPROVANTE - RETRO CARREGAMENTO' : 'COMPROVANTE - RETRO PARTICULAR';
+  const operador = item.operador || item.maquina || 'RETRO';
+  let detalhes = tipo === 'carregamento'
+    ? `Data do Carregamento: ${fmtData(item.dataServico)}\nLocal: ${item.local||'-'}\nMaterial: ${item.material||'-'}\nCaçamba: ${item.cliente||'-'}\nQtd: ${item.qtd||0}\nValor por Caçamba: ${fmtMoeda(item.valorCacamba||0)}`
+    : `Data do Serviço: ${fmtData(item.dataServico)}\nCliente: ${item.cliente||'-'}\nServiço: ${item.servicoDesc||'-'}\nLocal: ${item.local||'-'}\nHorímetro: ${item.horimetroInicial||0} até ${item.horimetroFinal||0}\nHoras: ${item.horasTrabalhadas||0} h\nValor da Hora: ${fmtMoeda(item.valorHora||0)}`;
+  const linhaFat = souDono() ? `\n----------------------------------\n*FATURAMENTO TOTAL: ${fmtMoeda(item.valorTotal)}*` : '';
+  navigator.clipboard.writeText(`*${titulo}*\n----------------------------------\nOperador: ${operador}\n${detalhes}${linhaFat}`).then(() => showToast('Comprovante copiado!'));
+}
+function rtSetModoFiltro(modo) {
+  rtModoFiltro = modo;
+  document.getElementById('rtBtnModoDiario').classList.toggle('active', modo==='diario');
+  document.getElementById('rtBtnModoMensal').classList.toggle('active', modo==='mensal');
+  document.getElementById('rtBtnModoSemanal').classList.toggle('active', modo==='semanal');
+  const hoje = new Date(); let inicio, fim;
+  if(modo==='diario') { inicio = hoje; fim = hoje; }
+  else if(modo==='semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
+  else { inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0); }
+  document.getElementById('rtFDataInicio').value = fmtDataISO(inicio);
+  document.getElementById('rtFDataFim').value = fmtDataISO(fim);
+  rtRenderPainel();
+}
+function rtOnDataRangeChange() {
+  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  rtRenderPainel();
+}
+function rtLimparPeriodo() {
+  document.getElementById('rtFDataInicio').value = ''; document.getElementById('rtFDataFim').value = '';
+  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  rtRenderPainel();
+}
+function rtDataDentroDoFiltro(dataStr) {
+  const inicio = document.getElementById('rtFDataInicio').value, fim = document.getElementById('rtFDataFim').value;
+  if(!inicio && !fim) return true;
+  if(!dataStr) return true;
+  if(inicio && dataStr < inicio) return false;
+  if(fim && dataStr > fim) return false;
+  return true;
+}
+function rtGetTextoPeriodoAtual() {
+  const inicio = document.getElementById('rtFDataInicio').value, fim = document.getElementById('rtFDataFim').value;
+  if(!inicio && !fim) return 'Todos os períodos';
+  if(inicio && fim) return fmtData(inicio) + ' a ' + fmtData(fim);
+  if(inicio) return 'A partir de ' + fmtData(inicio);
+  return 'Até ' + fmtData(fim);
+}
+function rtAtualizarOpcoesFiltro() {
+  const unicos = [...new Set(rtLista.map(i => i.operador || i.maquina || 'RETRO'))].filter(Boolean);
+  const sel = document.getElementById('rtFMaquinaSelect');
+  sel.innerHTML = '<option value="todos">Todos os operadores</option>' + unicos.map(v => `<option value="${v}">${v}</option>`).join('');
+}
+function rtRenderPainel() {
+  const catCont = document.getElementById('rtCategoriaCardsContainer');
+  const tabCont = document.getElementById('rtTabelaDetalhadaContainer');
+  const absCont = document.getElementById('rtTabelaAbastecimentosContainer');
+  catCont.innerHTML = ''; tabCont.innerHTML = ''; absCont.innerHTML = '';
+  const operadorVal = document.getElementById('rtFMaquinaSelect').value;
+  const filtrados = rtLista.filter(item => {
+    const op = item.operador || item.maquina || 'RETRO';
+    if(operadorVal !== 'todos' && op !== operadorVal) return false;
+    return rtDataDentroDoFiltro(item.dataServico);
+  });
+  const servicosF = filtrados.filter(i => !i.isAbastecimento);
+  const absF = filtrados.filter(i => i.isAbastecimento);
+  const totalLanc = servicosF.length;
+  const totalFat = servicosF.reduce((a,c) => a + (c.valorTotal||0), 0);
+  const totalComb = absF.reduce((a,c) => a + (c.combustivel||0), 0);
+  const totalLitros = absF.reduce((a,c) => a + (c.litros||0), 0);
+  const totalLiq = totalFat - totalComb;
+  const totalVH = servicosF.reduce((a,c) => {
+    const t = c.tipo || (c.servicoDesc ? 'particular' : 'carregamento');
+    return a + (t === 'carregamento' ? (c.qtd||0) : (c.horasTrabalhadas||0));
+  }, 0);
+  document.getElementById('rtSumFaturamento').textContent = fmtMoeda(totalFat);
+  document.getElementById('rtSumLancamentos').textContent = totalLanc;
+  document.getElementById('rtSumCombustivel').textContent = fmtMoeda(totalComb);
+  document.getElementById('rtSumLitros').textContent = totalLitros + ' L';
+  document.getElementById('rtSumLiquido').textContent = fmtMoeda(totalLiq);
+  document.getElementById('rtSumViagensHoras').textContent = totalVH % 1 === 0 ? totalVH : totalVH.toFixed(1).replace('.', ',');
+
+  const carrItens = servicosF.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'carregamento');
+  const partItens = servicosF.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'particular');
+  const calcCat = (itens, tipoCat) => {
+    const lanc = itens.length, fat = itens.reduce((a,c)=>a+(c.valorTotal||0),0);
+    const absCat = absF.filter(a => (a.operacaoAbastecimento||'carregamento') === tipoCat);
+    const comb = absCat.reduce((a,c)=>a+(c.combustivel||0),0);
+    return { lanc, fat, comb, liq: fat - comb };
+  };
+  const catCarr = calcCat(carrItens, 'carregamento'), catPart = calcCat(partItens, 'particular');
+
+  if(souDono()) {
+    const semanasRt = agruparFatCombPorSemana(servicosF, 'dataServico', absF, 'dataServico');
+    const linhasRt = semanasRt.map(s => ({ label: fmtSemanaLabel(s.seg, s.dom), valor: s.fat - s.comb }));
+    document.getElementById('rtGraficoSemanal').innerHTML = renderGraficoBarrasHtml(linhasRt, 'var(--accent-retro)');
+  }
+
+  const linhaFat = souDono() ? '<div class="categoria-row"><span>Faturamento:</span><span>{{FAT}}</span></div>' : '';
+  const linhaLiq = souDono() ? '<div class="categoria-row"><span>Líquido:</span><span>{{LIQ}}</span></div>' : '';
+  const acoes = souDono() ? '<div class="categoria-actions"><button class="cat-btn pdf" onclick="rtImprimirRelatorioEspecifico(\'{{TIPO}}\')">📄 PDF</button><button class="cat-btn excel" onclick="rtExportarExcelCategoria(\'{{TIPO}}\')">🟢 Excel</button></div>' : '';
+  catCont.innerHTML =
+    `<div class="categoria-card"><div class="categoria-title">RETRO CARREGAMENTO</div><div class="categoria-row"><span>Lançamentos:</span><span>${catCarr.lanc}</span></div>${linhaFat.replace('{{FAT}}', fmtMoeda(catCarr.fat))}<div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(catCarr.comb)}</span></div>${linhaLiq.replace('{{LIQ}}', fmtMoeda(catCarr.liq))}${acoes.replace(/{{TIPO}}/g,'carregamento')}</div>` +
+    `<div class="categoria-card"><div class="categoria-title">RETRO PARTICULAR</div><div class="categoria-row"><span>Lançamentos:</span><span>${catPart.lanc}</span></div>${linhaFat.replace('{{FAT}}', fmtMoeda(catPart.fat))}<div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(catPart.comb)}</span></div>${linhaLiq.replace('{{LIQ}}', fmtMoeda(catPart.liq))}${acoes.replace(/{{TIPO}}/g,'particular')}</div>`;
+
+  if(servicosF.length > 0) {
+    let html = `<table class="tabela-detalhada"><thead><tr><th>DATA</th><th>OPERADOR</th><th>LOCAL</th><th>MATERIAL/SERVIÇO</th><th>CAÇAMBA/CLIENTE</th><th>QTD/HORAS</th><th>VALOR UNIT.</th>${souDono()?'<th>TOTAL</th>':''}<th>AÇÃO</th></tr></thead><tbody>`;
+    servicosF.forEach(item => {
+      const isPart = (item.tipo || (item.servicoDesc?'particular':'carregamento')) === 'particular';
+      const operador = escapeHtml(item.operador || item.maquina || 'RETRO');
+      const acoesTd = `<td><div class="td-acoes"><button onclick="rtCopiarComprovante('${item.id}')" title="Copiar">📋</button><button onclick="rtEditarServico('${item.id}')" title="Editar">✏️</button><button onclick="rtExcluirServico('${item.id}')" title="Excluir">🗑️</button></div></td>`;
+      if(isPart) {
+        html += `<tr><td>${fmtData(item.dataServico)} (Serviço)</td><td><b>${operador}</b></td><td colspan="3"><b>Particular:</b> ${escapeHtml(item.cliente||'-')} - ${escapeHtml(item.servicoDesc||'-')} (${escapeHtml(item.local||'-')})</td><td colspan="2" class="mono">Início: ${item.horimetroInicial||0} | Fim: ${item.horimetroFinal||0}<br><b>${item.horasTrabalhadas||0}h</b> × ${fmtMoeda(item.valorHora||0)}</td>${souDono()?`<td class="mono" style="font-weight:700;color:var(--accent);">${fmtMoeda(item.valorTotal)}</td>`:''}${acoesTd}</tr>`;
+      } else {
+        html += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.local||'-')}</td><td>${escapeHtml(item.material||'-')}</td><td><b>${escapeHtml(item.cliente||'-')}</b></td><td class="mono">${item.qtd||0}</td><td class="mono">${fmtMoeda(item.valorCacamba||0)}</td>${souDono()?`<td class="mono" style="font-weight:700;color:var(--accent);">${fmtMoeda(item.valorTotal)}</td>`:''}${acoesTd}</tr>`;
+      }
+    });
+    tabCont.innerHTML = html + '</tbody></table>';
+  } else {
+    tabCont.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:15px;font-size:0.85rem;background:#fff;margin:0;">Nenhum registro de serviço encontrado.</p>';
+  }
+  if(absF.length > 0) {
+    let html = `<table class="tabela-detalhada"><thead><tr><th>DATA</th><th>OPERAÇÃO</th><th>OPERADOR</th><th>POSTO</th><th>LITROS</th><th>VALOR/L</th><th>VALOR</th><th>AÇÃO</th></tr></thead><tbody>`;
+    absF.forEach(a => {
+      html += `<tr><td>${fmtData(a.dataServico)}</td><td><span style="font-weight:600;text-transform:uppercase;">${a.operacaoAbastecimento||'carregamento'}</span></td><td>${escapeHtml(a.operador||'-')}</td><td>${escapeHtml(a.posto||'-')}</td><td class="mono">${a.litros||0} L</td><td class="mono">${fmtMoeda(a.valorLitro||0)}</td><td class="mono" style="font-weight:700;color:#9A3412;">${fmtMoeda(a.combustivel||0)}</td><td><div class="td-acoes"><button onclick="rtCopiarComprovante('${a.id}')" title="Copiar">📋</button><button onclick="rtEditarServico('${a.id}')" title="Editar">✏️</button><button onclick="rtExcluirServico('${a.id}')" title="Excluir">🗑️</button></div></td></tr>`;
+    });
+    absCont.innerHTML = html + '</tbody></table>';
+  } else {
+    absCont.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:15px;font-size:0.85rem;background:#fff;margin:0;">Nenhum abastecimento encontrado.</p>';
+  }
+}
+function rtImprimirRelatorioEspecifico(tipo) {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  const operadorVal = document.getElementById('rtFMaquinaSelect').value;
+  const mSel = document.getElementById('rtFMaquinaSelect');
+  const textoPeriodo = rtGetTextoPeriodoAtual();
+  const textoOperador = mSel.options[mSel.selectedIndex] ? mSel.options[mSel.selectedIndex].text : '';
+  const filtrados = rtLista.filter(item => {
+    const op = item.operador || item.maquina || 'RETRO';
+    if(operadorVal !== 'todos' && op !== operadorVal) return false;
+    return rtDataDentroDoFiltro(item.dataServico);
+  });
+  const servicos = filtrados.filter(i => !i.isAbastecimento && (i.tipo || (i.servicoDesc?'particular':'carregamento')) === tipo);
+  const abastecimentos = filtrados.filter(i => i.isAbastecimento && (i.operacaoAbastecimento||'carregamento') === tipo);
+  const titulo = tipo === 'carregamento' ? 'RELATÓRIO: RETRO CARREGAMENTO (CAÇAMBAS)' : 'RELATÓRIO: RETRO PARTICULAR (HORAS)';
+  const totalFat = servicos.reduce((a,c)=>a+(c.valorTotal||0),0);
+  const totalComb = abastecimentos.reduce((a,c)=>a+(c.combustivel||0),0);
+  const totalLitros = abastecimentos.reduce((a,c)=>a+(c.litros||0),0);
+  const totalLiq = totalFat - totalComb;
+  const totalLanc = servicos.length;
+  const totalCarregHoras = tipo === 'carregamento' ? servicos.reduce((a,c)=>a+(c.qtd||0),0) : servicos.reduce((a,c)=>a+(c.horasTrabalhadas||0),0);
+  const totalCarregHorasTxt = tipo === 'carregamento' ? `${totalCarregHoras} Carregamentos` : `${totalCarregHoras.toFixed(1).replace('.',',')} Horas`;
+  let htmlRows = '';
+  if(servicos.length > 0) {
+    servicos.forEach(item => {
+      const operador = escapeHtml(item.operador || item.maquina || 'RETRO'), cliente = escapeHtml(item.cliente || '-');
+      if(tipo === 'particular') {
+        htmlRows += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${cliente}</td><td>${escapeHtml(item.servicoDesc||'')} / ${escapeHtml(item.local||'')}</td><td>${item.horimetroInicial||0} -> ${item.horimetroFinal||0} (${item.horasTrabalhadas||0}h)</td><td>${fmtMoeda(item.valorHora||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
+      } else {
+        htmlRows += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.local||'')}</td><td>${escapeHtml(item.material||'')}</td><td><b>${cliente}</b></td><td>${item.qtd||0}</td><td>${fmtMoeda(item.valorCacamba||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
+      }
+    });
+  } else { htmlRows = '<tr><td colspan="8" style="text-align:center;padding:20px;">Nenhum registro encontrado.</td></tr>'; }
+  let htmlRowsAbs = '';
+  if(abastecimentos.length > 0) {
+    abastecimentos.forEach(a => { htmlRowsAbs += `<tr><td>${fmtData(a.dataServico)}</td><td>${escapeHtml(a.operador||'-')}</td><td>${escapeHtml(a.posto||'-')}</td><td>${a.litros||0} L</td><td>${fmtMoeda(a.valorLitro||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(a.combustivel||0)}</td></tr>`; });
+  } else { htmlRowsAbs = '<tr><td colspan="6" style="text-align:center;padding:15px;">Sem combustível no período.</td></tr>'; }
+  const cabecalho = tipo === 'carregamento'
+    ? '<th>Data</th><th>Operador</th><th>Local</th><th>Material</th><th>Caçamba</th><th>Qtd.</th><th>Valor Caçamba</th><th style="text-align:right;">Total</th>'
+    : '<th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço/Local</th><th>Horímetro</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th>';
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>${titulo}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#0F766E;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div><div class="card"><div class="card-title">Total de Carregamento / Horas</div><div class="card-val">${totalCarregHorasTxt}</div></div></div><h2>Relatório de Serviços</h2><table><thead><tr>${cabecalho}</tr></thead><tbody>${htmlRows}</tbody></table><h2>Combustível / Abastecimentos</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Posto</th><th>Litros</th><th>Valor/L</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlRowsAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+function rtExportarExcelCategoria(tipo) {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  const operadorVal = document.getElementById('rtFMaquinaSelect').value;
+  const filtrados = rtLista.filter(item => {
+    const op = item.operador || item.maquina || 'RETRO';
+    if(operadorVal !== 'todos' && op !== operadorVal) return false;
+    return rtDataDentroDoFiltro(item.dataServico);
+  });
+  const servicos = filtrados.filter(i => !i.isAbastecimento && (i.tipo || (i.servicoDesc?'particular':'carregamento')) === tipo);
+  const abastecimentos = filtrados.filter(i => i.isAbastecimento && (i.operacaoAbastecimento||'carregamento') === tipo);
+  if(servicos.length === 0 && abastecimentos.length === 0) return alert('Sem dados para exportar.');
+  const totalFat = servicos.reduce((a,c)=>a+(c.valorTotal||0),0);
+  const totalComb = abastecimentos.reduce((a,c)=>a+(c.combustivel||0),0);
+  const totalLiq = totalFat - totalComb;
+  const nomeCat = tipo === 'carregamento' ? 'RELATÓRIO - CARREGAMENTO' : 'RELATÓRIO - PARTICULAR';
+  let csv = '\uFEFF' + nomeCat + ';\n';
+  csv += 'Faturamento: ' + totalFat.toFixed(2).replace('.',',') + ';Combustível: ' + totalComb.toFixed(2).replace('.',',') + ';Líquido: ' + totalLiq.toFixed(2).replace('.',',') + '\n\n';
+  if(tipo === 'carregamento') {
+    csv += 'Data;Operador;Local;Material;Caçamba;Qtd;Valor/Caçamba;Total\n';
+    servicos.forEach(i => { csv += `"${fmtData(i.dataServico)}";"${i.operador||i.maquina||'RETRO'}";"${i.local||''}";"${i.material||''}";"${i.cliente||''}";"${i.qtd||0}";"${i.valorCacamba||0}";"${i.valorTotal||0}"\n`; });
+  } else {
+    csv += 'Data;Operador;Cliente;Serviço;Local;Horím.Inicial;Horím.Final;Horas;Valor Hora;Faturamento\n';
+    servicos.forEach(i => { csv += `"${fmtData(i.dataServico)}";"${i.operador||i.maquina||'RETRO'}";"${i.cliente||''}";"${i.servicoDesc||''}";"${i.local||''}";"${i.horimetroInicial||0}";"${i.horimetroFinal||0}";"${i.horasTrabalhadas||0}";"${i.valorHora||0}";"${i.valorTotal||0}"\n`; });
+  }
+  csv += '\nCOMBUSTÍVEL\nData;Operador;Posto;Litros;Valor/L;Valor Combustível\n';
+  abastecimentos.forEach(a => { csv += `"${fmtData(a.dataServico)}";"${a.operador||''}";"${a.posto||''}";"${a.litros||0}";"${a.valorLitro||0}";"${a.combustivel||0}"\n`; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `relatorio_retro_${tipo}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  showToast('Planilha Excel gerada!');
+}
+function rtExportarExcel() {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  if(rtLista.length === 0) return alert('Sem dados para exportar.');
+  const servicos = rtLista.filter(i => !i.isAbastecimento), abastecimentos = rtLista.filter(i => i.isAbastecimento);
+  const totalFat = servicos.reduce((a,c)=>a+(c.valorTotal||0),0), totalComb = abastecimentos.reduce((a,c)=>a+(c.combustivel||0),0);
+  let csv = '\uFEFFRELATÓRIO GERAL - RETRO\n';
+  csv += 'Faturamento: ' + totalFat.toFixed(2).replace('.',',') + ';Combustível: ' + totalComb.toFixed(2).replace('.',',') + ';Líquido: ' + (totalFat-totalComb).toFixed(2).replace('.',',') + '\n\n';
+  csv += 'Tipo;Data;Operador;Detalhes;Local/Material;Qtd/Horas;Valor Unit.;Total\n';
+  servicos.forEach(i => {
+    const t = i.tipo || (i.servicoDesc?'particular':'carregamento'), op = i.operador || i.maquina || 'RETRO';
+    if(t === 'carregamento') csv += `"Carregamento";"${fmtData(i.dataServico)}";"${op}";"${i.cliente||''} (Caçamba)";"${i.local||''} / ${i.material||''}";"${i.qtd||0}";"${i.valorCacamba||0}";"${i.valorTotal||0}"\n`;
+    else csv += `"Particular";"${fmtData(i.dataServico)}";"${op}";"${i.cliente||''} (Cliente)";"${i.servicoDesc||''} - ${i.local||''}";"${i.horasTrabalhadas||0}h";"${i.valorHora||0}";"${i.valorTotal||0}"\n`;
+  });
+  csv += '\nABASTECIMENTOS\nData;Operação;Operador;Posto;Litros;Valor/L;Valor Combustível\n';
+  abastecimentos.forEach(a => { csv += `"${fmtData(a.dataServico)}";"${a.operacaoAbastecimento||''}";"${a.operador||''}";"${a.posto||''}";"${a.litros||0}";"${a.valorLitro||0}";"${a.combustivel||0}"\n`; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `controle_retro_geral_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  showToast('Planilha Excel geral gerada!');
+}
+function rtFazerBackup() {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  const blob = new Blob([JSON.stringify(rtLista, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup_retro_${new Date().toISOString().slice(0,10)}.json`; a.click();
+  showToast('Backup baixado!');
+}
+function rtRestaurarBackup(event) {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if(Array.isArray(dados) && confirm('Restaurar ' + dados.length + ' registros?')) {
+        const CHUNK = 450, chunks = [];
+        for(let i=0;i<dados.length;i+=CHUNK) chunks.push(dados.slice(i,i+CHUNK));
+        let promessa = Promise.resolve();
+        chunks.forEach(chunk => {
+          promessa = promessa.then(() => {
+            const batch = db.batch();
+            chunk.forEach(item => {
+              const id = item.id || ('r_' + Date.now() + Math.floor(Math.random()*1000));
+              const dados2 = {...item}; delete dados2.id;
+              batch.set(rtColRef.doc(id), dados2, { merge: true });
+            });
+            return batch.commit();
+          });
+        });
+        promessa.then(() => showToast('Backup restaurado com sucesso!')).catch(err => alert('Erro ao restaurar: ' + err.message));
+      }
+    } catch(err) { alert('Arquivo de backup inválido.'); }
+  };
+  reader.readAsText(file);
+}
+
+// ===================================================================
+// MÓDULO CAÇAMBA / FROTA
+// ===================================================================
+const cbColRef = db.collection('cacamba_servicos');
+const cbMaquinasDocRef = db.collection('cacamba_maquinas').doc('lista');
+let cbLista = [];
+let cbMaquinaSelecionada = "ATEGO";
+let cbModoFiltro = "mensal";
+let cbEditandoId = null;
+let cbEditandoCombustivelId = null;
+let cbTemPendencias = false;
+let cbListenerAtivo = false;
+let cbUnsubscribeFirebase = null;
+let cbMaquinasCustomCache = [];
+
+function cbNormalizarNome(nome) { return (nome || '').trim().toLowerCase(); }
+function cbPertenceAoUsuario(item) {
+  if(souDono()) return true;
+  if(usuarioAtual.papel !== 'motorista_cacamba') return false;
+  return (item.maquina || '').trim().toUpperCase() === (usuarioAtual.maquina || '').trim().toUpperCase();
+}
+
+function cbIniciar() {
+  document.getElementById('cbCDataEntrega').valueAsDate = new Date();
+  document.getElementById('cbCCombData').valueAsDate = new Date();
+  cbAtualizarSelectMaquinaCombustivel();
+  cbConfigurarInterface();
+  cbEscutarMaquinasCustom();
+  if(cbListenerAtivo) return;
+  cbListenerAtivo = true;
+  cbUnsubscribeFirebase = cbColRef.onSnapshot({ includeMetadataChanges: true }, (snapshot) => {
+    cbLista = snapshot.docs.map(d => d.data());
+    cbTemPendencias = snapshot.metadata.hasPendingWrites;
+    temPendenciasGlobal = rtTemPendencias || cbTemPendencias;
+    atualizarBadgeConexao();
+    cbAtualizarOpcoesFiltro();
+    cbRenderPainel();
+    cbRenderListaCombustivel();
+  }, err => showToast('Erro ao carregar dados da frota: ' + err.message));
+}
+
+function cbConfigurarInterface() {
+  const ehMotorista = usuarioAtual.papel === 'motorista_cacamba';
+  document.querySelectorAll('#painelCacamba .dono-only').forEach(el => el.style.display = souDono() ? '' : 'none');
+  document.querySelectorAll('#painelCacamba .btn-maquina:not(#cbBtnCustomMaq)').forEach(b => { b.classList.remove('disabled-maq'); b.onclick = function(){ cbSelecionarMaquina(this, this.dataset.nome); }; });
+  const primeiroBtn = document.querySelector('#painelCacamba .btn-maquina:not(#cbBtnCustomMaq)');
+  if(primeiroBtn) cbSelecionarMaquina(primeiroBtn, primeiroBtn.dataset.nome);
+  const campoMotorista = document.getElementById('cbCMotorista'), campoMotoristaComb = document.getElementById('cbCCombMotorista');
+  if(ehMotorista) {
+    campoMotorista.value = ''; campoMotorista.readOnly = false;
+    campoMotoristaComb.value = ''; campoMotoristaComb.readOnly = false;
+    cbRestringirVeiculoMotorista();
+  } else {
+    campoMotorista.readOnly = false; campoMotoristaComb.readOnly = false;
+  }
+}
+function cbSwitchTab(tab) {
+  document.getElementById('cbTabCad').classList.toggle('active', tab==='cadastro');
+  document.getElementById('cbTabCombustivel').classList.toggle('active', tab==='combustivel');
+  document.getElementById('cbTabPainel').classList.toggle('active', tab==='painel');
+  document.getElementById('cbViewCadastro').classList.toggle('active', tab==='cadastro');
+  document.getElementById('cbViewCombustivel').classList.toggle('active', tab==='combustivel');
+  document.getElementById('cbViewPainel').classList.toggle('active', tab==='painel');
+  if(tab === 'combustivel') cbRenderListaCombustivel();
+  if(tab === 'painel') { cbAtualizarOpcoesFiltro(); cbRenderPainel(); }
+}
+function cbGetListaTodosVeiculos() {
+  const fixos = ["ATEGO","ACCELO","BOB"];
+  return [...fixos, ...cbMaquinasCustomCache.filter(n => !fixos.includes(n))];
+}
+function cbAtualizarSelectMaquinaCombustivel() {
+  const sel = document.getElementById('cbCCombMaquina'); if(!sel) return;
+  const valorAtual = sel.value, todos = cbGetListaTodosVeiculos();
+  sel.innerHTML = todos.map(n => `<option value="${n}">${n}</option>`).join('');
+  if(todos.includes(valorAtual)) sel.value = valorAtual;
+}
+function cbEscutarMaquinasCustom() {
+  cbMaquinasDocRef.onSnapshot(doc => {
+    const lista = (doc.exists && Array.isArray(doc.data().nomes)) ? doc.data().nomes : [];
+    cbMaquinasCustomCache = lista;
+    cbRenderizarMaquinasCustom(lista);
+  }, err => console.warn('Erro ao sincronizar máquinas:', err));
+}
+function cbRenderizarMaquinasCustom(lista) {
+  cbAtualizarSelectMaquinaCombustivel();
+  const atuais = [...document.querySelectorAll('#painelCacamba .btn-maquina[data-nome]')].filter(b => !['ATEGO','ACCELO','BOB'].includes(b.dataset.nome));
+  atuais.forEach(b => {
+    if(!lista.includes(b.dataset.nome)) {
+      const eraAtivo = b.classList.contains('active'); b.remove();
+      if(eraAtivo) { const p = document.querySelector('#painelCacamba .btn-maquina:not(#cbBtnCustomMaq)'); if(p) cbSelecionarMaquina(p, p.dataset.nome); }
+    }
+  });
+  lista.forEach(nome => {
+    const jaExiste = [...document.querySelectorAll('#painelCacamba .btn-maquina')].some(b => b.dataset.nome === nome);
+    if(!jaExiste) cbCriarBotaoMaquinaCustom(nome, false);
+  });
+  cbRestringirVeiculoMotorista();
+}
+function cbCriarBotaoMaquinaCustom(nomeFmt, ativo) {
+  const cont = document.getElementById('cbMaquinaSelector');
+  const btn = document.createElement('button');
+  btn.type = "button"; btn.className = "btn-maquina" + (ativo?" active":""); btn.dataset.nome = nomeFmt;
+  btn.style.paddingRight = "20px";
+  btn.innerHTML = `${nomeFmt} <span onclick="cbExcluirMaquinaCustom(event, this, '${nomeFmt}')" style="position:absolute;top:2px;right:4px;font-size:12px;color:#8C422A;font-weight:bold;" title="Excluir">×</span>`;
+  btn.onclick = function(e) { if(e.target.tagName === 'SPAN') return; cbSelecionarMaquina(btn, nomeFmt); };
+  cont.insertBefore(btn, cont.lastElementChild);
+  return btn;
+}
+function cbSelecionarMaquina(btn, maquina) {
+  document.querySelectorAll('#painelCacamba .btn-maquina').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  cbMaquinaSelecionada = maquina;
+}
+function cbRestringirVeiculoMotorista() {
+  if(usuarioAtual.papel !== 'motorista_cacamba') return;
+  const maq = usuarioAtual.maquina;
+  const selComb = document.getElementById('cbCCombMaquina');
+  if(!maq) {
+    document.querySelectorAll('#painelCacamba .btn-maquina').forEach(b => { b.style.display=''; if(b.id!=='cbBtnCustomMaq') b.onclick=function(){cbSelecionarMaquina(this, this.dataset.nome);}; });
+    if(selComb) { cbAtualizarSelectMaquinaCombustivel(); selComb.disabled = false; }
+    return;
+  }
+  let btnDoMotorista = null;
+  document.querySelectorAll('#painelCacamba .btn-maquina[data-nome]').forEach(b => {
+    if(b.dataset.nome === maq) { b.style.display=''; b.onclick=null; btnDoMotorista=b; } else b.style.display='none';
+  });
+  const btnCustom = document.getElementById('cbBtnCustomMaq'); if(btnCustom) btnCustom.style.display='none';
+  document.querySelectorAll('#painelCacamba .btn-maquina').forEach(b => b.classList.remove('active'));
+  if(btnDoMotorista) btnDoMotorista.classList.add('active');
+  cbMaquinaSelecionada = maq;
+  if(selComb) { selComb.innerHTML = `<option value="${maq}">${maq}</option>`; selComb.value = maq; selComb.disabled = true; }
+}
+function cbAdicionarOutraMaquina() {
+  if(!souDono()) return alert('Apenas o Dono pode adicionar veículos.');
+  const novo = prompt("Nome do novo veículo/máquina (ex: RETRO 2, MUNK):");
+  if(novo && novo.trim() !== "") {
+    const nomeFmt = novo.trim().toUpperCase();
+    let existe = false;
+    document.querySelectorAll('#painelCacamba .btn-maquina').forEach(b => { if(b.dataset.nome === nomeFmt) existe = true; });
+    if(existe) return alert("Este veículo já está na lista!");
+    cbMaquinaSelecionada = nomeFmt;
+    document.querySelectorAll('#painelCacamba .btn-maquina').forEach(b => b.classList.remove('active'));
+    cbCriarBotaoMaquinaCustom(nomeFmt, true);
+    cbMaquinasDocRef.set({ nomes: firebase.firestore.FieldValue.arrayUnion(nomeFmt) }, { merge: true }).catch(err => console.warn(err));
+  }
+}
+function cbExcluirMaquinaCustom(event, spanEl, nomeFmt) {
+  event.stopPropagation();
+  if(!souDono()) return alert('Apenas o Dono pode remover veículos.');
+  if(confirm(`Remover o veículo "${nomeFmt}" da lista?`)) {
+    const btn = spanEl.closest('button');
+    if(btn) {
+      if(btn.classList.contains('active')) { const p = document.querySelector('#painelCacamba .btn-maquina:not(#cbBtnCustomMaq)'); if(p) cbSelecionarMaquina(p, p.dataset.nome); }
+      btn.remove(); showToast('Item removido.');
+    }
+    cbMaquinasDocRef.set({ nomes: firebase.firestore.FieldValue.arrayRemove(nomeFmt) }, { merge: true }).catch(err => console.warn(err));
+  }
+}
+const CB_TABELA_PRECOS_KM = [{min:0,max:5,valor:200},{min:5.1,max:10,valor:250},{min:10.1,max:15,valor:300},{min:15.1,max:20,valor:350},{min:20.1,max:25,valor:400},{min:25.1,max:30,valor:450},{min:30.1,max:35,valor:500},{min:35.1,max:40,valor:550},{min:40.1,max:45,valor:600},{min:45.1,max:50,valor:650},{min:50.1,max:55,valor:700},{min:55.1,max:60,valor:750},{min:60.1,max:65,valor:800},{min:65.1,max:70,valor:850},{min:70.1,max:75,valor:900},{min:75.1,max:80,valor:950},{min:80.1,max:85,valor:1000},{min:85.1,max:90,valor:1050},{min:90.1,max:95,valor:1100},{min:95.1,max:100,valor:1150},{min:100.1,max:105,valor:1200},{min:105.1,max:110,valor:1250},{min:110.1,max:115,valor:1300},{min:115.1,max:120,valor:1350},{min:120.1,max:125,valor:1400},{min:125.1,max:130,valor:1450},{min:130.1,max:135,valor:1500},{min:135.1,max:140,valor:1550},{min:140.1,max:145,valor:1600},{min:145.1,max:150,valor:1650},{min:150.1,max:155,valor:1700},{min:155.1,max:160,valor:1750},{min:160.1,max:165,valor:1800},{min:165.1,max:170,valor:1850},{min:170.1,max:175,valor:1900},{min:175.1,max:180,valor:1950},{min:180.1,max:185,valor:2000},{min:185.1,max:190,valor:2050},{min:190.1,max:195,valor:2100},{min:195.1,max:200,valor:2150}];
+function cbBuscarValorPorKm(km) {
+  const faixa = CB_TABELA_PRECOS_KM.find(f => km >= f.min && km <= f.max);
+  if(faixa) return faixa.valor;
+  if(km > 200) return 2150 + Math.ceil((km-200)/5)*50;
+  return 0;
+}
+function cbAtualizarLegendaFaixaKm(km) {
+  const infoEl = document.getElementById('cbCKmFaixaInfo'); if(!infoEl) return;
+  if(!km || km <= 0) { infoEl.textContent = ''; return; }
+  const valor = cbBuscarValorPorKm(km), faixa = CB_TABELA_PRECOS_KM.find(f => km >= f.min && km <= f.max);
+  infoEl.textContent = faixa ? `Faixa: ${faixa.min.toFixed(1).replace('.',',')} a ${faixa.max.toFixed(1).replace('.',',')} Km → R$ ${valor.toFixed(2).replace('.',',')}` : `Acima de 200 Km (projetado) → R$ ${valor.toFixed(2).replace('.',',')}`;
+}
+function cbCalcularValorPorKm() {
+  const km = parseFloat(document.getElementById('cbCKm').value) || 0;
+  if(km <= 0) { cbAtualizarLegendaFaixaKm(0); return; }
+  document.getElementById('cbCValorViagem').value = cbBuscarValorPorKm(km).toFixed(2);
+  cbAtualizarLegendaFaixaKm(km);
+  cbCalcularTotalFrete('valor');
+}
+function cbCalcularTotalFrete(origem) {
+  const qv = parseFloat(document.getElementById('cbCQtdViagens').value) || 0;
+  const vv = parseFloat(document.getElementById('cbCValorViagem').value) || 0;
+  const vt = parseFloat(document.getElementById('cbCValorTotal').value) || 0;
+  if(origem==='qtd' || origem==='valor') { if(qv>0 && vv>0) document.getElementById('cbCValorTotal').value = (qv*vv).toFixed(2); }
+  else if(origem==='total') { if(qv>0 && vt>0) document.getElementById('cbCValorViagem').value = (vt/qv).toFixed(2); }
+}
+function cbCalcularTotalCombustivelTab(origem) {
+  const lit = parseFloat(document.getElementById('cbCCombLitros').value) || 0;
+  const vLit = parseFloat(document.getElementById('cbCCombValorPorLitro').value) || 0;
+  const vTot = parseFloat(document.getElementById('cbCCombValorTotal').value) || 0;
+  if(origem==='litros' || origem==='porLitro') { if(lit>0 && vLit>0) document.getElementById('cbCCombValorTotal').value = (lit*vLit).toFixed(2); }
+  else if(origem==='total') { if(lit>0 && vTot>0) document.getElementById('cbCCombValorPorLitro').value = (vTot/lit).toFixed(2); }
+}
+function cbSalvarCombustivel() {
+  const maquina = document.getElementById('cbCCombMaquina').value;
+  const motorista = document.getElementById('cbCCombMotorista').value.trim();
+  const dataEntrega = document.getElementById('cbCCombData').value;
+  const posto = document.getElementById('cbCCombPosto').value.trim();
+  const litros = parseFloat(document.getElementById('cbCCombLitros').value) || 0;
+  const valorPorLitro = parseFloat(document.getElementById('cbCCombValorPorLitro').value) || 0;
+  const valorCombustivel = parseFloat(document.getElementById('cbCCombValorTotal').value) || 0;
+  if(!maquina) return alert('Selecione o veículo/máquina.');
+  if(!motorista) return alert('Informe o nome do motorista.');
+  if(!dataEntrega) return alert('Informe a data.');
+  if(!posto) return alert('Informe o posto.');
+  if(litros <= 0) return alert('Informe os litros.');
+  const idUnico = cbEditandoCombustivelId ? cbEditandoCombustivelId : ('f_' + Date.now());
+  const registro = { id: idUnico, tipoRegistro: 'combustivel', maquina, motorista, dataEntrega, posto, litros, valorPorLitro, valorCombustivel };
+  if(usuarioAtual.papel === 'motorista_cacamba') registro.motoristaUid = usuarioAtual.uid;
+  cbColRef.doc(idUnico).set(registro, { merge: true }).catch(err => alert('Erro ao salvar: ' + err.message));
+  const msg = cbEditandoCombustivelId ? 'Alterações salvas!' : 'Abastecimento registrado!';
+  cbResetFormCombustivel();
+  showToast(msg + (!navigator.onLine ? ' (offline)' : ''));
+}
+function cbResetFormCombustivel() {
+  cbEditandoCombustivelId = null;
+  document.getElementById('cbBtnSalvarCombustivel').textContent = "Registrar Abastecimento";
+  document.getElementById('cbCCombMotorista').value = '';
+  document.getElementById('cbCCombData').valueAsDate = new Date();
+  ['cbCCombPosto','cbCCombLitros','cbCCombValorPorLitro','cbCCombValorTotal'].forEach(id => document.getElementById(id).value = '');
+}
+function cbEditarCombustivel(id) {
+  const item = cbLista.find(x => x.id === id); if(!item) return;
+  if(usuarioAtual.papel === 'motorista_cacamba' && !cbPertenceAoUsuario(item)) return alert('Sem permissão para editar registros de outros motoristas.');
+  cbEditandoCombustivelId = id;
+  const sel = document.getElementById('cbCCombMaquina'); if(sel) sel.value = item.maquina || '';
+  document.getElementById('cbCCombMotorista').value = item.motorista || '';
+  document.getElementById('cbCCombData').value = item.dataEntrega || '';
+  document.getElementById('cbCCombPosto').value = item.posto || '';
+  document.getElementById('cbCCombLitros').value = item.litros || '';
+  document.getElementById('cbCCombValorPorLitro').value = item.valorPorLitro || '';
+  document.getElementById('cbCCombValorTotal').value = item.valorCombustivel || '';
+  document.getElementById('cbBtnSalvarCombustivel').textContent = "Salvar Alterações";
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Modo de edição ativado');
+}
+function cbRenderListaCombustivel() {
+  const corpo = document.getElementById('cbListaCombustivelTabela'); if(!corpo) return;
+  corpo.innerHTML = '';
+  let itens = cbLista.filter(i => i.tipoRegistro === 'combustivel');
+  if(usuarioAtual.papel === 'motorista_cacamba') itens = itens.filter(cbPertenceAoUsuario);
+  itens = itens.slice().sort((a,b) => (b.dataEntrega||'').localeCompare(a.dataEntrega||''));
+  if(itens.length === 0) { corpo.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;">Nenhum abastecimento registrado.</td></tr>'; return; }
+  itens.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td>${escapeHtml(item.posto||'-')}</td><td><b>${escapeHtml(item.maquina||'-')}</b><br><small>👤 ${escapeHtml(item.motorista||'-')}</small></td><td class="mono">${(item.litros||0).toFixed(2)} L<br><small>R$ ${(item.valorCombustivel||0).toFixed(2)}</small></td><td><div class="table-actions"><button onclick="cbEditarCombustivel('${item.id}')">✏️</button><button onclick="cbExcluirServico('${item.id}')">🗑️</button></div></td>`;
+    corpo.appendChild(tr);
+  });
+}
+function cbSalvarServico() {
+  const motorista = document.getElementById('cbCMotorista').value.trim();
+  const dataEntrega = document.getElementById('cbCDataEntrega').value;
+  const localSaida = document.getElementById('cbCLocalSaida').value.trim();
+  const destino = document.getElementById('cbCDestino').value.trim();
+  const tipoMaterial = document.getElementById('cbCTipoMaterial').value.trim();
+  const cliente = document.getElementById('cbCCliente').value.trim();
+  const km = parseFloat(document.getElementById('cbCKm').value) || 0;
+  const qtdViagens = parseInt(document.getElementById('cbCQtdViagens').value) || 0;
+  const valorViagem = parseFloat(document.getElementById('cbCValorViagem').value) || 0;
+  const valorTotal = parseFloat(document.getElementById('cbCValorTotal').value) || 0;
+  if(!cliente || !dataEntrega) return alert('Preencha a Data da entrega e o Nome do Cliente.');
+  if(!motorista) return alert('Informe o nome do motorista.');
+  const idUnico = cbEditandoId ? cbEditandoId : ('c_' + Date.now());
+  const servicoData = { id: idUnico, maquina: cbMaquinaSelecionada, motorista, dataEntrega, localSaida, destino, tipoMaterial, cliente, km, qtdViagens, valorViagem, valorTotal };
+  if(usuarioAtual.papel === 'motorista_cacamba') servicoData.motoristaUid = usuarioAtual.uid;
+  cbColRef.doc(idUnico).set(servicoData, { merge: true }).catch(err => alert('Erro ao salvar: ' + err.message));
+  const msg = cbEditandoId ? 'Alterações salvas!' : 'Serviço registrado!';
+  cbResetForm();
+  showToast(msg + (!navigator.onLine ? ' (offline)' : ''));
+  cbSwitchTab('painel');
+}
+function cbEditarServico(id) {
+  const item = cbLista.find(x => x.id === id); if(!item) return;
+  if(usuarioAtual.papel === 'motorista_cacamba' && !cbPertenceAoUsuario(item)) return alert('Sem permissão para editar registros de outros motoristas.');
+  cbEditandoId = id;
+  cbMaquinaSelecionada = item.maquina || "ATEGO";
+  let achouBotao = false;
+  document.querySelectorAll('#painelCacamba .btn-maquina').forEach(b => {
+    if(b.dataset.nome === item.maquina || b.textContent.trim() === item.maquina) { b.classList.add('active'); achouBotao = true; } else b.classList.remove('active');
+  });
+  if(!achouBotao && item.maquina) cbCriarBotaoMaquinaCustom(item.maquina, true);
+  document.getElementById('cbCMotorista').value = item.motorista || '';
+  document.getElementById('cbCDataEntrega').value = item.dataEntrega || '';
+  document.getElementById('cbCLocalSaida').value = item.localSaida || '';
+  document.getElementById('cbCDestino').value = item.destino || '';
+  document.getElementById('cbCTipoMaterial').value = item.tipoMaterial || '';
+  document.getElementById('cbCCliente').value = item.cliente || '';
+  document.getElementById('cbCKm').value = item.km || '';
+  document.getElementById('cbCQtdViagens').value = item.qtdViagens || '';
+  document.getElementById('cbCValorViagem').value = item.valorViagem || '';
+  document.getElementById('cbCValorTotal').value = item.valorTotal || '';
+  cbAtualizarLegendaFaixaKm(item.km || 0);
+  const btn = document.getElementById('cbBtnSalvar');
+  btn.textContent = "Salvar Alterações"; btn.style.background = "#8C422A";
+  cbSwitchTab('cadastro');
+  showToast('Modo de edição ativado');
+}
+function cbResetForm() {
+  cbEditandoId = null;
+  const btn = document.getElementById('cbBtnSalvar');
+  btn.textContent = "Registrar Serviço"; btn.style.background = "var(--accent)";
+  document.getElementById('cbCMotorista').value = '';
+  document.getElementById('cbCDataEntrega').valueAsDate = new Date();
+  ['cbCLocalSaida','cbCDestino','cbCTipoMaterial','cbCCliente','cbCKm','cbCQtdViagens','cbCValorViagem','cbCValorTotal'].forEach(id => document.getElementById(id).value = '');
+  cbAtualizarLegendaFaixaKm(0);
+}
+async function cbExcluirServico(id) {
+  const senha = prompt('Digite a senha do Dono para excluir este registro:');
+  if(senha === null) return;
+  if(!(await verificarSenhaDono(senha))) return alert('Senha incorreta!');
+  if(confirm('Excluir permanentemente este registro?')) {
+    cbColRef.doc(id).delete().then(() => showToast('Registro excluído!')).catch(err => alert('Erro ao excluir: ' + err.message));
+  }
+}
+function cbSetModoFiltro(modo) {
+  cbModoFiltro = modo;
+  document.getElementById('cbBtnModoDiario').classList.toggle('active', modo==='diario');
+  document.getElementById('cbBtnModoMensal').classList.toggle('active', modo==='mensal');
+  document.getElementById('cbBtnModoSemanal').classList.toggle('active', modo==='semanal');
+  const hoje = new Date(); let inicio, fim;
+  if(modo === 'diario') { inicio = hoje; fim = hoje; }
+  else if(modo === 'semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
+  else { inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0); }
+  document.getElementById('cbFDataInicio').value = fmtDataISO(inicio);
+  document.getElementById('cbFDataFim').value = fmtDataISO(fim);
+  cbRenderPainel();
+}
+function cbOnDataRangeChange() {
+  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  cbRenderPainel();
+}
+function cbLimparPeriodo() {
+  document.getElementById('cbFDataInicio').value = ''; document.getElementById('cbFDataFim').value = '';
+  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  cbRenderPainel();
+}
+function cbGetTextoPeriodoAtual() {
+  const inicio = document.getElementById('cbFDataInicio').value, fim = document.getElementById('cbFDataFim').value;
+  if(!inicio && !fim) return 'Todos os períodos';
+  if(inicio && fim) return fmtData(inicio) + ' a ' + fmtData(fim);
+  if(inicio) return 'A partir de ' + fmtData(inicio);
+  return 'Até ' + fmtData(fim);
+}
+function cbDataDentroDoFiltro(dataStr) {
+  const inicio = document.getElementById('cbFDataInicio').value, fim = document.getElementById('cbFDataFim').value;
+  if(!inicio && !fim) return true;
+  if(!dataStr) return true;
+  if(inicio && dataStr < inicio) return false;
+  if(fim && dataStr > fim) return false;
+  return true;
+}
+function cbAtualizarOpcoesFiltro() {
+  const base = (usuarioAtual.papel==='motorista_cacamba') ? cbLista.filter(cbPertenceAoUsuario) : cbLista;
+  const mSelect = document.getElementById('cbFMaquinaSelect');
+  mSelect.disabled = false;
+  if(usuarioAtual.papel === 'motorista_cacamba') {
+    mSelect.innerHTML = '<option value="todos">Todos os veículos</option>';
+    [...new Set(base.map(i=>i.maquina))].filter(Boolean).sort().forEach(v => { mSelect.innerHTML += `<option value="${v}">${v}</option>`; });
+  } else {
+    mSelect.innerHTML = '<option value="todos">Todos os veículos/máquinas</option>';
+    [...new Set(cbLista.map(i=>i.maquina))].filter(Boolean).sort().forEach(v => { mSelect.innerHTML += `<option value="${v}">${v}</option>`; });
+  }
+  const motSelect = document.getElementById('cbFMotoristaSelect');
+  motSelect.disabled = false;
+  if(usuarioAtual.papel === 'motorista_cacamba') {
+    motSelect.innerHTML = '<option value="todos">Todos os motoristas</option>';
+    [...new Set(base.map(i=>i.motorista))].filter(Boolean).sort().forEach(m => { motSelect.innerHTML += `<option value="${m}">${m}</option>`; });
+  } else {
+    motSelect.innerHTML = '<option value="todos">Todos os motoristas</option>';
+    [...new Set(base.map(i=>i.motorista))].filter(Boolean).sort().forEach(m => { motSelect.innerHTML += `<option value="${m}">${m}</option>`; });
+  }
+}
+function cbGetFiltrados() {
+  const maquinaVal = document.getElementById('cbFMaquinaSelect').value;
+  const motoristaVal = document.getElementById('cbFMotoristaSelect').value;
+  const buscaTexto = (document.getElementById('cbFBuscaTexto').value||'').toLowerCase().trim();
+  return cbLista.filter(item => {
+    if(item.tipoRegistro === 'combustivel') return false;
+    if(usuarioAtual.papel === 'motorista_cacamba' && !cbPertenceAoUsuario(item)) return false;
+    if(maquinaVal !== 'todos' && item.maquina !== maquinaVal) return false;
+    if(motoristaVal !== 'todos' && item.motorista !== motoristaVal) return false;
+    if(!cbDataDentroDoFiltro(item.dataEntrega)) return false;
+    if(buscaTexto !== '') {
+      const termo = [item.cliente,item.motorista,item.localSaida,item.destino,item.tipoMaterial,item.maquina].join(' ').toLowerCase();
+      if(!termo.includes(buscaTexto)) return false;
+    }
+    return true;
+  });
+}
+function cbGetCombustivelFiltrados() {
+  const maquinaVal = document.getElementById('cbFMaquinaSelect').value;
+  const motoristaVal = document.getElementById('cbFMotoristaSelect').value;
+  const buscaTexto = (document.getElementById('cbFBuscaTexto').value||'').toLowerCase().trim();
+  return cbLista.filter(item => {
+    if(item.tipoRegistro !== 'combustivel') return false;
+    if(usuarioAtual.papel === 'motorista_cacamba' && !cbPertenceAoUsuario(item)) return false;
+    if(maquinaVal !== 'todos' && item.maquina !== maquinaVal) return false;
+    if(motoristaVal !== 'todos' && item.motorista !== motoristaVal) return false;
+    if(!cbDataDentroDoFiltro(item.dataEntrega)) return false;
+    if(buscaTexto !== '') { const termo = [item.posto,item.motorista,item.maquina].join(' ').toLowerCase(); if(!termo.includes(buscaTexto)) return false; }
+    return true;
+  });
+}
+function cbRenderPainel() {
+  const container = document.getElementById('cbListaServicosTabela'); container.innerHTML = '';
+  const filtrados = cbGetFiltrados();
+  const ocultar = usuarioAtual.papel === 'motorista_cacamba';
+  let totValor=0, totServicos=0, totComb=0, totLitros=0, totKm=0;
+  const porMaquina = {};
+  if(filtrados.length === 0) container.innerHTML = `<tr><td colspan="${ocultar?4:6}" style="text-align:center;padding:20px;">Nenhum registro encontrado.</td></tr>`;
+  filtrados.forEach(item => {
+    try {
+      totValor += item.valorTotal||0; totServicos += 1; totComb += item.valorCombustivel||0; totLitros += item.litros||0; totKm += item.km||0;
+      if(!porMaquina[item.maquina]) porMaquina[item.maquina] = { fat: 0, comb: 0 };
+      porMaquina[item.maquina].fat += (item.valorTotal||0);
+      const vFmt = (item.valorViagem||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      const materialTitulo = `${escapeHtml(item.tipoMaterial||'Geral')} / ${item.qtdViagens||0} viagens`;
+      const infoMaterial = ocultar ? `🛣️ ${item.km||0} km` : `🛣️ ${item.km||0} km (R$ ${vFmt})`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td><b>${escapeHtml(item.maquina)}</b><br><small>👤 ${escapeHtml(item.motorista||'-')}</small></td><td>${escapeHtml(item.cliente)}<br><small>📍 ${escapeHtml(item.localSaida||'-')} ➔ ${escapeHtml(item.destino||'-')}</small></td><td><b>${materialTitulo}</b><br><small>${infoMaterial}</small></td>${souDono()?`<td class="mono" style="font-weight:bold;color:var(--accent);">R$ ${(item.valorTotal||0).toFixed(2)}</td>`:''}<td><div class="table-actions"><button onclick="cbCopiarComprovante('${item.id}')">🧾</button><button onclick="cbEditarServico('${item.id}')">✏️</button><button onclick="cbExcluirServico('${item.id}')">🗑️</button></div></td>`;
+      container.appendChild(tr);
+    } catch(err) { console.warn('Registro ignorado:', item, err); }
+  });
+  const combustivelF = cbGetCombustivelFiltrados();
+  combustivelF.forEach(item => {
+    totComb += item.valorCombustivel||0; totLitros += item.litros||0;
+    if(item.maquina) { if(!porMaquina[item.maquina]) porMaquina[item.maquina] = { fat: 0, comb: 0 }; porMaquina[item.maquina].comb += (item.valorCombustivel||0); }
+  });
+  document.getElementById('cbStTotal').textContent = fmtMoeda(totValor);
+  document.getElementById('cbStServicos').textContent = totServicos;
+  document.getElementById('cbStCombustivel').textContent = fmtMoeda(totComb);
+  document.getElementById('cbStLitros').textContent = totLitros.toFixed(2) + ' L';
+  document.getElementById('cbStLiquidoGeral').textContent = fmtMoeda(totValor - totComb);
+  document.getElementById('cbStKmViagens').textContent = totKm + ' Km / ' + filtrados.reduce((a,b)=>a+(b.qtdViagens||0),0) + ' Viagens';
+  cbRenderTabelaCombustivelPainel(combustivelF);
+  cbRenderCardsRelatorioMaquinas();
+  if(souDono()) {
+    const semanasCb = agruparFatCombPorSemana(filtrados, 'dataEntrega', combustivelF, 'dataEntrega');
+    const linhasCb = semanasCb.map(s => ({ label: fmtSemanaLabel(s.seg, s.dom), valor: s.fat - s.comb }));
+    document.getElementById('cbGraficoSemanal').innerHTML = renderGraficoBarrasHtml(linhasCb, 'var(--accent-caca)');
+  }
+  cbRenderGraficoMaquinas(porMaquina);
+}
+function cbRenderTabelaCombustivelPainel(itens) {
+  const corpo = document.getElementById('cbListaCombustivelPainel'); if(!corpo) return;
+  corpo.innerHTML = '';
+  if(itens.length === 0) { corpo.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px;">Nenhum abastecimento no período.</td></tr>'; return; }
+  itens.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td>${escapeHtml(item.posto||'-')}</td><td>${escapeHtml(item.maquina||'-')}</td><td>${escapeHtml(item.motorista||'-')}</td><td class="mono">${(item.litros||0).toFixed(2)} L</td><td class="mono">R$ ${(item.valorPorLitro||0).toFixed(2)}</td><td class="mono">R$ ${(item.valorCombustivel||0).toFixed(2)}</td>`;
+    corpo.appendChild(tr);
+  });
+}
+function cbRenderCardsRelatorioMaquinas() {
+  const grid = document.getElementById('cbMaquinasRelatorioGrid'); grid.innerHTML = '';
+  if(!souDono()) return;
+  let unicas = [...new Set(cbLista.map(i=>i.maquina))].filter(Boolean).sort();
+  ["ATEGO","ACCELO","BOB"].forEach(p => { if(!unicas.includes(p)) unicas.push(p); });
+  const motoristaVal = document.getElementById('cbFMotoristaSelect').value;
+  unicas.forEach(maq => {
+    const itensMaq = cbLista.filter(item => {
+      if(item.maquina !== maq) return false;
+      if(motoristaVal !== 'todos' && item.motorista !== motoristaVal) return false;
+      if(!cbDataDentroDoFiltro(item.dataEntrega)) return false;
+      return true;
+    });
+    const totalFat = itensMaq.reduce((a,c)=>a+(c.valorTotal||0),0);
+    const totalComb = itensMaq.reduce((a,c)=>a+(c.valorCombustivel||0),0);
+    const totalLitros = itensMaq.reduce((a,c)=>a+(c.litros||0),0);
+    const totalKm = itensMaq.reduce((a,c)=>a+(c.km||0),0);
+    const totalViagens = itensMaq.reduce((a,c)=>a+(c.qtdViagens||0),0);
+    const qtdLanc = itensMaq.filter(i=>i.tipoRegistro!=='combustivel').length;
+    const card = document.createElement('div');
+    card.className = 'maquina-card-rel';
+    card.innerHTML = `<h4>${maq}</h4><p style="margin-bottom:6px;font-size:0.75rem;">Lançamentos: ${qtdLanc}<br>Viagens/Km: ${totalKm.toLocaleString('pt-BR')} Km / ${totalViagens} Viagens<br>Faturamento: <b>${fmtMoeda(totalFat)}</b><br>Combustível: <span style="color:#ffcccc;">${fmtMoeda(totalComb)} (${totalLitros.toLocaleString('pt-BR')} L)</span><br><span style="font-size:0.85rem;color:#a3e4d7;"><b>Líquido: ${fmtMoeda(totalFat-totalComb)}</b></span></p><div class="maquina-card-actions"><button class="btn-pdf-maq" onclick="cbGerarPDFMaquina('${maq}')">📄 PDF</button><button class="btn-excel-maq" onclick="cbExportarExcelMaquina('${maq}')">🟢 Excel</button></div>`;
+    grid.appendChild(card);
+  });
+}
+function cbRenderGraficoMaquinas(dados) {
+  const chartEl = document.getElementById('cbChartMaquinas'); chartEl.innerHTML = '';
+  const chaves = Object.keys(dados);
+  if(chaves.length === 0) { chartEl.innerHTML = '<div style="font-size:0.75rem;color:#777;">Sem dados para o período.</div>'; return; }
+  const maxVal = Math.max(1, ...chaves.map(k => Math.max(dados[k].fat, Math.abs(dados[k].fat - dados[k].comb))));
+  chaves.forEach(vKey => {
+    const fat = dados[vKey].fat, liq = dados[vKey].fat - dados[vKey].comb;
+    const pctFat = Math.round((fat/maxVal)*100), pctLiq = Math.round((Math.abs(liq)/maxVal)*100);
+    const corLiq = liq >= 0 ? '#1B7A4D' : '#B91C1C';
+    const bloco = document.createElement('div');
+    bloco.style.cssText = 'margin-bottom:14px;';
+    bloco.innerHTML = `
+      <div style="font-weight:700;font-size:0.75rem;margin-bottom:4px;">${escapeHtml(vKey)}</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.72rem;margin-bottom:4px;"><div style="width:78px;flex-shrink:0;color:#556677;">Faturamento</div><div style="flex:1;height:12px;background:#E4EBF2;border-radius:6px;overflow:hidden;"><div style="height:100%;background:var(--accent-caca);width:${pctFat}%;"></div></div><div style="width:100px;text-align:right;font-weight:700;">${fmtMoeda(fat)}</div></div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:0.72rem;"><div style="width:78px;flex-shrink:0;color:#556677;">Líquido</div><div style="flex:1;height:12px;background:#E4EBF2;border-radius:6px;overflow:hidden;"><div style="height:100%;background:${corLiq};width:${pctLiq}%;"></div></div><div style="width:100px;text-align:right;font-weight:700;">${fmtMoeda(liq)}</div></div>`;
+    chartEl.appendChild(bloco);
+  });
+}
+function cbGetResumoPorEquipe() {
+  if(!souDono()) return [];
+  let unicas = [...new Set(cbLista.map(i=>i.maquina))].filter(Boolean);
+  const ordem = ["BOB","ATEGO","ACCELO"];
+  ordem.forEach(p => { if(!unicas.includes(p)) unicas.push(p); });
+  unicas.sort((a,b) => { const ia=ordem.indexOf(a), ib=ordem.indexOf(b); if(ia===-1&&ib===-1) return a.localeCompare(b); if(ia===-1) return 1; if(ib===-1) return -1; return ia-ib; });
+  const motoristaVal = document.getElementById('cbFMotoristaSelect').value;
+  return unicas.map(maq => {
+    const itensMaq = cbLista.filter(item => {
+      if(item.maquina !== maq) return false;
+      if(motoristaVal !== 'todos' && item.motorista !== motoristaVal) return false;
+      if(!cbDataDentroDoFiltro(item.dataEntrega)) return false;
+      return true;
+    });
+    const faturamento = itensMaq.reduce((a,c)=>a+(c.valorTotal||0),0), combustivel = itensMaq.reduce((a,c)=>a+(c.valorCombustivel||0),0);
+    return { maquina: maq, faturamento, combustivel, lucro: faturamento - combustivel };
+  });
+}
+function cbExportarExcel() {
+  const resumo = cbGetResumoPorEquipe(); if(resumo.length === 0) return alert('Sem dados para exportar.');
+  let totFat=0, totComb=0, totLuc=0;
+  let csv = '\uFEFFRESUMO POR EQUIPE\nCaçamba;Faturamento;Combustível;Lucro\n';
+  resumo.forEach(r => { totFat+=r.faturamento; totComb+=r.combustivel; totLuc+=r.lucro; csv += `"${r.maquina}";"${r.faturamento.toFixed(2)}";"${r.combustivel.toFixed(2)}";"${r.lucro.toFixed(2)}"\n`; });
+  csv += `"TOTAL GERAL";"${totFat.toFixed(2)}";"${totComb.toFixed(2)}";"${totLuc.toFixed(2)}"\n`;
+  const dados = cbGetFiltrados();
+  csv += '\nVISÃO GERAL\nVeículo;Motorista;Data;Saída;Destino;Material;Cliente;Km;Viagens;Valor/Viagem;Total\n';
+  dados.forEach(i => { csv += `"${i.maquina}";"${i.motorista}";"${fmtData(i.dataEntrega)}";"${i.localSaida}";"${i.destino}";"${i.tipoMaterial}";"${i.cliente}";"${i.km}";"${i.qtdViagens}";"${i.valorViagem}";"${i.valorTotal}"\n`; });
+  const comb = cbGetCombustivelFiltrados();
+  csv += '\nCOMBUSTÍVEL\nData;Posto;Veículo;Motorista;Litros;Valor/L;Valor\n';
+  comb.forEach(i => { csv += `"${fmtData(i.dataEntrega)}";"${i.posto||''}";"${i.maquina}";"${i.motorista||''}";"${i.litros}";"${i.valorPorLitro||''}";"${i.valorCombustivel}"\n`; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `faturamento_equipe_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  showToast('Planilha Excel gerada!');
+}
+function cbExportarExcelMaquina(maq) {
+  if(!souDono()) return alert('Apenas o Dono pode exportar relatórios por veículo.');
+  const motoristaVal = document.getElementById('cbFMotoristaSelect').value;
+  const dadosMaq = cbLista.filter(item => {
+    if(item.maquina !== maq) return false;
+    if(motoristaVal !== 'todos' && item.motorista !== motoristaVal) return false;
+    if(!cbDataDentroDoFiltro(item.dataEntrega)) return false;
+    return true;
+  });
+  if(dadosMaq.length === 0) return alert(`Sem registros para ${maq}.`);
+  const entregas = dadosMaq.filter(i=>i.tipoRegistro!=='combustivel'), combustivel = dadosMaq.filter(i=>i.tipoRegistro==='combustivel');
+  const totFat = entregas.reduce((a,c)=>a+(c.valorTotal||0),0), totComb = dadosMaq.reduce((a,c)=>a+(c.valorCombustivel||0),0);
+  let csv = `\uFEFFRELATÓRIO - ${maq}\nFaturamento: ${totFat};Combustível: ${totComb};Líquido: ${totFat-totComb}\n\n`;
+  csv += 'Motorista;Data;Saída;Destino;Material;Cliente;Km;Viagens;Valor Viagem;Total\n';
+  entregas.forEach(i => { csv += `"${i.motorista}";"${fmtData(i.dataEntrega)}";"${i.localSaida}";"${i.destino}";"${i.tipoMaterial}";"${i.cliente}";"${i.km}";"${i.qtdViagens}";"${i.valorViagem}";"${i.valorTotal}"\n`; });
+  csv += '\nCOMBUSTÍVEL\nData;Posto;Motorista;Litros;Valor/L;Valor\n';
+  combustivel.forEach(i => { csv += `"${fmtData(i.dataEntrega)}";"${i.posto||''}";"${i.motorista||''}";"${i.litros}";"${i.valorPorLitro||''}";"${i.valorCombustivel}"\n`; });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `relatorio_${maq.toLowerCase()}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  showToast(`Excel de ${maq} gerado!`);
+}
+function cbGerarRelatorioPDF() {
+  const resumo = cbGetResumoPorEquipe(); if(resumo.length === 0) return alert('Sem dados para gerar o relatório.');
+  let totFat=0, totComb=0, totLuc=0, linhas='';
+  resumo.forEach(r => { totFat+=r.faturamento; totComb+=r.combustivel; totLuc+=r.lucro; linhas += `<tr><td>${escapeHtml(r.maquina)}</td><td class="mono">${fmtMoeda(r.faturamento)}</td><td class="mono">${fmtMoeda(r.combustivel)}</td><td class="mono">${fmtMoeda(r.lucro)}</td></tr>`; });
+  const dadosDet = cbGetFiltrados();
+  const totLanc = dadosDet.length;
+  const totKm = dadosDet.reduce((a,c) => a + (c.km||0), 0);
+  const totViagens = dadosDet.reduce((a,c) => a + (c.qtdViagens||0), 0);
+  const combDet = cbGetCombustivelFiltrados();
+  const totLitros = combDet.reduce((a,c) => a + (c.litros||0), 0);
+  const textoPeriodo = cbGetTextoPeriodoAtual();
+  let linhasDet = '';
+  dadosDet.forEach(i => {
+    const vFmt = (i.valorViagem||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    linhasDet += `<tr><td>${fmtData(i.dataEntrega)}</td><td><b>${escapeHtml(i.maquina)}</b><br><small>👤 ${escapeHtml(i.motorista||'-')}</small></td><td>${escapeHtml(i.cliente||'-')}<br><small>📍 ${escapeHtml(i.localSaida||'-')} ➔ ${escapeHtml(i.destino||'-')}</small></td><td><b>${escapeHtml(i.tipoMaterial||'Geral')} / ${i.qtdViagens||0} viagens</b><br><small>🛣️ ${i.km||0} km (R$ ${vFmt})</small></td><td class="mono">${fmtMoeda(i.valorTotal||0)}</td></tr>`;
+  });
+  let linhasComb = '';
+  combDet.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
+    linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.maquina||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
+  });
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Faturamento por Equipe</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}h2{margin:20px 0 6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}</style></head><body><h2 style="margin-top:0;">Faturamento por Equipe</h2><div class="meta">Período: <b>${textoPeriodo}</b> | Gerado em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><table><thead><tr><th>Caçamba</th><th>Faturamento</th><th>Combustível</th><th>Lucro</th></tr></thead><tbody>${linhas}<tr style="font-weight:bold;"><td>TOTAL</td><td class="mono">${fmtMoeda(totFat)}</td><td class="mono">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</td><td class="mono">${fmtMoeda(totLuc)}</td></tr></tbody></table><h2>Todas as Entregas</h2><table><thead><tr><th>Data</th><th>Veículo/Motorista</th><th>Cliente/Rota</th><th>Material/Qtd</th><th>Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb || '<tr><td colspan="7" style="text-align:center;padding:10px;">Sem abastecimentos.</td></tr>'}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+function cbGerarPDFMaquina(maq) {
+  if(!souDono()) return alert('Apenas o Dono pode gerar relatórios por veículo.');
+  const dadosMaq = cbGetFiltrados().filter(i => i.maquina === maq);
+  const combMaq = cbGetCombustivelFiltrados().filter(i => i.maquina === maq);
+  if(dadosMaq.length === 0 && combMaq.length === 0) return alert(`Sem registros para ${maq} no período selecionado.`);
+
+  const totFat = dadosMaq.reduce((a,c) => a + (c.valorTotal||0), 0);
+  const totComb = combMaq.reduce((a,c) => a + (c.valorCombustivel||0), 0);
+  const totLitros = combMaq.reduce((a,c) => a + (c.litros||0), 0);
+  const totLiq = totFat - totComb;
+  const totLanc = dadosMaq.length;
+  const totKm = dadosMaq.reduce((a,c) => a + (c.km||0), 0);
+  const totViagens = dadosMaq.reduce((a,c) => a + (c.qtdViagens||0), 0);
+  const textoPeriodo = cbGetTextoPeriodoAtual();
+
+  let linhasDet = '';
+  dadosMaq.forEach(i => {
+    const vFmt = (i.valorViagem||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+    linhasDet += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.motorista||'-')}</td><td>${escapeHtml(i.cliente||'-')}<br><small>📍 ${escapeHtml(i.localSaida||'-')} ➔ ${escapeHtml(i.destino||'-')}</small></td><td><b>${escapeHtml(i.tipoMaterial||'Geral')} / ${i.qtdViagens||0} viagens</b><br><small>🛣️ ${i.km||0} km (R$ ${vFmt})</small></td><td class="mono">${fmtMoeda(i.valorTotal||0)}</td></tr>`;
+  });
+  if(!linhasDet) linhasDet = '<tr><td colspan="5" style="text-align:center;padding:15px;">Nenhum lançamento no período.</td></tr>';
+
+  let linhasComb = '';
+  combMaq.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
+    linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
+  });
+  if(!linhasComb) linhasComb = '<tr><td colspan="6" style="text-align:center;padding:15px;">Sem abastecimentos no período.</td></tr>';
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(maq)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-top:22px;margin-bottom:6px;border-bottom:2px solid #22303C;padding-bottom:4px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório Individual — ${escapeHtml(maq)}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento</div><div class="card-val">${fmtMoeda(totFat)}</div></div><div class="card"><div class="card-title">Combustível</div><div class="card-val">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</div></div><div class="card"><div class="card-title">Líquido</div><div class="card-val" style="color:#1B4D3E;">${fmtMoeda(totLiq)}</div></div></div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><h2>Lançamentos</h2><table><thead><tr><th>Data</th><th>Motorista</th><th>Cliente/Rota</th><th>Material/Qtd</th><th>Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+function cbFazerBackup() {
+  if(!souDono()) return alert('Apenas o Dono pode fazer backup.');
+  const blob = new Blob([JSON.stringify(cbLista, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `backup_frota_${new Date().toISOString().slice(0,10)}.json`; a.click();
+  showToast('Backup baixado!');
+}
+function cbRestaurarBackup(event) {
+  if(!souDono()) return alert('Apenas o Dono pode restaurar backups.');
+  const file = event.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if(Array.isArray(dados) && confirm(`Restaurar ${dados.length} registros?`)) {
+        const CHUNK = 450, chunks = [];
+        for(let i=0;i<dados.length;i+=CHUNK) chunks.push(dados.slice(i,i+CHUNK));
+        let promessa = Promise.resolve();
+        chunks.forEach(chunk => {
+          promessa = promessa.then(() => {
+            const batch = db.batch();
+            chunk.forEach(item => { const id = item.id || ('c_' + Math.random().toString(36).slice(2)); batch.set(cbColRef.doc(id), item, { merge: true }); });
+            return batch.commit();
+          });
+        });
+        promessa.then(() => showToast('Backup restaurado!')).catch(err => alert('Erro: ' + err.message));
+      }
+    } catch(err) { alert('Arquivo de backup inválido.'); }
+  };
+  reader.readAsText(file);
+}
+function cbCopiarComprovante(id) {
+  const item = cbLista.find(x => x.id === id); if(!item) return;
+  const ocultar = usuarioAtual.papel === 'motorista_cacamba';
+  let txt = `📋 *COMPROVANTE DE ENTREGA - FROTA*\n\n🚜 *Veículo:* ${item.maquina}\n👤 *Motorista:* ${item.motorista||'Não informado'}\n📅 *Data:* ${fmtData(item.dataEntrega)}\n📍 *Saída:* ${item.localSaida||'-'}\n🎯 *Destino:* ${item.destino||'-'}\n📦 *Material:* ${item.tipoMaterial||'Geral'}\n🏢 *Cliente:* ${item.cliente}\n🛣️ *Km:* ${item.km||0} km\n🚚 *Viagens:* ${item.qtdViagens||0}`;
+  if(!ocultar) txt += `\n💵 *Valor/viagem:* R$ ${(item.valorViagem||0).toFixed(2)}\n💰 *Total:* R$ ${(item.valorTotal||0).toFixed(2)}`;
+  navigator.clipboard.writeText(txt).then(() => showToast('Comprovante copiado!')).catch(() => alert(txt));
+}
+
+// ===================================================================
+// USUÁRIOS (SÓ DONO)
+// ===================================================================
+let uPapelSelecionado = 'operador_retro';
+function uSelecionarPapel(papel) {
+  uPapelSelecionado = papel;
+  document.getElementById('uBtnPapelRetro').classList.toggle('active', papel === 'operador_retro');
+  document.getElementById('uBtnPapelCacamba').classList.toggle('active', papel === 'motorista_cacamba');
+  document.getElementById('uBlocoVeiculo').style.display = papel === 'motorista_cacamba' ? 'block' : 'none';
+  if(papel === 'motorista_cacamba') {
+    const sel = document.getElementById('uMaquina');
+    sel.innerHTML = '<option value="">Selecione o veículo...</option>' + cbGetListaTodosVeiculos().map(n => `<option value="${n}">${n}</option>`).join('');
+  }
+  uCarregarLista();
+}
+async function uCadastrar() {
+  const nome = document.getElementById('uNome').value.trim();
+  const email = document.getElementById('uEmail').value.trim().toLowerCase();
+  const senha = document.getElementById('uSenha').value;
+  const maquina = document.getElementById('uMaquina').value;
+  if(!nome) return alert('Preencha o nome.');
+  if(!email || !email.includes('@')) return alert('Preencha um e-mail válido.');
+  if(!senha || senha.length < 6) return alert('A senha precisa ter pelo menos 6 caracteres.');
+  if(uPapelSelecionado === 'motorista_cacamba' && !maquina) return alert('Selecione o veículo/caçamba deste motorista.');
+  const appTemp = firebase.initializeApp(firebaseConfig, 'cadastro-usuario-' + Date.now());
+  try {
+    const cred = await appTemp.auth().createUserWithEmailAndPassword(email, senha);
+    const dadosUsuario = { nome, email, papel: uPapelSelecionado, ativo: true, criadoEm: new Date().toISOString() };
+    if(uPapelSelecionado === 'motorista_cacamba') dadosUsuario.maquina = maquina;
+    await colUsuarios.doc(cred.user.uid).set(dadosUsuario);
+    showToast('Usuário cadastrado com sucesso!');
+    ['uNome','uEmail','uSenha'].forEach(id => document.getElementById(id).value = '');
+    uCarregarLista();
+  } catch(err) {
+    if(err.code === 'auth/email-already-in-use') alert('Este e-mail já está cadastrado.');
+    else alert('Erro ao cadastrar: ' + err.message);
+  } finally {
+    await appTemp.auth().signOut().catch(() => {});
+    await appTemp.delete().catch(() => {});
+  }
+}
+function uCarregarLista() {
+  const container = document.getElementById('uListaContainer');
+  container.innerHTML = '<p style="font-size:0.8rem;color:var(--text-muted);">Carregando...</p>';
+  colUsuarios.get().then(snapshot => {
+    const usuarios = snapshot.docs.map(d => ({ uid: d.id, ...d.data() }))
+      .filter(u => u.papel === uPapelSelecionado)
+      .sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+    if(usuarios.length === 0) {
+      const msg = uPapelSelecionado === 'motorista_cacamba' ? 'Nenhum motorista de caçamba cadastrado ainda.' : 'Nenhum operador de retro cadastrado ainda.';
+      container.innerHTML = `<p style="font-size:0.85rem;color:var(--text-muted);">${msg}</p>`;
+      return;
+    }
+    container.innerHTML = usuarios.map(u => {
+      const ativo = u.ativo !== false;
+      const nomeEsc = escapeHtml(u.nome||'').replace(/'/g, "\\'");
+      const emailEsc = escapeHtml(u.email||'').replace(/'/g, "\\'");
+      const badgeClasse = u.papel === 'motorista_cacamba' ? 'caca' : 'retro';
+      const badgeTexto = u.papel === 'motorista_cacamba' ? '🚛 Login da Caçamba' + (u.maquina ? ' — ' + escapeHtml(u.maquina) : '') : '🚜 Retro';
+      return `<div class="usuario-card"><div class="u-top"><div><div class="u-nome">${escapeHtml(u.nome||'')}</div><div class="u-email">${escapeHtml(u.email||'')}</div><span class="u-badge ${badgeClasse}">${badgeTexto}</span><span class="u-status ${ativo?'ativo':'inativo'}">${ativo?'ATIVO':'INATIVO'}</span></div><div class="u-acoes"><button onclick="uEditarNome('${u.uid}','${nomeEsc}')" title="Editar nome">✏️</button><button onclick="uExcluir('${u.uid}','${nomeEsc}')" title="Excluir">🗑️</button></div></div><div class="u-acoes-sec"><button class="tools-btn" style="padding:7px 10px;font-size:0.7rem;" onclick="uAlterarSenha('${emailEsc}','${nomeEsc}')">🔑 Alterar Senha</button><button class="tools-btn" style="padding:7px 10px;font-size:0.7rem;" onclick="uAlternarStatus('${u.uid}',${!ativo})">${ativo?'Desativar':'Reativar'}</button></div></div>`;
+    }).join('');
+  }).catch(err => { container.innerHTML = '<p style="color:#9A3412;">Erro ao carregar usuários.</p>'; console.error(err); });
+}
+function uEditarNome(uid, nomeAtual) {
+  const novoNome = prompt('Novo nome:', nomeAtual);
+  if(novoNome === null) return;
+  const nomeTrim = novoNome.trim();
+  if(!nomeTrim) return alert('O nome não pode ficar vazio.');
+  colUsuarios.doc(uid).set({ nome: nomeTrim }, { merge: true }).then(() => { showToast('Nome atualizado!'); uCarregarLista(); }).catch(err => alert('Erro: ' + err.message));
+}
+async function uAlterarSenha(email, nome) {
+  if(!email) return alert('Este usuário não tem e-mail cadastrado.');
+  if(!confirm(`Enviar link de redefinição de senha para "${nome}" em ${email}?`)) return;
+  const appTemp = firebase.initializeApp(firebaseConfig, 'senha-usuario-' + Date.now());
+  try { await appTemp.auth().sendPasswordResetEmail(email); showToast('Link enviado!'); }
+  catch(err) { alert('Erro: ' + err.message); }
+  finally { await appTemp.delete().catch(() => {}); }
+}
+function uAlternarStatus(uid, ativar) {
+  colUsuarios.doc(uid).set({ ativo: ativar }, { merge: true }).then(() => { showToast(ativar?'Usuário reativado.':'Usuário desativado.'); uCarregarLista(); }).catch(err => alert('Erro: ' + err.message));
+}
+async function uExcluir(uid, nome) {
+  const senha = prompt(`Digite sua senha de Dono para excluir o acesso de "${nome}":`);
+  if(senha === null) return;
+  if(!(await verificarSenhaDono(senha))) return alert('Senha incorreta!');
+  if(!confirm(`Excluir "${nome}"?`)) return;
+  colUsuarios.doc(uid).delete().then(() => { showToast('Usuário excluído.'); uCarregarLista(); }).catch(err => alert('Erro: ' + err.message));
+}
+
+// ===================================================================
+// COMPARATIVO (SÓ DONO)
+// ===================================================================
+let cmpModoFiltro = 'mensal';
+function cmpSetModoFiltro(modo) {
+  cmpModoFiltro = modo;
+  document.getElementById('cmpBtnModoDiario').classList.toggle('active', modo==='diario');
+  document.getElementById('cmpBtnModoMensal').classList.toggle('active', modo==='mensal');
+  document.getElementById('cmpBtnModoSemanal').classList.toggle('active', modo==='semanal');
+  const hoje = new Date(); let inicio, fim;
+  if(modo==='diario') { inicio = hoje; fim = hoje; }
+  else if(modo==='semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
+  else { inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0); }
+  document.getElementById('cmpDataInicio').value = fmtDataISO(inicio);
+  document.getElementById('cmpDataFim').value = fmtDataISO(fim);
+  cmpRenderizar();
+}
+function cmpOnDataRangeChange() {
+  ['cmpBtnModoDiario','cmpBtnModoSemanal','cmpBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  cmpRenderizar();
+}
+function cmpLimparPeriodo() {
+  document.getElementById('cmpDataInicio').value = ''; document.getElementById('cmpDataFim').value = '';
+  ['cmpBtnModoDiario','cmpBtnModoSemanal','cmpBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  cmpRenderizar();
+}
+function cmpDentroDoFiltro(dataStr) {
+  const inicio = document.getElementById('cmpDataInicio').value, fim = document.getElementById('cmpDataFim').value;
+  if(!inicio && !fim) return true;
+  if(!dataStr) return true;
+  if(inicio && dataStr < inicio) return false;
+  if(fim && dataStr > fim) return false;
+  return true;
+}
+function cmpRenderizar() {
+  if(!souDono()) return;
+  const rtF = rtLista.filter(i => cmpDentroDoFiltro(i.dataServico));
+  const cbF = cbLista.filter(i => cmpDentroDoFiltro(i.dataEntrega));
+
+  const rtServ = rtF.filter(i => !i.isAbastecimento), rtAbs = rtF.filter(i => i.isAbastecimento);
+  const rtFat = rtServ.reduce((a,c)=>a+(c.valorTotal||0),0);
+  const rtComb = rtAbs.reduce((a,c)=>a+(c.combustivel||0),0);
+  const rtLiq = rtFat - rtComb;
+  const rtLanc = rtServ.length;
+
+  const cbServ = cbF.filter(i => i.tipoRegistro !== 'combustivel'), cbAbs = cbF.filter(i => i.tipoRegistro === 'combustivel');
+  const cbFat = cbServ.reduce((a,c)=>a+(c.valorTotal||0),0);
+  const cbComb = cbF.reduce((a,c)=>a+(c.valorCombustivel||0),0);
+  const cbLiq = cbFat - cbComb;
+  const cbLanc = cbServ.length;
+
+  const maxFat = Math.max(1, rtFat, cbFat);
+  const maxLiq = Math.max(1, Math.abs(rtLiq), Math.abs(cbLiq));
+
+  const rtCarrItens = rtServ.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'carregamento');
+  const rtPartItens = rtServ.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'particular');
+  const cmpCalcRtCat = (itens, tipoCat) => {
+    const lanc = itens.length, fat = itens.reduce((a,c)=>a+(c.valorTotal||0),0);
+    const absCat = rtAbs.filter(a => (a.operacaoAbastecimento||'carregamento') === tipoCat);
+    const comb = absCat.reduce((a,c)=>a+(c.combustivel||0),0);
+    return { lanc, fat, comb, liq: fat - comb };
+  };
+  const rtCatCarr = cmpCalcRtCat(rtCarrItens, 'carregamento'), rtCatPart = cmpCalcRtCat(rtPartItens, 'particular');
+
+  let cbVeiculos = [...new Set(cbServ.map(i=>i.maquina))].filter(Boolean);
+  const cbOrdem = ["BOB","ATEGO","ACCELO"];
+  cbOrdem.forEach(p => { if(!cbVeiculos.includes(p)) cbVeiculos.push(p); });
+  cbVeiculos.sort((a,b) => { const ia=cbOrdem.indexOf(a), ib=cbOrdem.indexOf(b); if(ia===-1&&ib===-1) return a.localeCompare(b); if(ia===-1) return 1; if(ib===-1) return -1; return ia-ib; });
+  const cbPorVeiculo = cbVeiculos.map(maq => {
+    const itensMaq = cbServ.filter(i => i.maquina === maq);
+    const combMaq = cbAbs.filter(i => i.maquina === maq);
+    const lanc = itensMaq.length, fat = itensMaq.reduce((a,c)=>a+(c.valorTotal||0),0), comb = combMaq.reduce((a,c)=>a+(c.valorCombustivel||0),0);
+    return { maquina: maq, lanc, fat, comb, liq: fat - comb };
+  });
+
+  document.getElementById('cmpConteudo').innerHTML = `
+    <div class="comparativo-grid">
+      <div class="comparativo-col retro">
+        <h3>🚜 Retroescavadeira</h3>
+        <div class="comparativo-row"><span>Lançamentos</span><span>${rtLanc}</span></div>
+        <div class="comparativo-row"><span>Faturamento</span><span>${fmtMoeda(rtFat)}</span></div>
+        <div class="comparativo-row"><span>Combustível</span><span>${fmtMoeda(rtComb)}</span></div>
+        <div class="comparativo-row"><span>Líquido</span><span>${fmtMoeda(rtLiq)}</span></div>
+      </div>
+      <div class="comparativo-col caca">
+        <h3>🚛 Caçambas</h3>
+        <div class="comparativo-row"><span>Lançamentos</span><span>${cbLanc}</span></div>
+        <div class="comparativo-row"><span>Faturamento</span><span>${fmtMoeda(cbFat)}</span></div>
+        <div class="comparativo-row"><span>Combustível</span><span>${fmtMoeda(cbComb)}</span></div>
+        <div class="comparativo-row"><span>Líquido</span><span>${fmtMoeda(cbLiq)}</span></div>
+      </div>
+    </div>
+    <div class="section-title">Detalhamento — Retroescavadeira</div>
+    <div class="categorias-grid">
+      <div class="categoria-card"><div class="categoria-title">CARREGAMENTO</div>
+        <div class="categoria-row"><span>Lançamentos:</span><span>${rtCatCarr.lanc}</span></div>
+        <div class="categoria-row"><span>Faturamento:</span><span>${fmtMoeda(rtCatCarr.fat)}</span></div>
+        <div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(rtCatCarr.comb)}</span></div>
+        <div class="categoria-row"><span>Líquido:</span><span>${fmtMoeda(rtCatCarr.liq)}</span></div>
+      </div>
+      <div class="categoria-card"><div class="categoria-title">PARTICULAR</div>
+        <div class="categoria-row"><span>Lançamentos:</span><span>${rtCatPart.lanc}</span></div>
+        <div class="categoria-row"><span>Faturamento:</span><span>${fmtMoeda(rtCatPart.fat)}</span></div>
+        <div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(rtCatPart.comb)}</span></div>
+        <div class="categoria-row"><span>Líquido:</span><span>${fmtMoeda(rtCatPart.liq)}</span></div>
+      </div>
+    </div>
+    <div class="section-title">Detalhamento — Caçambas</div>
+    <div class="categorias-grid">
+      ${cbPorVeiculo.map(v => `<div class="categoria-card"><div class="categoria-title">${escapeHtml(v.maquina)}</div>
+        <div class="categoria-row"><span>Lançamentos:</span><span>${v.lanc}</span></div>
+        <div class="categoria-row"><span>Faturamento:</span><span>${fmtMoeda(v.fat)}</span></div>
+        <div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(v.comb)}</span></div>
+        <div class="categoria-row"><span>Líquido:</span><span>${fmtMoeda(v.liq)}</span></div>
+      </div>`).join('')}
+    </div>
+    <div class="comparativo-bar-wrap">
+      <div class="section-title" style="margin-top:0;">Faturamento</div>
+      <div class="comparativo-bar-row"><div class="comparativo-bar-label">Retro</div><div class="comparativo-bar-track"><div class="comparativo-bar-fill" style="width:${Math.round(rtFat/maxFat*100)}%; background:var(--accent-retro);"></div></div><div class="comparativo-bar-val">${fmtMoeda(rtFat)}</div></div>
+      <div class="comparativo-bar-row"><div class="comparativo-bar-label">Caçamba</div><div class="comparativo-bar-track"><div class="comparativo-bar-fill" style="width:${Math.round(cbFat/maxFat*100)}%; background:var(--accent-caca);"></div></div><div class="comparativo-bar-val">${fmtMoeda(cbFat)}</div></div>
+      <div class="section-title">Valor Líquido</div>
+      <div class="comparativo-bar-row"><div class="comparativo-bar-label">Retro</div><div class="comparativo-bar-track"><div class="comparativo-bar-fill" style="width:${Math.round(Math.abs(rtLiq)/maxLiq*100)}%; background:var(--accent-retro);"></div></div><div class="comparativo-bar-val">${fmtMoeda(rtLiq)}</div></div>
+      <div class="comparativo-bar-row"><div class="comparativo-bar-label">Caçamba</div><div class="comparativo-bar-track"><div class="comparativo-bar-fill" style="width:${Math.round(Math.abs(cbLiq)/maxLiq*100)}%; background:var(--accent-caca);"></div></div><div class="comparativo-bar-val">${fmtMoeda(cbLiq)}</div></div>
+    </div>
+  `;
+}
+
+</script>
+</body>
+</html>

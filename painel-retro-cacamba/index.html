@@ -980,8 +980,8 @@ function rtRenderPainel() {
     if(operadorVal !== 'todos' && op !== operadorVal) return false;
     return rtDataDentroDoFiltro(item.dataServico);
   });
-  const servicosF = filtrados.filter(i => !i.isAbastecimento);
-  const absF = filtrados.filter(i => i.isAbastecimento);
+  const servicosF = filtrados.filter(i => !i.isAbastecimento).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
+  const absF = filtrados.filter(i => i.isAbastecimento).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
   const totalLanc = servicosF.length;
   const totalFat = servicosF.reduce((a,c) => a + (c.valorTotal||0), 0);
   const totalComb = absF.reduce((a,c) => a + (c.combustivel||0), 0);
@@ -1560,7 +1560,7 @@ function cbGetFiltrados() {
       if(!termo.includes(buscaTexto)) return false;
     }
     return true;
-  });
+  }).sort((a,b) => (a.dataEntrega||'').localeCompare(b.dataEntrega||''));
 }
 function cbGetCombustivelFiltrados() {
   const maquinaVal = document.getElementById('cbFMaquinaSelect').value;

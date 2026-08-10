@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Agroinsumos — Catálogo de Produtos</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#3D7A34" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Agroinsumos" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<link rel="icon" href="icon-192.png" />
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #F2F7EE; color: #1F3D1F; }
+  .serif { font-family: Georgia, 'Times New Roman', serif; }
+
+  header { background: #3D7A34; color: #fff; padding: 28px 20px 20px; position: sticky; top: 0; z-index: 40; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; color: #D9F0CB; font-weight: 600; }
+  h1 { font-size: 28px; font-weight: 700; margin: 4px 0 0; }
+  #newBtn { display: flex; align-items: center; gap: 6px; background: #3D7A34; color: #fff; font-size: 13px; font-weight: 600; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+  #newBtn:hover { background: #336529; }
+  #backupNavBtn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; background: #fff; color: #3D7A34; border: 1px solid #CFE0C4; border-radius: 8px; cursor: pointer; flex-shrink: 0; }
+  #backupNavBtn:hover { background: #F2F7EE; }
+  .count-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .count-row .count { margin: 0; }
+  #calcNavBtn { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.15); color: #fff; font-size: 14px; font-weight: 600; border: none; padding: 9px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
+
+  .search-wrap { position: relative; margin-top: 16px; }
+  .search-wrap svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #888; }
+  #searchInput { width: 100%; background: rgba(255,255,255,0.95); border: none; border-radius: 8px; padding: 11px 12px 11px 34px; font-size: 14px; color: #333; }
+  #searchInput:focus { outline: 2px solid #2E5E27; }
+
+  .cats { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .cat-pill { font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 999px; white-space: nowrap; border: none; cursor: pointer; background: rgba(255,255,255,0.15); color: #E4F3DC; transition: background 0.15s; }
+  .cat-pill.active { background: #fff; color: #2E5E27; }
+  .cat-pill:hover:not(.active) { background: rgba(255,255,255,0.25); }
+  .cat-remove { margin-left: 6px; opacity: 0.7; font-size: 11px; }
+  .cat-remove:hover { opacity: 1; }
+  .cat-add { font-size: 16px; font-weight: 700; padding: 7px 14px; background: rgba(255,255,255,0.25); }
+  .cat-add:hover { background: rgba(255,255,255,0.4); }
+
+  main { padding: 20px; }
+  .count { font-size: 12px; color: #6b7c66; margin: 0 0 12px; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  .card { text-align: left; width: 100%; background: #fff; border: 1px solid #e3e8dd; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; transition: box-shadow 0.15s, border-color 0.15s; }
+  .card:hover { border-color: #c7d4bd; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; padding: 4px 8px; border-radius: 6px; }
+  .price { font-size: 14px; font-weight: 700; color: #1c1c1c; white-space: nowrap; }
+  .card h3 { font-size: 15px; margin: 0; font-weight: 600; color: #1a1a1a; }
+  .card h3 .tam { color: #888; font-weight: 400; }
+  .card .subst { font-size: 12px; color: #888; margin: 2px 0 0; }
+  .card .cartao { font-size: 12px; color: #aaa; margin: 0; }
+  .empty { text-align: center; padding: 60px 0; color: #9aab8f; font-size: 14px; }
+
+  .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 50; align-items: center; justify-content: center; padding: 16px; }
+  .overlay.open { display: flex; }
+  .sheet { background: #F2F7EE; width: 100%; max-width: 440px; max-height: 88vh; overflow-y: auto; border-radius: 14px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border-left: 4px solid #3D7A34; }
+  .sheet-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .close-btn { background: none; border: none; color: #4C6B3F; cursor: pointer; padding: 2px; }
+  .close-btn:hover { color: #1F3D1F; }
+  .sheet h2 { font-size: 24px; margin: 0; font-weight: 700; }
+  .sheet .tam-line { font-size: 14px; color: #4C6B3F; margin: 2px 0 0; }
+  .sheet .subst-line { font-size: 14px; color: #4C6B3F; margin: 4px 0 0; }
+  .sheet .big-price { font-size: 26px; font-weight: 700; margin: 16px 0 0; }
+  .sheet .big-price .cartao { font-size: 13px; font-weight: 400; color: #7A9469; margin-left: 8px; }
+
+  .field { border-top: 1px solid #CFE0C4; padding-top: 12px; margin-top: 16px; }
+  .field:first-of-type { margin-top: 24px; }
+  .field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #7A9469; margin: 0; }
+  .field-value { font-size: 14px; margin: 4px 0 0; color: #1F3D1F; }
+  .field-value.empty { color: #9AB48A; font-style: italic; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: #E6F0DC; color: #3D6B2F; }
+
+  .calc-box { margin-top: 16px; border: 1px solid #CFE0C4; border-radius: 10px; padding: 14px; background: #fff; box-sizing: border-box; }
+  .calc-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; color: #3D7A34; margin: 0 0 10px; display: flex; align-items: center; gap: 6px; }
+  .calc-field { margin-top: 12px; }
+  .calc-field:first-child { margin-top: 0; }
+  .calc-label { display: block; font-size: 12px; font-weight: 600; color: #4C6B3F; margin-bottom: 5px; }
+  .calc-field input[type="number"] { width: 100%; box-sizing: border-box; border: 1px solid #CFE0C4; border-radius: 8px; padding: 9px 10px; font-size: 14px; }
+  .calc-inline { display: flex; gap: 8px; }
+  .calc-inline input { flex: 1 1 0; min-width: 0; }
+  .calc-inline select { flex: 0 0 90px; width: 90px; min-width: 0; box-sizing: border-box; border: 1px solid #CFE0C4; border-radius: 8px; padding: 9px 6px; font-size: 14px; background: #fff; }
+  .calc-result { margin-top: 10px; font-size: 15px; font-weight: 700; color: #1F3D1F; word-break: break-word; }
+  .calc-result .unit { font-weight: 400; color: #4C6B3F; font-size: 13px; }
+  .calc-empty { font-size: 13px; color: #9AB48A; font-style: italic; margin: 0; }
+
+  .offline-badge { display: none; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,0.15); color: #FDECEC; padding: 5px 10px; border-radius: 999px; margin-top: 10px; width: fit-content; }
+  .offline-badge.show { display: flex; }
+  .offline-dot { width: 7px; height: 7px; border-radius: 50%; background: #E85C4A; }
+
+  .actions { display: flex; gap: 8px; margin-top: 24px; }
+  .btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; font-weight: 600; padding: 11px; border-radius: 8px; cursor: pointer; border: none; }
+  .btn-primary { background: #3D7A34; color: #fff; }
+  .btn-outline-danger { background: none; border: 1px solid #C0453B; color: #C0453B; }
+  .btn-danger { background: #C0453B; color: #fff; }
+  .btn-ghost { background: none; border: 1px solid #CFE0C4; color: #4C6B3F; }
+  .confirm-text { font-size: 14px; text-align: center; color: #8A3A32; margin: 0 0 8px; }
+
+  .form-field { display: block; margin-bottom: 12px; }
+  .form-field label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #4C6B3F; margin-bottom: 4px; }
+  .form-field input, .form-field select, .form-field textarea { width: 100%; border: 1px solid #CFE0C4; background: #fff; border-radius: 8px; padding: 9px 10px; font-size: 14px; color: #333; font-family: inherit; }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: 2px solid #3D7A34; }
+  .form-field textarea { resize: none; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #saveBtn { width: 100%; margin-top: 8px; padding: 12px; border-radius: 8px; border: none; background: #3D7A34; color: #fff; font-size: 14px; font-weight: 600; cursor: pointer; }
+  #saveBtn:disabled { opacity: 0.4; }
+
+  .rt-toolbar { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+  .rt-btn { border: 1px solid #CFE0C4; background: #fff; border-radius: 6px; width: 30px; height: 30px; font-size: 14px; font-weight: 700; color: #333; cursor: pointer; flex-shrink: 0; }
+  .rt-btn:active { background: #E6F0DC; }
+  .rt-swatch { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px #CFE0C4; cursor: pointer; flex-shrink: 0; padding: 0; }
+  .rt-swatch.rt-active { box-shadow: 0 0 0 2px #3D7A34; }
+  .rt-color-custom { width: 26px; height: 26px; border: 1px solid #CFE0C4; border-radius: 6px; padding: 0; background: #fff; flex-shrink: 0; }
+  .rt-editable { width: 100%; box-sizing: border-box; min-height: 44px; border: 1px solid #CFE0C4; background: #fff; border-radius: 8px; padding: 9px 10px; font-size: 14px; color: #333; font-family: inherit; line-height: 1.4; overflow-wrap: break-word; }
+  .rt-editable:focus { outline: 2px solid #3D7A34; }
+  .rt-editable:empty::before { content: attr(data-placeholder); color: #9AB48A; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-row">
+    <div>
+      <p class="eyebrow">Catálogo de Produtos</p>
+      <h1 class="serif">Agroinsumos</h1>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button id="calcNavBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10"/><line x1="12" y1="10" x2="12" y2="10"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/><line x1="12" y1="18" x2="12" y2="18"/></svg>
+        Calculadora
+      </button>
+    </div>
+  </div>
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="searchInput" placeholder="Buscar produto, substância ou praga/erva daninha..." />
+  </div>
+  <div class="cats" id="catsRow"></div>
+  <div class="offline-badge" id="offlineBadge"><span class="offline-dot"></span>Sem internet — mostrando dados salvos no aparelho</div>
+</header>
+
+<main>
+  <div class="count-row">
+    <p class="count" id="countLabel"></p>
+    <div style="display:flex;gap:8px;">
+      <button id="backupNavBtn" title="Backup dos dados">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </button>
+      <button id="newBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Adicionar produto
+      </button>
+    </div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="empty" id="emptyMsg" style="display:none;">Nenhum produto encontrado.</div>
+</main>
+
+<div class="overlay" id="detailOverlay">
+  <div class="sheet" id="detailSheet"></div>
+</div>
+
+<div class="overlay" id="formOverlay">
+  <div class="sheet" id="formSheet"></div>
+</div>
+
+<div class="overlay" id="calcOverlay">
+  <div class="sheet" id="calcSheet"></div>
+</div>
+
+<div class="overlay" id="backupOverlay">
+  <div class="sheet" id="backupSheet"></div>
+</div>
+
+<input type="file" id="restoreFileInput" accept="application/json" style="display:none;" />
+
+<script>
+const DEFAULT_CATS = {
+  Herbicida:    { color: "#3F6B3F", bg: "#EEF3EA", label: "Herbicida" },
+  Inseticida:   { color: "#B5651D", bg: "#FBEFE3", label: "Inseticida / Acaricida" },
+  Fungicida:    { color: "#2F5D8A", bg: "#E9F1F8", label: "Fungicida" },
+  Fertilizante: { color: "#7A5230", bg: "#F3EBE1", label: "Fertilizante / Foliar" },
+  Enraizante:   { color: "#5B4A8A", bg: "#EFEBF5", label: "Enraizante" },
+  Adesivo:      { color: "#8A7A2F", bg: "#F5F2E3", label: "Adesivo / Adjuvante" },
+  Regulador:    { color: "#2F8A7A", bg: "#E6F3F1", label: "Regulador de crescimento" },
+  Adubo:        { color: "#6B4A2F", bg: "#F1E9E1", label: "Adubo" },
+  Corretivo:    { color: "#5A5A3A", bg: "#F0EFE5", label: "Calcário / Remineralizador" },
+};
+
+const CAT_COLOR_PALETTE = [
+  { color: "#3F6B3F", bg: "#EEF3EA" },
+  { color: "#B5651D", bg: "#FBEFE3" },
+  { color: "#2F5D8A", bg: "#E9F1F8" },
+  { color: "#7A5230", bg: "#F3EBE1" },
+  { color: "#5B4A8A", bg: "#EFEBF5" },
+  { color: "#8A7A2F", bg: "#F5F2E3" },
+  { color: "#2F8A7A", bg: "#E6F3F1" },
+  { color: "#6B4A2F", bg: "#F1E9E1" },
+  { color: "#A33B5E", bg: "#F7E7EC" },
+  { color: "#3B6B8A", bg: "#E8F0F5" },
+];
+
+let CATS = Object.assign({}, DEFAULT_CATS);
+
+function loadCats() {
+  try {
+    const saved = localStorage.getItem("agro_categories");
+    if (saved) CATS = Object.assign({}, DEFAULT_CATS, JSON.parse(saved));
+  } catch (e) { /* nada salvo ainda */ }
+}
+
+function persistCats() {
+  const custom = {};
+  Object.keys(CATS).forEach((k) => { if (!DEFAULT_CATS[k]) custom[k] = CATS[k]; });
+  try { localStorage.setItem("agro_categories", JSON.stringify(custom)); }
+  catch (e) { console.error("Falha ao salvar categorias", e); }
+}
+
+function addNewCategory(selectEl) {
+  const name = prompt("Nome da nova categoria:");
+  if (!name || !name.trim()) return;
+  const key = name.trim().replace(/\s+/g, "_");
+  if (CATS[key]) { alert("Já existe uma categoria com esse nome."); return; }
+  const palette = CAT_COLOR_PALETTE[Object.keys(CATS).length % CAT_COLOR_PALETTE.length];
+  CATS[key] = { color: palette.color, bg: palette.bg, label: name.trim() };
+  persistCats();
+  if (selectEl) {
+    const opt = document.createElement("option");
+    opt.value = key;
+    opt.textContent = name.trim();
+    opt.selected = true;
+    selectEl.insertBefore(opt, selectEl.lastElementChild);
+  }
+  renderCats();
+}
+
+
+const DEFAULT_PRODUCTS = [
+  { cat: "Herbicida", nome: "2,4 D (240) + Picloram ou Aminol", subst: "2,4-D + Picloram",
+    alvo: "Plantas daninhas dicotiledôneas (folha larga) de porte arbóreo, arbustivo e subarbustivo em pastagens",
+    paraQueServe: "Herbicida seletivo e sistêmico para pastagens de gramíneas, cana-de-açúcar, arroz e erradicação de touças de eucalipto.",
+    dosagem: "Dose varia por cultura e porte da planta — de 200 a 2.345 g e.a./ha. IMPORTANTE: a aplicação com pulverizador costal/manual é PROIBIDA por bula — só pode ser feito com equipamento tratorizado ou avião agrícola.",
+    modoAplicacao: "Encher o tanque até 3/4 com água, adicionar o produto mantendo agitação, completar o volume. Não aplicar com vento acima de 10 km/h (risco de deriva para culturas sensíveis como algodão, soja, café e hortaliças). Manter faixa de 10m de distância de culturas sensíveis.",
+    especificacao: "Concentrado solúvel (SL). Mecanismo mimetizador de auxina (Grupo O). Reentrada na área: aguardar 24h e usar EPI se precisar entrar antes.",
+    preco: "45,00" },
+  { cat: "Herbicida", nome: "Advance", tam: "Saco 5kg", subst: "",
+    paraQueServe: "Herbicida para controle de plantas daninhas — confirme comigo a substância ativa exata (existem vários produtos chamados \"Advance\") para eu completar dose e modo de aplicação certos.",
+    preco: "310,00" },
+  { cat: "Herbicida", nome: "Ametrina", subst: "Ametrina (METRIMEX)",
+    alvo: "Falsa-serralha, beldroega, capim-marmelada, trapoeraba, capim-carrapicho, guanxuma, corda-de-viola, capim-pé-de-galinha",
+    paraQueServe: "Herbicida seletivo sistêmico, usado em pré e pós-emergência inicial em cana-de-açúcar, café, abacaxi e mandioca.",
+    dosagem: "1,2 a 5,0 kg i.a./ha dependendo da cultura, espécie e estádio da planta daninha — consulte o rótulo da embalagem para a dose exata por cultura.",
+    modoAplicacao: "Abastecer o pulverizador até 3/4 da capacidade com agitador ligado, adicionar o produto, completar o volume. Pode ser aplicado com equipamento costal, tratorizado ou aéreo. Realizar no máximo 1 aplicação por safra.",
+    especificacao: "Inibidor da fotossíntese (Grupo C1 HRAC). Absorvido pelas raízes e parte aérea.",
+    preco: "45,00" },
+  { cat: "Herbicida", nome: "Arreio (Albero)", tam: "1 litro", subst: "",
+    paraQueServe: "Herbicida — me manda a bula ou o nome completo do produto pra eu confirmar a substância e completar os dados certos.",
+    preco: "80,00" },
+  { cat: "Herbicida", nome: "Artys / 2,4-D", tam: "Bujão 20 litros", subst: "2,4-D",
+    alvo: "Plantas daninhas dicotiledôneas (folha larga) em pastagens e lavouras",
+    paraQueServe: "Herbicida seletivo e sistêmico (mimetizador de auxina) para controle pós-emergente de folhas largas.",
+    dosagem: "Dose varia por cultura — confira o rótulo da embalagem para a dose exata (normalmente entre 1 e 3 L/ha em pastagem).",
+    modoAplicacao: "Diluir em água, aplicar em jato dirigido ou área total conforme a cultura. Evitar aplicar com vento forte por risco de deriva para culturas sensíveis (algodão, soja, tomate, café, hortaliças).",
+    especificacao: "Concentrado solúvel (SL), Grupo O (HRAC).",
+    preco: "580,00" },
+  { cat: "Herbicida", nome: "Combine 500 SC", subst: "Tebutiurom",
+    alvo: "Plantas daninhas de folha larga e gramíneas em pastagens e cana-de-açúcar",
+    paraQueServe: "Herbicida sistêmico de pré e pós-emergência, usado principalmente em pastagens e cana-de-açúcar.",
+    dosagem: "Consulte o rótulo específico da embalagem — a dose varia por cultura e tipo de solo (textura e matéria orgânica).",
+    modoAplicacao: "Aplicar sobre solo bem preparado e úmido, em pré-emergência, ou em pós-emergência inicial das plantas daninhas.",
+    especificacao: "Suspensão concentrada (SC). Possui ação residual no solo.",
+    preco: "365,00" },
+  { cat: "Herbicida", nome: "Diuron (Eburon)", subst: "Diuron",
+    alvo: "Mentrasto, apaga-fogo, caruru, plantas de folha larga e gramíneas em geral",
+    paraQueServe: "Herbicida sistêmico de pré e pós-emergência precoce, para algodão, café, cana-de-açúcar e citros.",
+    dosagem: "3,2 a 6,4 L p.c./ha em geral (até 4,0 L p.c./ha para algodão) — 1L do produto tem 500g de diurom. Confirme a dose exata pela cultura no rótulo.",
+    doseHaMin: "3.2", doseHaMax: "6.4", doseUnidade: "L", caldaMin: "200", caldaMax: "400",
+    modoAplicacao: "Aplicar sobre solo bem preparado, livre de torrões e com boa umidade. Encher o pulverizador até 3/4 com água, adicionar o produto mantendo agitação, completar o volume. Usar bico jato-leque, pressão de 20-60 lb/pol². Volume de calda: 200-400L água/ha em pré-emergência.",
+    especificacao: "Suspensão concentrada (SC), Grupo C2 (HRAC). Carência: café 30 dias, citros 60 dias, algodão 120 dias, cana 150 dias. Classe toxicológica I - extremamente tóxico.",
+    preco: "50,00" },
+  { cat: "Herbicida", nome: "Dual Gold", subst: "",
+    paraQueServe: "Herbicida (provável S-metolacloro) — me confirma a formulação exata (tem versões para diferentes culturas) que eu completo os dados certos.",
+    preco: "68,00" },
+  { cat: "Herbicida", nome: "Framyzinho", tam: "50ml", subst: "",
+    paraQueServe: "Me manda a bula ou o nome completo desse produto — \"Framyzinho\" parece ser um apelido comercial regional e não encontrei uma bula oficial correspondente.",
+    preco: "30,00" },
+  { cat: "Herbicida", nome: "Framyzinho", tam: "Litro", subst: "",
+    paraQueServe: "Me manda a bula ou o nome completo desse produto — \"Framyzinho\" parece ser um apelido comercial regional e não encontrei uma bula oficial correspondente.",
+    preco: "270,00" },
+  { cat: "Herbicida", nome: "Galigan 240 EC (Galist)", tam: "1 litro", subst: "Oxifluorfem",
+    alvo: "Plantas daninhas de folha larga e algumas gramíneas, em pré-emergência",
+    paraQueServe: "Herbicida de contato (não sistêmico), seletivo, pré e pós-emergente. Indicado para algodão, arroz irrigado, café, cana-de-açúcar, cebola, citros, eucalipto, pinus e repolho.",
+    dosagem: "Consulte o rótulo da embalagem para a dose por cultura — varia bastante conforme a lavoura e o tipo de mato.",
+    modoAplicacao: "Aplicar em jato dirigido, de preferência em pré-emergência das plantas daninhas (antes de nascer) ou quando estiverem no máximo com 3-4cm de altura. Se o mato já estiver maior, fazer uma capina mecânica antes de pulverizar. Pode ser aplicado com costal manual, costal pressurizado, tratorizado ou autopropelido — em cana-de-açúcar também é aprovado para aplicação aérea. Não aplicar com vento forte ou nas horas mais quentes.",
+    especificacao: "Concentrado emulsionável (EC), Grupo E (HRAC). Altamente persistente no ambiente — evitar contaminação de corpos d'água. IMPORTANTE: a bula oficial confirma Oxifluorfem como princípio ativo — se a embalagem que você tem em mãos disser outra coisa, me manda foto que eu confirmo e corrijo.",
+    preco: "115,00" },
+  { cat: "Herbicida", nome: "Calisto", subst: "Mesotriona",
+    alvo: "Capim (mata o capim, deixa a cana) — também controla corda-de-viola, trapoeraba, picão-preto e outras folhas largas",
+    paraQueServe: "Herbicida seletivo de ação sistêmica, pós-emergente. Pode usar na cana-de-açúcar — mata o capim e deixa a cana. Pode ser usado junto com Hexazinona ou com 2,4-D no combate ao mato da cana.",
+    dosagem: "1,5 mL por litro de água. Numa bomba costal de 20 litros: 30 mL. Num tambor/pulverizador de 200 litros: 300 mL.",
+    doseHaMin: "0.3", doseHaMax: "0.4", doseUnidade: "L", caldaMin: "100", caldaMax: "300",
+    modoAplicacao: "Aplicação em área total, com pulverizador costal, tratorizado ou aéreo (em cana). Não aplicar em solo seco, com a planta estressada por falta d'água, nem em dias chuvosos — precisa de 2-3h sem chuva depois de aplicar. Em cana, aplicar em pós-emergência, com a cana já brotada.",
+    especificacao: "Suspensão concentrada (SC), 480g/L de mesotriona. Grupo F2 (HRAC) / 28 (WSSA) — inibidor da HPPD.",
+    preco: "" },
+  { cat: "Herbicida", nome: "Hexazínona-D", tam: "Saco 5kg", subst: "Hexazinona",
+    paraQueServe: "Herbicida sistêmico usado principalmente em cana-de-açúcar e pastagens para controle de folhas largas e gramíneas.",
+    dosagem: "Consulte o rótulo específico da embalagem — a dose varia conforme a formulação e a cultura.",
+    preco: "310,00" },
+  { cat: "Herbicida", nome: "Karpir (Capim-alho)", subst: "Imazapir",
+    alvo: "Capim-alho e outras plantas daninhas de difícil controle em pastagens/áreas não cultivadas",
+    paraQueServe: "Herbicida sistêmico, inibidor da ALS (Grupo B), usado para controle de plantas daninhas perenes de difícil manejo como capim-alho.",
+    dosagem: "Consulte o rótulo — a dose de imazapir varia bastante conforme o alvo e a área (uso agrícola x não-agrícola).",
+    especificacao: "Grupo químico imidazolinona, mecanismo inibidor da ALS/AHAS (Grupo B HRAC). Possui ação residual prolongada no solo.",
+    preco: "35,00" },
+  { cat: "Herbicida", nome: "Patrol", subst: "Metrimex, Ametrina",
+    alvo: "Falsa-serralha, beldroega, capim-marmelada, trapoeraba, capim-carrapicho, guanxuma, corda-de-viola",
+    paraQueServe: "Herbicida à base de ametrina, seletivo e sistêmico, para pré e pós-emergência inicial em cana-de-açúcar principalmente.",
+    dosagem: "Consulte o rótulo específico da embalagem — dose varia por cultura e infestação.",
+    modoAplicacao: "Encher o tanque até 3/4 com água e agitador ligado, adicionar o produto, completar o volume. Realizar no máximo 1 aplicação por safra.",
+    especificacao: "Inibidor da fotossíntese no fotossistema II (Grupo C1 HRAC).",
+    preco: "50,00" },
+  { cat: "Herbicida", nome: "Reglone", subst: "Diquat",
+    alvo: "Dessecação geral de plantas daninhas e de culturas antes da colheita (soja, feijão, batata, arroz, etc.)",
+    paraQueServe: "Dessecante/herbicida de contato não seletivo, usado para secar a lavoura antes da colheita ou eliminar plantas daninhas antes do plantio.",
+    dosagem: "Soja: 1 a 2 L/ha · Feijão: 1,5 a 2 L/ha · Arroz: 1,5 a 2,5 L/ha · Batata: 1,5 a 2,5 L/ha · Café/Citros (entrelinha): 1,5 a 2,5 L/ha. Sempre usar espalhante adesivo (exceto na dessecação de batata).",
+    modoAplicacao: "Diluir em água e pulverizar em jato dirigido ou área total, com pulverizador costal ou tratorizado. Não precisa de agitação contínua na aplicação. Não aplicar em solo seco.",
+    especificacao: "Concentrado solúvel (SL), classe toxicológica I - extremamente tóxico. Ação de contato, não sistêmica.",
+    preco: "50,00" },
+  { cat: "Herbicida", nome: "Roundup", tam: "1 litro", subst: "Glifosato",
+    alvo: "Plantas daninhas anuais e perenes, folhas largas e gramíneas, capim-colonião, buva, corda-de-viola, trapoeraba",
+    paraQueServe: "Herbicida sistêmico não seletivo (mata a planta toda, raiz incluída), usado para limpeza de área, dessecação pré-plantio ou em entrelinhas de culturas perenes (café, cana, citros) em jato dirigido.",
+    dosagem: "Uso geral (limpeza de área): 100 a 200 mL para cada 20L de água. Em plantas mais resistentes/adultas, usar a dose maior. Para aplicação por hectare em lavoura, a dose varia de 2 a 6 L/ha conforme a cultura — sempre siga o rótulo da formulação específica.",
+    doseHaMin: "2", doseHaMax: "6", doseUnidade: "L", caldaMin: "100", caldaMax: "200",
+    especificacao: "Concentrado solúvel (SL). Não tem ação residual no solo — não impede o nascimento de novas sementes. Efeito visível entre 4 e 10 dias após aplicação; morte completa da planta pode levar até 3 semanas.",
+    preco: "47,00" },
+  { cat: "Herbicida", nome: "Roundup Original", tam: "20 litros", subst: "Glifosato",
+    alvo: "Plantas daninhas anuais e perenes, folhas largas e gramíneas, capim-colonião, buva, corda-de-viola, trapoeraba",
+    paraQueServe: "Herbicida sistêmico não seletivo, para limpeza de área, dessecação pré-plantio ou aplicação em entrelinhas de culturas perenes em jato dirigido.",
+    dosagem: "100 a 200 mL para cada 20L de água em uso geral. Em lavoura, 2 a 6 L/ha dependendo da cultura e da praga — consulte o rótulo da embalagem para a dose exata por cultura.",
+    doseHaMin: "2", doseHaMax: "6", doseUnidade: "L", caldaMin: "100", caldaMax: "200",
+    especificacao: "Concentrado solúvel (SL), sem ação residual no solo. Efeito visível entre 4 e 10 dias.",
+    preco: "580,00" },
+  { cat: "Herbicida", nome: "Roundup WG", tam: "Pó, 5kg", subst: "Glifosato",
+    alvo: "Plantas daninhas anuais e perenes, incluindo trapoeraba e gramíneas resistentes",
+    paraQueServe: "Herbicida sistêmico não seletivo em formulação granulada (grânulos dispersíveis em água), para pós-emergência de plantas daninhas em jato dirigido nas entrelinhas.",
+    dosagem: "Aproximadamente 100g para cada 20L de água em uso geral. Para trapoeraba e plantas mais desenvolvidas, aumentar a dose conforme o rótulo.",
+    doseHaMin: "1", doseHaMax: "3", doseUnidade: "kg", caldaMin: "100", caldaMax: "200",
+    modoAplicacao: "Dissolver bem o granulado em água com agitação antes de completar o volume do tanque, para evitar que o pó fique no fundo. Pulverizar até o molhamento das folhas.",
+    especificacao: "Grânulos dispersíveis em água (WG). Sem ação residual sobre sementes no solo.",
+    preco: "280,00" },
+  { cat: "Herbicida", nome: "Roundup Zap", tam: "20 litros", subst: "Glifosato",
+    alvo: "Plantas daninhas anuais e perenes, folhas largas e gramíneas",
+    paraQueServe: "Herbicida sistêmico não seletivo, para limpeza de área e dessecação pré-plantio.",
+    dosagem: "100 a 200 mL para cada 20L de água em uso geral, seguindo o rótulo específico da embalagem para dose por cultura.",
+    doseHaMin: "2", doseHaMax: "6", doseUnidade: "L", caldaMin: "100", caldaMax: "200",
+    especificacao: "Concentrado solúvel (SL), sem ação residual no solo.",
+    preco: "620,00" },
+  { cat: "Herbicida", nome: "Selet 260", subst: "Cletodim",
+    alvo: "Gramíneas anuais e perenes (capim-marmelada, capim-colchão, capim-pé-de-galinha, capim-arroz, capim-amargoso)",
+    paraQueServe: "Herbicida graminicida sistêmico, seletivo para diversas culturas (soja, feijão, café, cebola, batata, entre outras), usado em pós-emergência das plantas daninhas.",
+    dosagem: "0,25 a 0,45 L/ha dependendo do capim e do estádio de desenvolvimento — sempre com adição de óleo mineral/adjuvante na calda. Consulte o rótulo para a dose exata por cultura.",
+    modoAplicacao: "É essencial adicionar óleo mineral emulsionável ou adjuvante à calda para funcionar bem. Em capim-amargoso resistente ao glifosato, recomenda-se 2 aplicações com 21 dias de intervalo antes do plantio.",
+    especificacao: "Graminicida sistêmico, não controla folhas largas nem tiririca — só gramíneas.",
+    preco: "60,00" },
+  { cat: "Herbicida", nome: "Torbon (Torban / Silverado)", subst: "",
+    paraQueServe: "Me manda a bula desse produto — não encontrei uma fonte oficial confiável pra esses nomes comerciais específicos.",
+    preco: "95,00" },
+  { cat: "Herbicida", nome: "Zartan", subst: "Metsulfurom-metílico",
+    alvo: "Plantas daninhas de folha larga (dicotiledôneas)",
+    paraQueServe: "Herbicida seletivo, inibidor da ALS (Grupo B), formulação em grânulos dispersíveis em água.",
+    dosagem: "Consulte o rótulo da embalagem — a dose de metsulfurom é baixa (gramas por hectare) e varia bastante por cultura.",
+    especificacao: "Grânulos dispersíveis em água (WG), Grupo B (HRAC) — cuidado com rotação de herbicidas do mesmo grupo para evitar resistência.",
+    preco: "10,00" },
+  { cat: "Inseticida", nome: "Actara 250 WG", subst: "Tiametoxam",
+    alvo: "Pulgões, mosca-branca, percevejos, cigarrinhas, cupins, tripes, cochonilhas, bicho-mineiro",
+    paraQueServe: "Inseticida sistêmico neonicotinoide, rapidamente absorvido pela planta, protege contra insetos sugadores e mastigadores.",
+    dosagem: "Uso geral: 20g para cada 100L de água (1g por 5L). Em muitas culturas a dose vai de 50 a 250 g/ha — confira a dose exata pela cultura e praga no rótulo.",
+    doseHaMin: "50", doseHaMax: "250", doseUnidade: "g", caldaMin: "100", caldaMax: "200",
+    modoAplicacao: "Diluir em água e pulverizar sobre a cultura no início da infestação. Evitar aplicar durante florada com abelhas visitando a área.",
+    especificacao: "Grânulos dispersíveis em água (WG), Grupo 4A (neonicotinoide). Intervalo de segurança: 5 a 30 dias dependendo da cultura.",
+    preco: "75,00" },
+  { cat: "Inseticida", nome: "Abamex Maxx", subst: "Abamectina (acaricida/inseticida)",
+    alvo: "Ácaros e algumas lagartas/minadoras",
+    paraQueServe: "Acaricida/inseticida de contato e ingestão, usado no controle de ácaros em diversas culturas.",
+    dosagem: "Consulte o rótulo específico da embalagem — a dose de abamectina varia bastante por cultura e praga alvo.",
+    especificacao: "Ação por contato e ingestão, atua no sistema nervoso do ácaro/inseto.",
+    preco: "120,00" },
+  { cat: "Inseticida", nome: "Attamix", tam: "Caixa 1kg", subst: "",
+    paraQueServe: "Provável formicida (isca granulada) para formigas cortadeiras — me confirma pra eu buscar a bula certa.",
+    preco: "20,00" },
+  { cat: "Inseticida", nome: "Connect", subst: "Imidacloprido + Beta-ciflutrina",
+    alvo: "Percevejos, pulgões, mosca-branca e outras pragas sugadoras/mastigadoras em algodão, soja, milho, tomate, trigo e melão",
+    paraQueServe: "Inseticida sistêmico que combina neonicotinoide (imidacloprido) com piretroide (beta-ciflutrina), amplo espectro.",
+    dosagem: "Consulte o rótulo específico da embalagem para a dose por cultura e praga.",
+    modoAplicacao: "Encher o tanque até a metade com água, adicionar a dose do produto, completar o volume mantendo agitação. Não misturar com água suja/com terra (reduz eficácia).",
+    especificacao: "Suspensão concentrada (SC). Grupo 4A + 3A. Classe toxicológica II - altamente tóxico. Tóxico para abelhas — não aplicar na floração.",
+    preco: "68,00" },
+  { cat: "Inseticida", nome: "Cyper Copa 250 EC", subst: "Cipermetrina",
+    alvo: "Bicudo, pulgão-do-algodoeiro, lagarta-das-maçãs (algodão), lagarta-do-cartucho (milho) e outras pragas de algodão, milho e soja",
+    paraQueServe: "Inseticida piretroide de contato e ingestão para controle de pragas em algodão, milho e soja.",
+    dosagem: "Consulte o rótulo — a dose e o momento de aplicação dependem do nível de infestação da praga (ex: 5-10% de botões florais perfurados no algodão).",
+    modoAplicacao: "Colocar a dose no pulverizador com água até 3/4 da capacidade, completar o volume com agitação. Pode ser aplicado com costal, tratorizado ou aéreo. Máximo 1-2 aplicações por safra dependendo da cultura.",
+    especificacao: "Concentrado emulsionável (EC), Grupo 3A (piretroide).",
+    preco: "60,00" },
+  { cat: "Inseticida", nome: "Decis 25 EC", subst: "Deltametrina",
+    alvo: "Lagartas, percevejos, pulgões e diversas pragas de soja, milho, algodão, hortaliças, café, citros, feijão, entre outras",
+    paraQueServe: "Inseticida piretroide de contato e ingestão, ação rápida no sistema nervoso do inseto (poucos minutos).",
+    dosagem: "Uso geral aproximado: 40 mL para cada 100L de água. A dose exata varia por cultura e praga (também pode ser expressa em mL/ha) — confira o rótulo.",
+    doseHaMin: "200", doseHaMax: "400", doseUnidade: "mL", caldaMin: "100", caldaMax: "200",
+    modoAplicacao: "Diluir em água de boa qualidade e pulverizar. Respeitar intervalo de cerca de 30 dias entre aplicações do mesmo grupo químico para evitar resistência.",
+    especificacao: "Concentrado emulsionável (EC), Grupo 3A (piretroide).",
+    preco: "33,00" },
+  { cat: "Inseticida", nome: "Evidence", subst: "",
+    paraQueServe: "Me manda a bula ou o nome completo/fabricante desse produto pra eu confirmar a substância certa.",
+    preco: "19,00" },
+  { cat: "Inseticida", nome: "Fertox", subst: "",
+    paraQueServe: "Provável formicida/isca — me confirma o tipo exato (fabricante) pra eu completar os dados certos.",
+    preco: "2,00" },
+  { cat: "Inseticida", nome: "Karate Zeon 250 CS", subst: "Lambda-cialotrina",
+    alvo: "Lagartas, vaquinha-verde-amarela, percevejo-da-soja, broca e diversas pragas em soja, milho, algodão, hortaliças e frutas",
+    paraQueServe: "Inseticida piretroide de contato e ingestão, amplo espectro, monitorado por nível de infestação da praga.",
+    dosagem: "Varia bastante por praga e cultura — de 3-4 mL/1000-2000L de calda (lagartas) até 80mL/ha (aplicação aérea). Sempre confira o rótulo para a praga específica.",
+    modoAplicacao: "Aplicar no início da infestação (lagartas pequenas de 1º-2º instar têm melhor controle). Usar a dose maior em infestações mais altas ou clima favorável à praga.",
+    especificacao: "Suspensão de encapsulado (CS), Grupo 3A (piretroide). Altamente perigoso ao meio ambiente (Classe I).",
+    preco: "53,00" },
+  { cat: "Inseticida", nome: "Lannate BR", subst: "Metomil",
+    alvo: "Pragas mastigadoras e sugadoras em geral (lagartas, pulgões, percevejos)",
+    paraQueServe: "Inseticida carbamato de ação rápida, sistêmico e de contato — inibe a enzima que controla os impulsos nervosos do inseto.",
+    dosagem: "Consulte o rótulo específico da embalagem — a dose de metomil varia por cultura e praga.",
+    especificacao: "Concentrado solúvel (SL), 215g/L de metomil. Ação rápida (contato + sistêmica).",
+    preco: "50,00" },
+  { cat: "Inseticida", nome: "Lannate BR", tam: "10 litros", subst: "Metomil",
+    alvo: "Pragas mastigadoras e sugadoras em geral (lagartas, pulgões, percevejos)",
+    paraQueServe: "Inseticida carbamato de ação rápida, sistêmico e de contato.",
+    dosagem: "Consulte o rótulo específico da embalagem para a dose por cultura.",
+    especificacao: "Concentrado solúvel (SL), 215g/L de metomil.",
+    preco: "450,00" },
+  { cat: "Inseticida", nome: "Regent 800 WG", subst: "Fipronil",
+    alvo: "Cupins e broca-da-cana (aplicação no sulco de plantio, principalmente cana-de-açúcar)",
+    paraQueServe: "Inseticida e cupinicida aplicado no solo/sulco de plantio, forma barreira química contra cupim.",
+    dosagem: "200 g p.c./ha para infestação baixa de cupim, até 250-500 g p.c./ha para infestação média/alta. Aplicado no sulco de plantio, não em pulverização foliar.",
+    modoAplicacao: "Aplicar com pulverizador tratorizado adaptado no sulco de plantio, cobrindo imediatamente com terra. Em alta infestação, dividir a dose: parte na base do sulco + parte no momento da semeadura.",
+    especificacao: "Grânulos dispersíveis em água (WG), 800g/kg de fipronil. Altamente tóxico para abelhas e organismos aquáticos — não é para pulverização foliar comum.",
+    preco: "650,00" },
+  { cat: "Inseticida", nome: "Regent 800 WG", tam: "20g", subst: "Fipronil",
+    alvo: "Cupins e broca-da-cana",
+    paraQueServe: "Mesmo produto do Regent 800 WG em embalagem menor, para aplicação no sulco de plantio.",
+    dosagem: "200 a 500 g p.c./ha dependendo da infestação — confira o rótulo pra calcular a área que essa embalagem de 20g cobre.",
+    especificacao: "Grânulos dispersíveis em água (WG), 800g/kg de fipronil.",
+    preco: "20,00" },
+  { cat: "Fungicida", nome: "Nativo", subst: "Trifloxistrobina + Tebuconazol",
+    alvo: "Ferrugem-asiática, mancha-castanha, oídio, antracnose e outras doenças fúngicas em soja, feijão, amendoim, ervilha, café, entre outras",
+    paraQueServe: "Fungicida sistêmico e mesostêmico (protege de dentro pra fora da planta), mistura de dois grupos químicos (estrobilurina + triazol) — uso preventivo.",
+    dosagem: "Consulte o rótulo para dose e cultura específica. Máximo de 3 aplicações por ciclo — se precisar de mais, trocar para fungicida de outro mecanismo de ação.",
+    modoAplicacao: "Aplicar de forma preventiva, antes do aparecimento dos sintomas, ou assim que as condições climáticas favorecerem a doença. Reaplicar a cada 7-15 dias conforme a pressão da doença.",
+    especificacao: "Concentrado emulsionável, Grupos C3 (estrobilurina) + G1 (triazol) — combinação ajuda a evitar resistência.",
+    preco: "125,00" },
+  { cat: "Fungicida", nome: "Brilhante", subst: "",
+    paraQueServe: "Me manda a bula ou o nome do fabricante — \"Brilhante\" é um nome comercial comum a vários produtos diferentes, preciso confirmar qual é o seu.",
+    preco: "50,00" },
+  { cat: "Fungicida", nome: "Store", subst: "",
+    paraQueServe: "Me manda a bula ou o nome do fabricante — não encontrei uma fonte oficial confiável para esse nome comercial específico.",
+    preco: "105,00" },
+  { cat: "Fertilizante", nome: "K30 Potássio", tam: "5 litros", subst: "Fertilizante foliar rico em potássio",
+    paraQueServe: "Fertilizante foliar concentrado em potássio (K), usado para enchimento de grãos/frutos e fortalecimento da planta em fases de maior demanda de K.",
+    dosagem: "Geralmente 1 a 3 L/ha ou conforme recomendação do fabricante — confira o rótulo da embalagem, pois a concentração varia por marca.",
+    modoAplicacao: "Aplicação foliar, diluído em água, de preferência no fim de tarde para melhor absorção.",
+    preco: "270,00" },
+  { cat: "Fertilizante", nome: "Mega 20-10-10+", tam: "5 litros", subst: "Fertilizante NPK foliar (20% N, 10% P, 10% K)",
+    paraQueServe: "Fertilizante foliar rico em nitrogênio, usado principalmente para estimular crescimento vegetativo.",
+    dosagem: "Geralmente 1 a 3 L/ha — confira o rótulo específico da embalagem para a dose recomendada.",
+    modoAplicacao: "Aplicação foliar diluída em água.",
+    preco: "270,00" },
+  { cat: "Fertilizante", nome: "Tork Amino", tam: "1L", subst: "Fertilizante foliar aminoácidos",
+    paraQueServe: "Fertilizante foliar à base de aminoácidos, usado para reduzir estresse da planta (calor, seca, aplicação de defensivos) e melhorar absorção de nutrientes.",
+    dosagem: "Geralmente 0,5 a 1 L/ha ou conforme rótulo — normalmente usado em mistura de tanque com outros produtos.",
+    preco: "65,00" },
+  { cat: "Fertilizante", nome: "Kento Cab", tam: "1L", subst: "Fertilizante foliar com cálcio e boro",
+    paraQueServe: "Fertilizante foliar provavelmente rico em cálcio e boro (Cab = Cálcio-Boro), usado para fortalecer parede celular e reduzir abortamento de flores/frutos.",
+    dosagem: "Confira o rótulo específico da embalagem para a dose exata.",
+    preco: "65,00" },
+  { cat: "Enraizante", nome: "Revigore Kento", tam: "1L", subst: "Enraizante/bioestimulante",
+    paraQueServe: "Produto usado para estimular o desenvolvimento de raízes, geralmente aplicado após transplantio, estresse hídrico ou aplicação de herbicida/defensivo.",
+    dosagem: "Confira o rótulo específico — geralmente aplicado via foliar ou fertirrigação em pequenas doses (mL/L de água).",
+    preco: "155,00" },
+  { cat: "Enraizante", nome: "Rooting", subst: "Enraizante/bioestimulante",
+    paraQueServe: "Produto usado para estimular enraizamento, indicado para mudas, transplantio ou recuperação de plantas estressadas.",
+    dosagem: "Confira o rótulo específico da embalagem para a dose exata.",
+    preco: "155,00" },
+  { cat: "Adesivo", nome: "Tópazio (Adjuvante)", subst: "Espalhante adesivo não-iônico",
+    paraQueServe: "Adjuvante usado para melhorar a cobertura e aderência da calda nas folhas — reduz a tensão superficial da água pra espalhar melhor sobre a planta.",
+    dosagem: "Geralmente 0,05% a 0,1% v/v (cerca de 10-20 mL para cada 20L de calda) — confira a recomendação do fabricante do defensivo que está usando junto.",
+    modoAplicacao: "Adicionar à calda por último, depois do defensivo já diluído, mantendo agitação.",
+    preco: "30,00" },
+  { cat: "Adesivo", nome: "Tópazio (Adjuvante), fracionado", subst: "Espalhante adesivo não-iônico",
+    paraQueServe: "Mesmo produto do Tópazio, em embalagem fracionada (menor).",
+    dosagem: "Geralmente 0,05% a 0,1% v/v (cerca de 10-20 mL para cada 20L de calda).",
+    preco: "20,00" },
+  { cat: "Adesivo", nome: "RedMax", subst: "Adjuvante/espalhante",
+    paraQueServe: "Adjuvante usado para melhorar a cobertura e eficiência da pulverização, reduzindo perdas por deriva ou má aderência.",
+    dosagem: "Confira o rótulo específico — geralmente na faixa de 0,1 a 0,5% v/v dependendo da formulação.",
+    preco: "78,00" },
+  { cat: "Regulador", nome: "Ethefon 240", tam: "menor", subst: "Etefon",
+    alvo: "Uso para acelerar/uniformizar maturação e facilitar colheita — abacaxi, arroz, café, cana-de-açúcar, figo, manga, soja, sorgo, uva",
+    paraQueServe: "Regulador de crescimento (libera etileno dentro da planta), usado para acelerar maturação, uniformizar colheita ou facilitar desfolha conforme a cultura.",
+    dosagem: "Varia muito por cultura e objetivo (ex: maturação de café x uniformização de cana) — consulte o rótulo específico para a dose por hectare ou por planta.",
+    modoAplicacao: "Pode ser aplicado via pulverização foliar/de barra ou via jato dirigido na coroa da planta, dependendo da cultura. Não aplicar em plantas estressadas ou com temperatura acima de 38°C.",
+    especificacao: "Grupo químico etileno (precursor). Efeito sensível à temperatura: maturação mais lenta no frio, mais rápida no calor.",
+    preco: "20,00" },
+  { cat: "Regulador", nome: "Ethefon 240", tam: "maior", subst: "Etefon",
+    alvo: "Uso para acelerar/uniformizar maturação e facilitar colheita — abacaxi, arroz, café, cana-de-açúcar, figo, manga, soja, sorgo, uva",
+    paraQueServe: "Regulador de crescimento (libera etileno dentro da planta), usado para acelerar maturação, uniformizar colheita ou facilitar desfolha conforme a cultura.",
+    dosagem: "Varia muito por cultura e objetivo — consulte o rótulo específico da embalagem para a dose por hectare ou por planta.",
+    modoAplicacao: "Pode ser aplicado via pulverização foliar/de barra ou via jato dirigido na coroa da planta. Não aplicar em plantas estressadas ou com temperatura acima de 38°C.",
+    especificacao: "Grupo químico etileno (precursor).",
+    preco: "160,00" },
+  { cat: "Regulador", nome: "Progibb", subst: "Ácido giberélico",
+    alvo: "Uva (aumenta tamanho/peso dos cachos), citros (retarda amadurecimento), batata-semente (quebra dormência) — entre outras",
+    paraQueServe: "Regulador de crescimento hormonal (giberelina), usado para alongar frutos/cachos, retardar amadurecimento ou quebrar dormência de sementes/tubérculos, dependendo da cultura.",
+    dosagem: "Exemplos: limão — 40g em 100L de água, imersão de 15seg; batata-semente — 10g em 100L de água, imersão de 10min. A dose muda muito por cultura e objetivo — confira o rótulo.",
+    modoAplicacao: "Pode ser por imersão (frutos/tubérculos) ou pulverização foliar, dependendo da finalidade e da cultura.",
+    preco: "18,00" },
+  { cat: "Adubo", nome: "Super Simples", tam: "50kg", subst: "Superfosfato simples (fonte de fósforo)",
+    paraQueServe: "Adubo fosfatado usado principalmente na adubação de plantio, fornece fósforo (P) essencial para desenvolvimento de raízes.",
+    dosagem: "A dose varia conforme análise de solo e cultura — geralmente aplicado no plantio ou em cobertura conforme recomendação agronômica.",
+    preco: "130,00", cartao: "143,00" },
+  { cat: "Adubo", nome: "Super Simples", tam: "25kg", subst: "Superfosfato simples (fonte de fósforo)",
+    paraQueServe: "Adubo fosfatado usado principalmente na adubação de plantio.",
+    dosagem: "A dose varia conforme análise de solo e cultura.",
+    preco: "65,00", cartao: "71,50" },
+  { cat: "Adubo", nome: "16.6.20", tam: "50kg", subst: "NPK 16-6-20 (nitrogênio, fósforo, potássio)",
+    paraQueServe: "Adubo formulado NPK, com boa proporção de nitrogênio e potássio — usado em adubação de cobertura ou plantio conforme a cultura.",
+    dosagem: "A dose varia conforme análise de solo e exigência da cultura.",
+    preco: "150,00", cartao: "165,00" },
+  { cat: "Adubo", nome: "16.6.20", tam: "25kg", subst: "NPK 16-6-20 (nitrogênio, fósforo, potássio)",
+    paraQueServe: "Adubo formulado NPK, com boa proporção de nitrogênio e potássio.",
+    dosagem: "A dose varia conforme análise de solo e exigência da cultura.",
+    preco: "75,00", cartao: "82,50" },
+  { cat: "Corretivo", nome: "Agrolito", tam: "Saco 20kg", subst: "Pó de rocha (remineralizador)",
+    paraQueServe: "Remineralizador de solo, fornece minerais e micronutrientes de forma gradual (rocha moída), melhora a estrutura do solo a longo prazo.",
+    dosagem: "Geralmente aplicado em maior quantidade que fertilizantes convencionais (várias toneladas/ha) — efeito é de longo prazo, não substitui adubação de plantio.",
+    preco: "30,00" },
+  { cat: "Corretivo", nome: "Calcário MB4", subst: "Remineralizador de solo (pó de rocha — serpentinito e micaxisto), Mibasa",
+    alvo: "Recomendado para todas as culturas — testado com aumento de produção em soja, cana-de-açúcar e arroz",
+    paraQueServe: "Não é um calcário comum — é um remineralizador natural 100% de rocha moída (baixa solubilidade, granulometria fina), com sílicio, cálcio, potássio, magnésio e mais de 46 micronutrientes. Diferente do calcário, ele não corrige o pH rápido — libera nutrientes aos poucos e constrói fertilidade a longo prazo. Calcário e MB4 são complementares: o calcário corrige a acidez rápido, o MB4 remineraliza aos poucos.",
+    dosagem: "Composição típica: Magnésio 11-22%, Potássio 4-6% (varia conforme a rocha de origem — serpentinito ou micaxisto). Não há dose fixa em bula — a quantidade por hectare depende da análise de solo, como orienta o próprio fabricante.",
+    modoAplicacao: "Aplicação a lanço ou incorporado ao solo. Por ser de liberação lenta e gradual, funciona melhor como parte de um manejo de longo prazo, junto com calagem quando necessário.",
+    especificacao: "Produto 100% natural, baixa solubilidade, pequena granulometria. Registrado no MAPA. Benefícios: maior desenvolvimento radicular, mais eficiência na fotossíntese, mais resistência a pragas/doenças, folhas mais eretas, melhor qualidade de sementes, menor perda de água por evapotranspiração.",
+    preco: "20,00" },
+  { cat: "Corretivo", nome: "Calcário Mix", subst: "Mistura de calcário agrícola + gesso agrícola (Mibasa)",
+    alvo: "Solos ácidos, sódicos ou argilosos, especialmente onde se quer aprofundar o sistema radicular",
+    paraQueServe: "Combina os dois efeitos: o calcário corrige a acidez na superfície e fornece cálcio/magnésio (aumentando a disponibilidade de fósforo); o gesso penetra mais fácil em solos sódicos/argilosos, levando cálcio e enxofre em profundidade e reduzindo a saturação de alumínio — isso permite que a raiz cresça mais funda.",
+    dosagem: "A proporção da mistura calcário:gesso varia conforme a necessidade do solo — é recomendado fazer análise de solo antes para definir a proporção certa.",
+    modoAplicacao: "Aplicar e incorporar ao solo com antecedência ao plantio (calagem convencional pede cerca de 90 dias antes; existe também versão \"Filler\", mais fina, que reage mais rápido e permite só 30 dias de antecedência).",
+    especificacao: "Produto composto, misturado com dosadores automatizados. Com gesso, a água e os nutrientes penetram mais fundo no perfil do solo (comparado a aplicar só calcário), favorecendo raízes mais profundas.",
+    preco: "17,00" },
+].map((p, i) => Object.assign({
+  id: "p" + i, tam: "", subst: "", cartao: "",
+  paraQueServe: "", dosagem: "", modoAplicacao: "", especificacao: "",
+  alvo: "", doseHaMin: "", doseHaMax: "", doseUnidade: "mL", caldaMin: "", caldaMax: ""
+}, p));
+
+let products = DEFAULT_PRODUCTS.slice();
+let query = "";
+let activeCat = "Todos";
+let selectedId = null;
+let editingId = null;
+
+const grid = document.getElementById("grid");
+const emptyMsg = document.getElementById("emptyMsg");
+const countLabel = document.getElementById("countLabel");
+const catsRow = document.getElementById("catsRow");
+const searchInput = document.getElementById("searchInput");
+const detailOverlay = document.getElementById("detailOverlay");
+const detailSheet = document.getElementById("detailSheet");
+const formOverlay = document.getElementById("formOverlay");
+const formSheet = document.getElementById("formSheet");
+
+function esc(str) {
+  return String(str == null ? "" : str).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// Permite só negrito e cor de texto no HTML salvo (remove qualquer outra
+// tag/atributo, incluindo scripts) — usado nos campos com formatação.
+function sanitizeHtml(html) {
+  const container = document.createElement("div");
+  container.innerHTML = String(html == null ? "" : html);
+  const KEEP_PLAIN = new Set(["B", "STRONG", "I", "EM", "U", "BR", "DIV"]);
+  const walk = (node) => {
+    Array.from(node.childNodes).forEach(child => {
+      if (child.nodeType === 3) return; // texto puro, ok
+      if (child.nodeType !== 1) { child.remove(); return; }
+      walk(child); // sanitiza os filhos primeiro
+      const tag = child.tagName;
+      if (KEEP_PLAIN.has(tag)) {
+        Array.from(child.attributes).forEach(a => child.removeAttribute(a.name));
+        return;
+      }
+      if (tag === "SPAN" || tag === "FONT") {
+        let color = "";
+        if (tag === "FONT" && child.getAttribute("color")) color = child.getAttribute("color");
+        const styleAttr = child.getAttribute("style") || "";
+        const m = styleAttr.match(/color:\s*([^;]+)/i);
+        if (m) color = m[1].trim();
+        if (color) {
+          const span = document.createElement("span");
+          span.style.color = color;
+          while (child.firstChild) span.appendChild(child.firstChild);
+          child.replaceWith(span);
+        } else {
+          child.replaceWith(...child.childNodes);
+        }
+        return;
+      }
+      child.replaceWith(...child.childNodes); // tag desconhecida — mantém só o texto
+    });
+  };
+  walk(container);
+  return container.innerHTML;
+}
+
+// Corrige espaços "especiais" que o teclado do celular às vezes insere
+// (ex: espaço sem quebra do autocorretor), que fazem o texto parecer
+// com vãos gigantes entre as palavras. Troca por espaço normal e
+// remove espaços duplicados.
+function cleanText(str) {
+  return String(str == null ? "" : str)
+    .replace(/[\u00A0\u2000-\u200B\u202F\u205F\u3000]/g, " ")
+    .replace(/ {2,}/g, " ")
+    .trim();
+}
+
+function loadProducts() {
+  try {
+    const saved = localStorage.getItem("agro_products");
+    if (saved) products = JSON.parse(saved);
+  } catch (e) { /* nada salvo ainda */ }
+  // Corrige produtos salvos anteriormente com espaços especiais no nome/textos
+  const TEXT_FIELDS = ["nome","tam","subst","preco","cartao","alvo"];
+  const HTML_FIELDS = ["paraQueServe","dosagem","modoAplicacao","especificacao"];
+  products = products.map(p => {
+    const fixed = Object.assign({}, p);
+    TEXT_FIELDS.forEach(f => { if (fixed[f]) fixed[f] = cleanText(fixed[f]); });
+    HTML_FIELDS.forEach(f => { if (fixed[f]) fixed[f] = sanitizeHtml(fixed[f]); });
+    return fixed;
+  });
+  persist();
+  render();
+}
+
+function persist() {
+  try { localStorage.setItem("agro_products", JSON.stringify(products)); }
+  catch (e) { console.error("Falha ao salvar", e); }
+}
+
+function updateOnlineBadge() {
+  document.getElementById("offlineBadge").classList.toggle("show", !navigator.onLine);
+}
+window.addEventListener("online", updateOnlineBadge);
+window.addEventListener("offline", updateOnlineBadge);
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+
+function renderCats() {
+  const cats = ["Todos", ...Object.keys(CATS)];
+  catsRow.innerHTML = cats.map(c => {
+    const label = c === "Todos" ? "Todos" : CATS[c].label;
+    const isCustom = c !== "Todos" && !DEFAULT_CATS[c];
+    const removeBtn = isCustom ? `<span class="cat-remove" data-remove="${esc(c)}">✕</span>` : "";
+    return `<button class="cat-pill ${c === activeCat ? "active" : ""}" data-cat="${esc(c)}">${esc(label)}${removeBtn}</button>`;
+  }).join("") + `<button class="cat-pill cat-add" id="addCatBtnHeader" title="Adicionar categoria">+</button>`;
+
+  catsRow.querySelectorAll(".cat-pill").forEach(btn => {
+    if (btn.id === "addCatBtnHeader") return;
+    btn.addEventListener("click", (e) => {
+      if (e.target.classList.contains("cat-remove")) return;
+      activeCat = btn.dataset.cat;
+      render();
+    });
+  });
+  catsRow.querySelectorAll(".cat-remove").forEach(x => {
+    x.addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeCategory(x.dataset.remove);
+    });
+  });
+  document.getElementById("addCatBtnHeader").addEventListener("click", () => addNewCategory(null));
+}
+
+function removeCategory(key) {
+  const inUse = products.filter(p => p.cat === key).length;
+  if (inUse > 0) {
+    alert(`Essa categoria tem ${inUse} produto(s) cadastrado(s). Mude o tipo desses produtos antes de remover a categoria.`);
+    return;
+  }
+  if (!confirm(`Remover a categoria "${CATS[key].label}"?`)) return;
+  delete CATS[key];
+  if (activeCat === key) activeCat = "Todos";
+  persistCats();
+  renderCats();
+}
+
+function getFiltered() {
+  const q = query.trim().toLowerCase();
+  return products.filter(p => {
+    const matchCat = activeCat === "Todos" || p.cat === activeCat;
+    const matchQuery = !q ||
+      p.nome.toLowerCase().includes(q) ||
+      (p.subst && p.subst.toLowerCase().includes(q)) ||
+      (p.alvo && p.alvo.toLowerCase().includes(q));
+    return matchCat && matchQuery;
+  });
+}
+
+function renderGrid() {
+  const filtered = getFiltered();
+  countLabel.textContent = filtered.length + (filtered.length === 1 ? " produto" : " produtos");
+  emptyMsg.style.display = filtered.length === 0 ? "block" : "none";
+  grid.innerHTML = filtered.map(p => {
+    const meta = CATS[p.cat];
+    return `
+      <button class="card" data-id="${esc(p.id)}">
+        <div class="card-top">
+          <span class="badge" style="color:${meta.color};background:${meta.bg}">${esc(p.cat)}</span>
+          <span class="price">R$ ${esc(p.preco)}</span>
+        </div>
+        <div>
+          <h3>${esc(p.nome)}${p.tam ? ` <span class="tam">· ${esc(p.tam)}</span>` : ""}</h3>
+          ${p.subst && p.subst !== "—" ? `<p class="subst">${esc(p.subst)}</p>` : ""}
+        </div>
+        ${p.cartao ? `<p class="cartao">cartão 3x R$ ${esc(p.cartao)}</p>` : ""}
+      </button>
+    `;
+  }).join("");
+  grid.querySelectorAll(".card").forEach(card => {
+    card.addEventListener("click", () => { selectedId = card.dataset.id; openDetail(); });
+  });
+}
+
+function fieldHtml(label, value) {
+  return `
+    <div class="field">
+      <p class="field-label">${esc(label)}</p>
+      <p class="field-value ${value ? "" : "empty"}">${value ? sanitizeHtml(value) : "A adicionar — envie a informação para eu completar."}</p>
+    </div>
+  `;
+}
+
+function openDetail() {
+  const p = products.find(x => x.id === selectedId);
+  if (!p) return;
+  const meta = CATS[p.cat];
+  detailSheet.innerHTML = `
+    <div class="sheet-top">
+      <span class="badge" style="color:#fff;background:${meta.color}">${esc(meta.label)}</span>
+      <button class="close-btn" id="closeDetail">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <h2 class="serif">${esc(p.nome)}</h2>
+    ${p.tam ? `<p class="tam-line">${esc(p.tam)}</p>` : ""}
+    ${p.subst && p.subst !== "—" ? `<p class="subst-line">Substância: ${esc(p.subst)}</p>` : ""}
+    <p class="big-price">R$ ${esc(p.preco)}${p.cartao ? `<span class="cartao">cartão 3x R$ ${esc(p.cartao)}</span>` : ""}</p>
+    ${p.alvo ? `
+      <div class="field" style="margin-top:16px;">
+        <p class="field-label">Controla</p>
+        <div class="chips">${p.alvo.split(",").map(a => a.trim()).filter(Boolean).map(a => `<span class="chip">${esc(a)}</span>`).join("")}</div>
+      </div>
+    ` : ""}
+    ${fieldHtml("Para que serve", p.paraQueServe)}
+    ${fieldHtml("Dosagem recomendada", p.dosagem)}
+    ${fieldHtml("Modo de aplicação", p.modoAplicacao)}
+    ${fieldHtml("Especificação do produto", p.especificacao)}
+    <div class="actions" id="actionsRow">
+      <button class="btn btn-primary" id="editBtn">✎ Editar</button>
+      <button class="btn btn-outline-danger" id="deleteBtn">🗑 Excluir</button>
+    </div>
+  `;
+  document.getElementById("closeDetail").addEventListener("click", closeDetail);
+  document.getElementById("editBtn").addEventListener("click", () => { editingId = p.id; closeDetail(); openForm(p); });
+  document.getElementById("deleteBtn").addEventListener("click", () => showDeleteConfirm(p));
+  detailOverlay.classList.add("open");
+}
+
+function showDeleteConfirm(p) {
+  const row = document.getElementById("actionsRow");
+  row.innerHTML = `
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <p class="confirm-text">Excluir "${esc(p.nome)}"? Não dá pra desfazer.</p>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" id="cancelDelete">Cancelar</button>
+        <button class="btn btn-danger" id="confirmDelete">Confirmar exclusão</button>
+      </div>
+    </div>
+  `;
+  document.getElementById("cancelDelete").addEventListener("click", openDetail);
+  document.getElementById("confirmDelete").addEventListener("click", () => {
+    products = products.filter(x => x.id !== p.id);
+    persist();
+    closeDetail();
+    render();
+  });
+}
+
+function closeDetail() { detailOverlay.classList.remove("open"); }
+
+function formFieldHtml(id, label, value, type) {
+  if (type === "textarea") {
+    return `<label class="form-field"><label>${esc(label)}</label><textarea id="${id}" rows="2">${esc(value || "")}</textarea></label>`;
+  }
+  return `<label class="form-field"><label>${esc(label)}</label><input id="${id}" value="${esc(value || "")}" placeholder="${esc(arguments[4] || "")}" /></label>`;
+}
+
+const RT_COLORS = ["#1F3D1F", "#C0453B", "#B8651B", "#1D5DA8", "#7A3DB8"];
+
+// Campo de texto com barra de formatação (negrito + cor da letra)
+function richFieldHtml(id, label, value) {
+  const swatches = RT_COLORS.map(c => `<button type="button" class="rt-swatch" data-color="${c}" style="background:${c}" title="Cor"></button>`).join("");
+  return `
+    <label class="form-field" style="display:block;">
+      <label>${esc(label)}</label>
+      <div class="rt-toolbar" data-target="${id}">
+        <button type="button" class="rt-btn" data-cmd="bold" title="Negrito"><b>N</b></button>
+        ${swatches}
+        <input type="color" class="rt-color-custom" title="Outra cor" value="#1F3D1F" />
+      </div>
+      <div id="${id}" class="rt-editable" contenteditable="true" data-placeholder="Toque para escrever...">${sanitizeHtml(value || "")}</div>
+    </label>
+  `;
+}
+
+// Liga os botões de negrito/cor a um campo editável
+function wireRichField(id) {
+  const editable = document.getElementById(id);
+  const toolbar = document.querySelector(`.rt-toolbar[data-target="${id}"]`);
+  if (!editable || !toolbar) return;
+  // Impede que o campo perca o foco/seleção ao tocar nos botões
+  toolbar.addEventListener("mousedown", (e) => e.preventDefault());
+  toolbar.querySelectorAll(".rt-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      editable.focus();
+      document.execCommand(btn.dataset.cmd, false, null);
+    });
+  });
+  toolbar.querySelectorAll(".rt-swatch").forEach(sw => {
+    sw.addEventListener("click", () => {
+      editable.focus();
+      document.execCommand("foreColor", false, sw.dataset.color);
+    });
+  });
+  const customColor = toolbar.querySelector(".rt-color-custom");
+  customColor.addEventListener("input", () => {
+    editable.focus();
+    document.execCommand("foreColor", false, customColor.value);
+  });
+}
+
+function openForm(existing) {
+  const p = existing || { cat: "Herbicida", nome: "", tam: "", subst: "", preco: "", cartao: "", paraQueServe: "", dosagem: "", modoAplicacao: "", especificacao: "", alvo: "", doseHaMin: "", doseHaMax: "", doseUnidade: "mL", caldaMin: "", caldaMax: "" };
+  const isEdit = Boolean(existing);
+  formSheet.innerHTML = `
+    <div class="sheet-top">
+      <h2 class="serif" style="font-size:20px;">${isEdit ? "Editar produto" : "Novo produto"}</h2>
+      <button class="close-btn" id="closeForm">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <label class="form-field">
+      <label>Tipo</label>
+      <div style="display:flex;gap:8px;">
+        <select id="f_cat" style="flex:1;">
+          ${Object.keys(CATS).map(c => `<option value="${esc(c)}" ${c === p.cat ? "selected" : ""}>${esc(CATS[c].label)}</option>`).join("")}
+        </select>
+        <button type="button" id="addCatBtn" title="Adicionar nova categoria" style="flex-shrink:0;width:38px;border:1px solid #CFE0C4;background:#fff;border-radius:8px;color:#3D7A34;font-size:18px;font-weight:700;cursor:pointer;">+</button>
+      </div>
+    </label>
+    <label class="form-field"><label>Nome do produto</label><input id="f_nome" value="${esc(p.nome)}" placeholder="Ex: Roundup" /></label>
+    <div class="form-row">
+      <label class="form-field"><label>Tamanho / Embalagem</label><input id="f_tam" value="${esc(p.tam)}" placeholder="Ex: 1 litro" /></label>
+      <label class="form-field"><label>Substância</label><input id="f_subst" value="${esc(p.subst)}" placeholder="Ex: Glifosato" /></label>
+    </div>
+    <div class="form-row">
+      <label class="form-field"><label>Valor (R$)</label><input id="f_preco" value="${esc(p.preco)}" placeholder="Ex: 47,00" /></label>
+      <label class="form-field"><label>Valor no cartão</label><input id="f_cartao" value="${esc(p.cartao)}" placeholder="Ex: 51,70" /></label>
+    </div>
+    <label class="form-field"><label>Controla (praga/erva daninha, separado por vírgula)</label><input id="f_alvo" value="${esc(p.alvo)}" placeholder="Ex: Capim colonião, Buva, Corda-de-viola" /></label>
+    ${richFieldHtml("f_pqs", "Para que serve", p.paraQueServe)}
+    ${richFieldHtml("f_dos", "Dosagem recomendada (texto)", p.dosagem)}
+
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;color:#3D7A34;margin:14px 0 6px;">Dados da bula para a calculadora</p>
+    <div class="form-row">
+      <label class="form-field"><label>Dose por hectare — mínima</label><input id="f_doseHaMin" type="number" step="0.01" value="${esc(p.doseHaMin)}" placeholder="Ex: 0,6" /></label>
+      <label class="form-field"><label>Dose por hectare — máxima</label><input id="f_doseHaMax" type="number" step="0.01" value="${esc(p.doseHaMax)}" placeholder="Ex: 0,75" /></label>
+    </div>
+    <div class="form-row">
+      <label class="form-field">
+        <label>Unidade da dose</label>
+        <select id="f_doseUnidade">
+          <option value="L" ${p.doseUnidade === "L" ? "selected" : ""}>L/ha</option>
+          <option value="mL" ${p.doseUnidade === "mL" || !p.doseUnidade ? "selected" : ""}>mL/ha</option>
+          <option value="kg" ${p.doseUnidade === "kg" ? "selected" : ""}>kg/ha</option>
+          <option value="g" ${p.doseUnidade === "g" ? "selected" : ""}>g/ha</option>
+        </select>
+      </label>
+      <div></div>
+    </div>
+    <div class="form-row">
+      <label class="form-field"><label>Volume de calda — mínimo (L água/ha)</label><input id="f_caldaMin" type="number" step="1" value="${esc(p.caldaMin)}" placeholder="Ex: 100" /></label>
+      <label class="form-field"><label>Volume de calda — máximo (L água/ha)</label><input id="f_caldaMax" type="number" step="1" value="${esc(p.caldaMax)}" placeholder="Ex: 200" /></label>
+    </div>
+
+    ${richFieldHtml("f_modo", "Modo de aplicação", p.modoAplicacao)}
+    ${richFieldHtml("f_esp", "Especificação do produto", p.especificacao)}
+    <button id="saveBtn">${isEdit ? "Salvar alterações" : "Adicionar produto"}</button>
+  `;
+  document.getElementById("closeForm").addEventListener("click", closeForm);
+  document.getElementById("addCatBtn").addEventListener("click", () => addNewCategory(document.getElementById("f_cat")));
+  ["f_pqs", "f_dos", "f_modo", "f_esp"].forEach(wireRichField);
+  const nomeInput = document.getElementById("f_nome");
+  const saveBtn = document.getElementById("saveBtn");
+  const updateSaveState = () => { saveBtn.disabled = !nomeInput.value.trim(); };
+  nomeInput.addEventListener("input", updateSaveState);
+  updateSaveState();
+
+  saveBtn.addEventListener("click", () => {
+    const nome = cleanText(nomeInput.value);
+    if (!nome) return;
+    const data = {
+      cat: document.getElementById("f_cat").value,
+      nome,
+      tam: cleanText(document.getElementById("f_tam").value),
+      subst: cleanText(document.getElementById("f_subst").value),
+      preco: cleanText(document.getElementById("f_preco").value),
+      cartao: cleanText(document.getElementById("f_cartao").value),
+      alvo: cleanText(document.getElementById("f_alvo").value),
+      paraQueServe: sanitizeHtml(document.getElementById("f_pqs").innerHTML),
+      dosagem: sanitizeHtml(document.getElementById("f_dos").innerHTML),
+      doseHaMin: document.getElementById("f_doseHaMin").value,
+      doseHaMax: document.getElementById("f_doseHaMax").value,
+      doseUnidade: document.getElementById("f_doseUnidade").value,
+      caldaMin: document.getElementById("f_caldaMin").value,
+      caldaMax: document.getElementById("f_caldaMax").value,
+      modoAplicacao: sanitizeHtml(document.getElementById("f_modo").innerHTML),
+      especificacao: sanitizeHtml(document.getElementById("f_esp").innerHTML),
+    };
+    if (isEdit) {
+      products = products.map(x => x.id === existing.id ? Object.assign({}, x, data) : x);
+    } else {
+      products.push(Object.assign({ id: "p" + Date.now() }, data));
+    }
+    persist();
+    closeForm();
+    render();
+  });
+
+  formOverlay.classList.add("open");
+}
+
+function closeForm() { formOverlay.classList.remove("open"); editingId = null; }
+
+// ---- Painel dedicado da Calculadora (livre, sem produto vinculado) ----
+const calcOverlay = document.getElementById("calcOverlay");
+const calcSheet = document.getElementById("calcSheet");
+
+function openCalc() {
+  renderCalc();
+  calcOverlay.classList.add("open");
+}
+function closeCalc() { calcOverlay.classList.remove("open"); }
+
+function renderCalc() {
+  calcSheet.innerHTML = `
+    <div class="sheet-top">
+      <h2 class="serif" style="font-size:20px;">🧮 Calculadora de dosagem</h2>
+      <button class="close-btn" id="closeCalc">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px;color:#4C6B3F;margin:0 0 16px;">Pega a dose e o volume de calda direto da bula do produto e calcula quanto usar no seu pulverizador.</p>
+
+    <div class="calc-box">
+      <div class="calc-field">
+        <span class="calc-label">Dose</span>
+        <div class="calc-inline">
+          <input type="number" id="calcDose" value="" min="0" step="0.01" placeholder="Ex: 3" />
+          <select id="calcDoseUnit">
+            <option value="L">L/ha</option>
+            <option value="mL" selected>mL/ha</option>
+            <option value="kg">kg/ha</option>
+            <option value="g">g/ha</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-field">
+        <span class="calc-label">Calda (L água/ha)</span>
+        <input type="number" id="calcCalda" value="" min="1" step="1" placeholder="Ex: 200" />
+      </div>
+      <div class="calc-field">
+        <span class="calc-label">Tamanho do pulverizador (litros)</span>
+        <input type="number" id="calcLiters" value="20" min="0" step="0.5" />
+      </div>
+      <p class="calc-result" id="calcResult"></p>
+      <p style="font-size:11px;color:#9AB48A;margin:4px 0 0;">Cálculo: dose ÷ volume de calda × 1000 = quantidade por litro de água, depois × tamanho do pulverizador.</p>
+
+      <div class="calc-field" style="margin-top:16px;border-top:1px dashed #CFE0C4;padding-top:14px;">
+        <span class="calc-label">Área da lavoura (opcional) — pra saber o total pra lavoura inteira</span>
+        <div class="calc-inline">
+          <input type="number" id="calcArea" value="" min="0" step="0.01" placeholder="Ex: 4" />
+          <select id="calcAreaUnit">
+            <option value="tarefa">tarefas</option>
+            <option value="ha">hectares</option>
+          </select>
+        </div>
+      </div>
+      <p class="calc-result" id="calcAreaResult"></p>
+    </div>
+
+    <div class="calc-box">
+      <p class="calc-title">🌾 Converter tarefa ⇄ hectare</p>
+      <div class="calc-field">
+        <span class="calc-label">Tarefas</span>
+        <input type="number" id="calcTarefa" value="" min="0" step="0.01" placeholder="Ex: 4" />
+      </div>
+      <div class="calc-field">
+        <span class="calc-label">Hectares</span>
+        <input type="number" id="calcHectare" value="" min="0" step="0.001" placeholder="Ex: 1,21" />
+      </div>
+      <p style="font-size:11px;color:#9AB48A;margin:8px 0 0;">1 hectare = 3,3 tarefas. Preencha um campo que o outro calcula sozinho.</p>
+    </div>
+  `;
+
+  document.getElementById("closeCalc").addEventListener("click", closeCalc);
+
+  const calcDose = document.getElementById("calcDose");
+  const calcDoseUnit = document.getElementById("calcDoseUnit");
+  const calcCalda = document.getElementById("calcCalda");
+  const calcLiters = document.getElementById("calcLiters");
+  const calcResult = document.getElementById("calcResult");
+  const calcArea = document.getElementById("calcArea");
+  const calcAreaUnit = document.getElementById("calcAreaUnit");
+  const calcAreaResult = document.getElementById("calcAreaResult");
+  const TAREFA_POR_HA = 3.3;
+
+  const update = () => {
+    const unidade = calcDoseUnit.value;
+    const toBaseUnit = (v) => (unidade === "L" ? v * 1000 : unidade === "kg" ? v * 1000 : v);
+    const outUnit = unidade === "L" ? "mL" : unidade === "kg" ? "g" : unidade;
+
+    const doseRaw = parseFloat(String(calcDose.value).replace(",", ".")) || 0;
+    const dose = toBaseUnit(doseRaw);
+    const calda = parseFloat(String(calcCalda.value).replace(",", ".")) || 0;
+    const liters = parseFloat(calcLiters.value) || 0;
+
+    if (!dose || !calda) {
+      calcResult.innerHTML = `<span style="color:#9AB48A;font-weight:400;font-style:italic;font-size:14px;">Preencha a dose e a calda pra ver o resultado.</span>`;
+      calcAreaResult.innerHTML = "";
+      return;
+    }
+    const perLiter = dose / calda;
+    const total = perLiter * liters;
+    calcResult.innerHTML = `${total.toLocaleString("pt-BR", {maximumFractionDigits: 2})} <span class="unit">${esc(outUnit)} para ${liters}L de água (${perLiter.toLocaleString("pt-BR", {maximumFractionDigits: 3})} ${esc(outUnit)}/L)</span>`;
+
+    // Total pra lavoura inteira (dose e calda são "por hectare")
+    const areaRaw = parseFloat(String(calcArea.value).replace(",", ".")) || 0;
+    if (areaRaw > 0) {
+      const ha = calcAreaUnit.value === "tarefa" ? areaRaw / TAREFA_POR_HA : areaRaw;
+      const produtoTotal = dose * ha; // já convertido pra mL ou g
+      const caldaTotal = calda * ha;
+      const produtoUnitFinal = outUnit === "mL" && produtoTotal >= 1000 ? { v: produtoTotal / 1000, u: "L" } : outUnit === "g" && produtoTotal >= 1000 ? { v: produtoTotal / 1000, u: "kg" } : { v: produtoTotal, u: outUnit };
+      calcAreaResult.innerHTML = `Pra ${ha.toLocaleString("pt-BR", {maximumFractionDigits: 3})} ha: <b>${produtoUnitFinal.v.toLocaleString("pt-BR", {maximumFractionDigits: 2})} ${esc(produtoUnitFinal.u)}</b> de produto e <b>${caldaTotal.toLocaleString("pt-BR", {maximumFractionDigits: 0})} L</b> de calda no total.`;
+    } else {
+      calcAreaResult.innerHTML = "";
+    }
+  };
+  [calcDose, calcDoseUnit, calcCalda, calcLiters, calcArea, calcAreaUnit].forEach(el => el.addEventListener("input", update));
+  update();
+
+  // Conversor tarefa ⇄ hectare (independente, edição bidirecional)
+  const calcTarefa = document.getElementById("calcTarefa");
+  const calcHectare = document.getElementById("calcHectare");
+  const fmtNum = (n) => {
+    if (!n) return "";
+    let s = n.toFixed(4);
+    s = s.replace(/0+$/, "").replace(/\.$/, "");
+    return s.replace(".", ",");
+  };
+  let convertLock = false;
+  calcTarefa.addEventListener("input", () => {
+    if (convertLock) return;
+    convertLock = true;
+    const t = parseFloat(String(calcTarefa.value).replace(",", ".")) || 0;
+    calcHectare.value = t ? fmtNum(t / TAREFA_POR_HA) : "";
+    convertLock = false;
+  });
+  calcHectare.addEventListener("input", () => {
+    if (convertLock) return;
+    convertLock = true;
+    const h = parseFloat(String(calcHectare.value).replace(",", ".")) || 0;
+    calcTarefa.value = h ? fmtNum(h * TAREFA_POR_HA) : "";
+    convertLock = false;
+  });
+}
+
+document.getElementById("calcNavBtn").addEventListener("click", openCalc);
+calcOverlay.addEventListener("click", (e) => { if (e.target === calcOverlay) closeCalc(); });
+
+// ---- Backup: exportar / importar dados ----
+const backupOverlay = document.getElementById("backupOverlay");
+const backupSheet = document.getElementById("backupSheet");
+const restoreFileInput = document.getElementById("restoreFileInput");
+
+function getLastBackupInfo() {
+  try { return JSON.parse(localStorage.getItem("agro_backup_meta") || "null"); }
+  catch (e) { return null; }
+}
+function setLastBackupInfo(tipo) {
+  try { localStorage.setItem("agro_backup_meta", JSON.stringify({ tipo, data: new Date().toISOString() })); }
+  catch (e) { /* ignora */ }
+}
+
+function openBackup() {
+  const info = getLastBackupInfo();
+  const infoLine = info
+    ? `Último ${info.tipo === "export" ? "backup baixado" : "backup restaurado"} em ${new Date(info.data).toLocaleDateString("pt-BR")} às ${new Date(info.data).toLocaleTimeString("pt-BR", {hour:"2-digit",minute:"2-digit"})}.`
+    : "Você ainda não fez nenhum backup neste aparelho.";
+  backupSheet.innerHTML = `
+    <div class="sheet-top">
+      <h2 class="serif" style="font-size:20px;">💾 Backup dos dados</h2>
+      <button class="close-btn" id="closeBackup">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <p style="font-size:13px;color:#4C6B3F;margin:0 0 4px;">Seus produtos ficam salvos só neste aparelho/navegador. Se você trocar de celular, limpar o cache ou desinstalar, os dados se perdem — a não ser que você tenha um backup.</p>
+    <p style="font-size:12px;color:#9AB48A;margin:0 0 16px;font-style:italic;">${esc(infoLine)}</p>
+
+    <div class="calc-box">
+      <p class="calc-title">📥 Baixar backup</p>
+      <p style="font-size:13px;color:#4C6B3F;margin:0 0 10px;">Salva um arquivo com todos os produtos e categorias. Guarde esse arquivo no Google Drive, WhatsApp (mandando pra você mesmo) ou onde for fácil de achar depois.</p>
+      <button id="exportBtn" class="btn btn-primary" style="width:100%;">Baixar arquivo de backup</button>
+    </div>
+
+    <div class="calc-box">
+      <p class="calc-title">📤 Restaurar backup</p>
+      <p style="font-size:13px;color:#4C6B3F;margin:0 0 10px;">Escolha um arquivo de backup salvo antes. <b>Isso substitui todos os produtos atuais</b> pelos do arquivo.</p>
+      <button id="importBtn" class="btn btn-outline-danger" style="width:100%;">Escolher arquivo e restaurar</button>
+    </div>
+
+    <p id="backupMsg" style="font-size:13px;text-align:center;margin:14px 0 0;"></p>
+  `;
+  document.getElementById("closeBackup").addEventListener("click", closeBackup);
+  document.getElementById("exportBtn").addEventListener("click", exportBackup);
+  document.getElementById("importBtn").addEventListener("click", () => {
+    restoreFileInput.value = "";
+    restoreFileInput.click();
+  });
+  backupOverlay.classList.add("open");
+}
+function closeBackup() { backupOverlay.classList.remove("open"); }
+
+function exportBackup() {
+  const payload = {
+    app: "catalogo-agro",
+    versao: 1,
+    exportadoEm: new Date().toISOString(),
+    products,
+    categories: (() => {
+      const custom = {};
+      Object.keys(CATS).forEach(k => { if (!DEFAULT_CATS[k]) custom[k] = CATS[k]; });
+      return custom;
+    })(),
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const dataStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `backup-catalogo-agro-${dataStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  setLastBackupInfo("export");
+  const msg = document.getElementById("backupMsg");
+  if (msg) { msg.textContent = "Backup baixado! Confira sua pasta de downloads."; msg.style.color = "#3D7A34"; }
+}
+
+restoreFileInput.addEventListener("change", () => {
+  const file = restoreFileInput.files && restoreFileInput.files[0];
+  if (!file) return;
+  const msg = document.getElementById("backupMsg");
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (!data || !Array.isArray(data.products)) throw new Error("formato inválido");
+      products = data.products;
+      if (data.categories && typeof data.categories === "object") {
+        CATS = Object.assign({}, DEFAULT_CATS, data.categories);
+        persistCats();
+      }
+      persist();
+      setLastBackupInfo("import");
+      render();
+      if (msg) { msg.textContent = `Restaurado! ${products.length} produtos carregados.`; msg.style.color = "#3D7A34"; }
+    } catch (e) {
+      if (msg) { msg.textContent = "Não consegui ler esse arquivo — confira se é um backup válido do catálogo."; msg.style.color = "#C0453B"; }
+    }
+  };
+  reader.readAsText(file);
+});
+
+document.getElementById("backupNavBtn").addEventListener("click", openBackup);
+backupOverlay.addEventListener("click", (e) => { if (e.target === backupOverlay) closeBackup(); });
+
+function render() {
+  renderCats();
+  renderGrid();
+}
+
+searchInput.addEventListener("input", (e) => { query = e.target.value; renderGrid(); });
+document.getElementById("newBtn").addEventListener("click", () => openForm(null));
+detailOverlay.addEventListener("click", (e) => { if (e.target === detailOverlay) closeDetail(); });
+formOverlay.addEventListener("click", (e) => { if (e.target === formOverlay) closeForm(); });
+
+loadCats();
+loadProducts();
+updateOnlineBadge();
+</script>
+</body>
+</html>

@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Relatórios Herbicida Agrobraz</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- React e ReactDOM via CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Firebase JS SDK (Compat) COM AUTH -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+  <style>
+    @keyframes blinkAlert {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.98); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    .blinking-alert {
+      animation: blinkAlert 1.2s infinite ease-in-out;
+    }
+
+    @media print {
+      body { background: white !important; color: black !important; }
+      .no-print { display: none !important; }
+      .print-only { display: block !important; }
+    }
+    @media screen {
+      .print-only { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-[#f7f9f6] text-gray-800">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback } = React;
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUQaXZvuBAFnkPy04XxLBTSVWYiGC3L80",
+      authDomain: "app-herbicida-e-gerais.firebaseapp.com",
+      projectId: "app-herbicida-e-gerais",
+      storageBucket: "app-herbicida-e-gerais.firebasestorage.app",
+      messagingSenderId: "708858351646",
+      appId: "1:708858351646:web:785e4de5b67867fbb09e0f",
+      measurementId: "G-YMYP0286KD"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    const SEED_PRODUCTS = [
+      { id: "p1", nome: "24D", valorUnitario: 40, minimo: 3, unidade: "L", qtdEstoque: 20 },
+      { id: "p2", nome: "HEXAZINONA D", valorUnitario: 310, minimo: 3, unidade: "Kg", qtdEstoque: 50 },
+      { id: "p3", nome: "ROUNDUP", valorUnitario: 40, minimo: 3, unidade: "gl", qtdEstoque: 0 },
+      { id: "p4", nome: "CALIST", valorUnitario: 115, minimo: 3, unidade: "L", qtdEstoque: 0 }
+    ];
+
+    const fmtBRL = (n) => (n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    const fmtDate = (timestamp) => {
+      if (!timestamp) return new Date().toLocaleDateString("pt-BR");
+      const d = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return d.toLocaleDateString("pt-BR");
+    };
+
+    function App() {
+      const [user, setUser] = useState(null);
+      const [authLoading, setAuthLoading] = useState(true);
+      const [emailLogin, setEmailLogin] = useState('');
+      const [senhaLogin, setSenhaLogin] = useState('');
+      const [erroLogin, setErroLogin] = useState('');
+
+      const [activeTab, setActiveTab] = useState('estoque');
+      const [produtos, setProdutos] = useState([]);
+      const [historico, setHistorico] = useState([]);
+      const [loadingData, setLoadingData] = useState(true);
+
+      // Novos Estados para Filtros Avançados de Relatório
+      const [tipoFiltroMov, setTipoFiltroMov] = useState('AMBOS'); // 'AMBOS', 'SAIDA', 'ENTRADA'
+      const [tipoPeriodo, setTipoPeriodo] = useState('mes'); // 'dia', 'semana', 'quinzena', 'mes'
+      const [filtroDataUnica, setFiltroDataUnica] = useState(new Date().toISOString().slice(0, 10));
+      const [filtroDataInicio, setFiltroDataInicio] = useState(new Date().toISOString().slice(0, 10));
+      const [filtroDataFim, setFiltroDataFim] = useState(new Date().toISOString().slice(0, 10));
+      const [filtroMesAno, setFiltroMesAno] = useState(new Date().toISOString().slice(0, 7)); // YYYY-MM
+      const [filtroQuinzenaNum, setFiltroQuinzenaNum] = useState('1'); // '1' (1 a 15) ou '2' (16 em diante)
+
+      const [vendaParaPDF, setVendaParaPDF] = useState(null);
+
+      const [editandoId, setEditandoId] = useState(null);
+      const [novaQtdCard, setNovaQtdCard] = useState('');
+
+      const [editandoProdObj, setEditandoProdObj] = useState(null);
+      const [editandoHistObj, setEditandoHistObj] = useState(null);
+
+      const [novoNome, setNovoNome] = useState('');
+      const [novoValor, setNovoValor] = useState('');
+      const [novoMinimo, setNovoMinimo] = useState(3);
+      const [novoEstoqueInicial, setNovoEstoqueInicial] = useState(0);
+      const [novaUnidade, setNovaUnidade] = useState('L');
+      const [unidadeCustomizada, setUnidadeCustomizada] = useState('');
+
+      const [prodSel, setProdSel] = useState('');
+      const [tipoMov, setTipoMov] = useState('SAIDA');
+      const [qtdMov, setQtdMov] = useState('');
+      const [valorManual, setValorManual] = useState('');
+      const [tipoDesconto, setTipoDesconto] = useState('VALOR');
+      const [valorDesconto, setValorDesconto] = useState('');
+      const [clienteMov, setClienteMov] = useState('');
+      const [fornecedorMov, setFornecedorMov] = useState('');
+      const [formaPagamento, setFormaPagamento] = useState('Pix');
+      const [ultimaVenda, setUltimaVenda] = useState(null);
+
+      useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((u) => {
+          setUser(u);
+          setAuthLoading(false);
+        });
+        return () => unsubscribe();
+      }, []);
+
+      const handleLogin = (e) => {
+        e.preventDefault();
+        setErroLogin('');
+        auth.signInWithEmailAndPassword(emailLogin, senhaLogin)
+          .catch((err) => {
+            setErroLogin('E-mail ou senha incorretos. Tente novamente.');
+            console.error(err);
+          });
+      };
+
+      const handleLogout = () => {
+        auth.signOut();
+      };
+
+      useEffect(() => {
+        if (!user) return;
+
+        const unsubProd = db.collection('produtos').onSnapshot(async (snapshot) => {
+          if (snapshot.empty) {
+            for (const p of SEED_PRODUCTS) {
+              await db.collection('produtos').doc(p.id).set(p);
+            }
+          } else {
+            const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setProdutos(list);
+          }
+          setLoadingData(false);
+        }, (error) => {
+          console.error("Erro ao carregar produtos:", error);
+        });
+
+        const unsubHist = db.collection('historico').orderBy('data', 'desc').onSnapshot((snapshot) => {
+          const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setHistorico(list);
+        }, (error) => {
+          console.error("Erro ao carregar histórico:", error);
+        });
+
+        return () => {
+          unsubProd();
+          unsubHist();
+        };
+      }, [user]);
+
+      const handleSelectProdutoMov = (id) => {
+        setProdSel(id);
+        const p = produtos.find(item => item.id === id);
+        if (p) {
+          setValorManual(p.valorUnitario || 0);
+        } else {
+          setValorManual('');
+        }
+      };
+
+      const handleAddProduto = async (e) => {
+        e.preventDefault();
+        if (!novoNome) return;
+
+        const unFinal = novaUnidade === 'OUTRA' ? (unidadeCustomizada.trim() || 'UN') : novaUnidade;
+
+        await db.collection('produtos').add({
+          nome: novoNome.toUpperCase(),
+          valorUnitario: Number(novoValor) || 0,
+          minimo: Number(novoMinimo) || 3,
+          unidade: unFinal,
+          qtdEstoque: Number(novoEstoqueInicial) || 0
+        });
+
+        setNovoNome('');
+        setNovoValor('');
+        setNovoMinimo(3);
+        setNovoEstoqueInicial(0);
+        setNovaUnidade('L');
+        setUnidadeCustomizada('');
+        alert("Produto cadastrado com sucesso!");
+      };
+
+      const handleSalvarEdicaoProduto = async (e) => {
+        e.preventDefault();
+        if (!editandoProdObj) return;
+
+        await db.collection('produtos').doc(editandoProdObj.id).update({
+          nome: editandoProdObj.nome.toUpperCase(),
+          valorUnitario: Number(editandoProdObj.valorUnitario) || 0,
+          minimo: Number(editandoProdObj.minimo) || 0,
+          unidade: editandoProdObj.unidade,
+          qtdEstoque: Number(editandoProdObj.qtdEstoque) || 0
+        });
+
+        setEditandoProdObj(null);
+        alert("Produto atualizado com sucesso!");
+      };
+
+      const handleSalvarEdicaoHistorico = async (e) => {
+        e.preventDefault();
+        if (!editandoHistObj) return;
+
+        const qtdAntiga = Number(editandoHistObj.quantidadeAntiga || 0);
+        const novaQtd = Number(editandoHistObj.quantidade || 0);
+        const tipo = editandoHistObj.tipo;
+        const prodId = editandoHistObj.produtoId;
+
+        const subtotal = novaQtd * Number(editandoHistObj.valorUnitario || 0);
+        let descCalculado = Number(editandoHistObj.descontoCalculado || 0);
+        const valorTotalFinal = Math.max(0, subtotal - descCalculado);
+
+        await db.collection('historico').doc(editandoHistObj.id).update({
+          quantidade: novaQtd,
+          valorUnitario: Number(editandoHistObj.valorUnitario || 0),
+          descontoCalculado: descCalculado,
+          valorTotal: valorTotalFinal,
+          cliente: editandoHistObj.cliente || '',
+          fornecedor: editandoHistObj.fornecedor || '',
+          formaPagamento: editandoHistObj.formaPagamento || ''
+        });
+
+        const diffQtd = novaQtd - qtdAntiga;
+        if (diffQtd !== 0 && prodId) {
+          const prodRef = db.collection('produtos').doc(prodId);
+          const prodDoc = await prodRef.get();
+          if (prodDoc.exists) {
+            const estoqueAtual = Number(prodDoc.data().qtdEstoque || 0);
+            const novoEstoque = tipo === 'SAIDA' ? estoqueAtual - diffQtd : estoqueAtual + diffQtd;
+            await prodRef.update({ qtdEstoque: Math.max(0, novoEstoque) });
+          }
+        }
+
+        setEditandoHistObj(null);
+        alert("Movimentação atualizada com sucesso!");
+      };
+
+      const handleExcluirHistorico = async (h) => {
+        if (confirm(`Tem certeza que deseja excluir esta ${h.tipo.toLowerCase()} de ${h.quantidade} ${h.unidade} de ${h.produtoNome}? O estoque será ajustado.`)) {
+          if (h.produtoId) {
+            const prodRef = db.collection('produtos').doc(h.produtoId);
+            const prodDoc = await prodRef.get();
+            if (prodDoc.exists) {
+              const estoqueAtual = Number(prodDoc.data().qtdEstoque || 0);
+              const novoEstoque = h.tipo === 'SAIDA' ? estoqueAtual + Number(h.quantidade) : estoqueAtual - Number(h.quantidade);
+              await prodRef.update({ qtdEstoque: Math.max(0, novoEstoque) });
+            }
+          }
+          await db.collection('historico').doc(h.id).delete();
+          alert("Registro excluído e estoque ajustado com sucesso!");
+        }
+      };
+
+      const handleSalvarQtdCard = async (id) => {
+        if (novaQtdCard === '' || Number(novaQtdCard) < 0) return;
+        await db.collection('produtos').doc(id).update({ qtdEstoque: Number(novaQtdCard) });
+        setEditandoId(null);
+        setNovaQtdCard('');
+      };
+
+      const handleExcluirProduto = async (id, nome) => {
+        if (confirm(`Tem certeza que deseja excluir o produto "${nome}"?`)) {
+          await db.collection('produtos').doc(id).delete();
+        }
+      };
+
+      const gerarBackup = useCallback((isAuto = false) => {
+        if (produtos.length === 0 && historico.length === 0) return;
+
+        const dadosBackup = {
+          dataBackup: new Date().toISOString(),
+          produtos,
+          historico
+        };
+
+        const jsonStr = JSON.stringify(dadosBackup, null, 2);
+        const blob = new Blob([jsonStr], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `backup_agrobraz_${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+
+        localStorage.setItem("ultimoBackupAgrobraz", new Date().getTime());
+        if (!isAuto) alert("Backup realizado e baixado com sucesso!");
+      }, [produtos, historico]);
+
+      const restaurarBackup = (event) => {
+        const fileReader = new FileReader();
+        const file = event.target.files[0];
+        if (!file) return;
+
+        fileReader.readAsText(file, "UTF-8");
+        fileReader.onload = async (e) => {
+          try {
+            const parsedData = JSON.parse(e.target.result);
+            if (!parsedData.produtos || !parsedData.historico) {
+              alert("Arquivo de backup inválido!");
+              return;
+            }
+
+            if (!confirm("Isso irá atualizar seu banco de dados com as informações do backup. Deseja continuar?")) {
+              return;
+            }
+
+            for (const prod of parsedData.produtos) {
+              await db.collection('produtos').doc(prod.id).set(prod, { merge: true });
+            }
+
+            for (const hist of parsedData.historico) {
+              await db.collection('historico').doc(hist.id || String(Date.now())).set(hist, { merge: true });
+            }
+
+            alert("Dados restaurados com sucesso!");
+          } catch (err) {
+            alert("Erro ao ler o arquivo de backup.");
+            console.error(err);
+          }
+        };
+      };
+
+      useEffect(() => {
+        if (user && !loadingData && produtos.length > 0) {
+          const ultimoBackup = localStorage.getItem("ultimoBackupAgrobraz");
+          const agora = new Date().getTime();
+          const seteDiasMs = 7 * 24 * 60 * 60 * 1000;
+
+          if (!ultimoBackup || (agora - Number(ultimoBackup)) >= seteDiasMs) {
+            gerarBackup(true);
+          }
+        }
+      }, [loadingData, produtos, gerarBackup, user]);
+
+      const imprimirComprovantePDF = (dadosVenda) => {
+        setVendaParaPDF(dadosVenda);
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      };
+
+      const enviarWhatsAppVenda = (dados) => {
+        let texto = `*📄 COMPROVANTE DE VENDA - AGROBRAZ*\n\n`;
+        texto += `🏢 *Agrobraz Soluções Agrícolas*\n`;
+        texto += `📍 Rua I - Coruripe/AL\n`;
+        texto += `📞 (82) 99320-0513\n\n`;
+        texto += `👤 *Cliente:* ${dados.cliente || 'Não informado'}\n`;
+        texto += `📦 *Produto:* ${dados.produtoNome}\n`;
+        texto += `🔢 *Quantidade:* ${dados.quantidade} ${dados.unidade}\n`;
+        texto += `💵 *Valor Unitário:* ${fmtBRL(dados.valorUnitario)}\n`;
+        if (dados.descontoCalculado > 0) {
+          texto += `🏷️ *Desconto Aplicado:* ${fmtBRL(dados.descontoCalculado)}\n`;
+        }
+        texto += `💳 *Forma de Pagamento:* ${dados.formaPagamento}\n`;
+        texto += `💰 *Valor Total:* ${fmtBRL(dados.valorTotal)}\n`;
+        texto += `📅 *Data:* ${dados.data}\n`;
+        texto += `\n_Obrigado pela preferência!_`;
+
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+        window.open(url, "_blank");
+      };
+
+      const handleMovimentar = async (e) => {
+        e.preventDefault();
+        if (!prodSel || !qtdMov || Number(qtdMov) <= 0) return;
+
+        const prod = produtos.find(p => p.id === prodSel);
+        if (!prod) return;
+
+        const qtd = Number(qtdMov);
+        const novaQtd = tipoMov === 'ENTRADA' ? (prod.qtdEstoque || 0) + qtd : (prod.qtdEstoque || 0) - qtd;
+
+        if (novaQtd < 0) {
+          alert("Quantidade em estoque insuficiente!");
+          return;
+        }
+
+        const dataAtual = new Date().toLocaleDateString('pt-BR');
+        const valUnit = Number(valorManual) >= 0 ? Number(valorManual) : (prod.valorUnitario || 0);
+        const subtotal = qtd * valUnit;
+
+        let valorDesc = Number(valorDesconto) || 0;
+        let descCalculado = 0;
+        if (valorDesc > 0) {
+          if (tipoDesconto === 'PORCENTAGEM') {
+            descCalculado = (subtotal * valorDesc) / 100;
+          } else {
+            descCalculado = valorDesc;
+          }
+        }
+
+        const valorTotalFinal = Math.max(0, subtotal - descCalculado);
+
+        await db.collection('produtos').doc(prodSel).update({ qtdEstoque: novaQtd });
+        await db.collection('historico').add({
+          produtoId: prodSel,
+          produtoNome: prod.nome,
+          tipo: tipoMov,
+          quantidade: qtd,
+          unidade: prod.unidade,
+          valorUnitario: valUnit,
+          descontoCalculado: descCalculado,
+          valorTotal: valorTotalFinal,
+          cliente: tipoMov === 'SAIDA' ? clienteMov : '',
+          fornecedor: tipoMov === 'ENTRADA' ? fornecedorMov : '',
+          formaPagamento: tipoMov === 'SAIDA' ? formaPagamento : '',
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        if (tipoMov === 'SAIDA') {
+          const dadosVenda = {
+            produtoNome: prod.nome,
+            quantidade: qtd,
+            unidade: prod.unidade,
+            valorUnitario: valUnit,
+            descontoCalculado: descCalculado,
+            cliente: clienteMov,
+            formaPagamento: formaPagamento,
+            valorTotal: valorTotalFinal,
+            data: dataAtual
+          };
+          setUltimaVenda(dadosVenda);
+        } else {
+          setUltimaVenda(null);
+        }
+
+        setQtdMov('');
+        setValorManual('');
+        setValorDesconto('');
+        setClienteMov('');
+        setFornecedorMov('');
+        alert("Movimentação registrada com sucesso!");
+      };
+
+      // FILTRO AVANÇADO DE HISTÓRICO / RELATÓRIOS
+      const historicoFiltrado = useMemo(() => {
+        return historico.filter(h => {
+          if (!h.data) return false;
+          const dt = h.data.toDate ? h.data.toDate() : new Date(h.data);
+          
+          // 1. Filtro por Tipo (Saída, Entrada ou Ambos)
+          if (tipoFiltroMov !== 'AMBOS' && h.tipo !== tipoFiltroMov) {
+            return false;
+          }
+
+          // 2. Filtro por Período
+          if (tipoPeriodo === 'dia') {
+            const dataStr = dt.toISOString().slice(0, 10);
+            if (dataStr !== filtroDataUnica) return false;
+          } else if (tipoPeriodo === 'semana') {
+            const dataStr = dt.toISOString().slice(0, 10);
+            if (dataStr < filtroDataInicio || dataStr > filtroDataFim) return false;
+          } else if (tipoPeriodo === 'quinzena') {
+            const anoMesDt = dt.toISOString().slice(0, 7);
+            const diaDt = dt.getDate();
+            if (anoMesDt !== filtroMesAno) return false;
+            if (filtroQuinzenaNum === '1' && (diaDt < 1 || diaDt > 15)) return false;
+            if (filtroQuinzenaNum === '2' && diaDt < 16) return false;
+          } else if (tipoPeriodo === 'mes') {
+            const anoMesDt = dt.toISOString().slice(0, 7);
+            if (anoMesDt !== filtroMesAno) return false;
+          }
+
+          return true;
+        });
+      }, [historico, tipoFiltroMov, tipoPeriodo, filtroDataUnica, filtroDataInicio, filtroDataFim, filtroMesAno, filtroQuinzenaNum]);
+
+      const totalRelatorioPeriodo = useMemo(() => {
+        return historicoFiltrado.reduce((acc, h) => {
+          const tot = h.valorTotal !== undefined ? h.valorTotal : ((h.quantidade || 0) * (h.valorUnitario || 0));
+          return acc + tot;
+        }, 0);
+      }, [historicoFiltrado]);
+
+      const exportarExcel = () => {
+        let csv = "Data;Tipo;Produto;Quantidade;Unidade;Valor Unitario;Desconto;Valor Total;Cliente;Fornecedor;FormaPagamento\n";
+        historicoFiltrado.forEach(h => {
+          const vUnit = h.valorUnitario || 0;
+          const desc = h.descontoCalculado || 0;
+          const vTot = h.valorTotal !== undefined ? h.valorTotal : ((h.quantidade || 0) * vUnit - desc);
+          csv += `${fmtDate(h.data)};${h.tipo};${h.produtoNome};${h.quantidade};${h.unidade};${vUnit};${desc};${vTot};${h.cliente || '-'};${h.fornecedor || '-'};${h.formaPagamento || '-'}\n`;
+        });
+        const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `relatorio_agrobraz_${tipoPeriodo}.csv`;
+        link.click();
+      };
+
+      const exportarRelatorioGeralPDF = () => {
+        setVendaParaPDF(null);
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      };
+
+      const valorTotalEstoque = produtos.reduce((acc, p) => acc + ((p.qtdEstoque || 0) * (p.valorUnitario || 0)), 0);
+      const totalItens = produtos.reduce((acc, p) => acc + (p.qtdEstoque || 0), 0);
+      const produtosAlerta = produtos.filter(p => (p.qtdEstoque || 0) <= (p.minimo || 3));
+
+      const produtoSelecionadoObj = produtos.find(p => p.id === prodSel);
+
+      const prevValUnit = Number(valorManual) >= 0 ? Number(valorManual) : (produtoSelecionadoObj ? produtoSelecionadoObj.valorUnitario : 0);
+      const prevSubtotal = (Number(qtdMov) || 0) * prevValUnit;
+      let prevDescCalculado = 0;
+      if (Number(valorDesconto) > 0) {
+        if (tipoDesconto === 'PORCENTAGEM') {
+          prevDescCalculado = (prevSubtotal * Number(valorDesconto)) / 100;
+        } else {
+          prevDescCalculado = Number(valorDesconto);
+        }
+      }
+      const prevTotalFinal = Math.max(0, prevSubtotal - prevDescCalculado);
+
+      if (authLoading) {
+        return (
+          <div className="min-h-screen bg-emerald-900 text-white flex flex-col items-center justify-center p-4">
+            <p className="text-lg font-medium">Verificando segurança...</p>
+          </div>
+        );
+      }
+
+      if (!user) {
+        return (
+          <div className="min-h-screen bg-[#f7f9f6] flex flex-col items-center justify-center p-4">
+            <div className="bg-white p-8 rounded-2xl shadow-lg max-w-sm w-full border border-gray-200">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <span className="text-3xl">🔒</span>
+                </div>
+                <h1 className="text-xl font-black text-[#14532d] uppercase tracking-wider">Agrobraz</h1>
+                <p className="text-xs text-gray-500 font-bold mt-1">Acesso Restrito</p>
+              </div>
+
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">E-mail</label>
+                  <input 
+                    type="email" 
+                    value={emailLogin} 
+                    onChange={e => setEmailLogin(e.target.value)} 
+                    className="w-full p-3 border rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    placeholder="Seu e-mail cadastrado"
+                    required 
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1">Senha</label>
+                  <input 
+                    type="password" 
+                    value={senhaLogin} 
+                    onChange={e => setSenhaLogin(e.target.value)} 
+                    className="w-full p-3 border rounded-lg bg-gray-50 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
+                    placeholder="Sua senha secreta"
+                    required 
+                  />
+                </div>
+                
+                {erroLogin && <p className="text-xs text-red-600 font-bold text-center">{erroLogin}</p>}
+
+                <button type="submit" className="w-full bg-[#14532d] hover:bg-emerald-800 text-white font-black py-3 rounded-lg text-sm shadow transition-colors">
+                  ENTRAR
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
+      if (loadingData) {
+        return (
+          <div className="min-h-screen bg-emerald-900 text-white flex flex-col items-center justify-center p-4">
+            <p className="text-lg font-medium">Buscando estoque seguro...</p>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen bg-[#f7f9f6] text-gray-800 pb-20 max-w-md mx-auto relative">
+          
+          <div className="print-only p-8 border border-gray-400 m-4 rounded">
+            {vendaParaPDF ? (
+              <div className="space-y-4">
+                <div className="text-center border-b pb-4">
+                  <h1 className="text-xl font-black uppercase text-emerald-900">Agrobraz Soluções Agrícolas</h1>
+                  <p className="text-xs font-bold text-gray-700">CNPJ: 097.700.414-75</p>
+                  <p className="text-xs text-gray-600">Rua I — Coruripe / AL</p>
+                  <p className="text-xs text-gray-600">Celular / WhatsApp: (82) 99320-0513</p>
+                </div>
+
+                <div className="bg-gray-50 p-3 rounded border text-center">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-gray-800">COMPROVANTE DE VENDA</h2>
+                  <p className="text-xs text-gray-500">Data: {vendaParaPDF.data}</p>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <p><strong>CLIENTE:</strong> {vendaParaPDF.cliente || 'Cliente não identificado'}</p>
+                  <p><strong>PRODUTO:</strong> {vendaParaPDF.produtoNome}</p>
+                  <p><strong>QUANTIDADE:</strong> {vendaParaPDF.quantidade} {vendaParaPDF.unidade}</p>
+                  <p><strong>VALOR UNITÁRIO:</strong> {fmtBRL(vendaParaPDF.valorUnitario)}</p>
+                  {vendaParaPDF.descontoCalculado > 0 && (
+                    <p><strong>DESCONTO:</strong> {fmtBRL(vendaParaPDF.descontoCalculado)}</p>
+                  )}
+                  <p><strong>FORMA DE PAGAMENTO:</strong> {vendaParaPDF.formaPagamento || 'Não informada'}</p>
+                </div>
+
+                <div className="border-t pt-3 flex justify-between items-center text-sm font-black">
+                  <span>VALOR TOTAL DA VENDA:</span>
+                  <span className="text-emerald-900">{fmtBRL(vendaParaPDF.valorTotal)}</span>
+                </div>
+
+                <div className="pt-8 text-center text-[10px] text-gray-400 border-t">
+                  Agrobraz Soluções Agrícolas — Agradecemos a sua preferência!
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="text-center border-b pb-4 mb-4">
+                  <h1 className="text-xl font-bold uppercase">Agrobraz Soluções Agrícolas</h1>
+                  <p className="text-xs">CNPJ: 097.700.414-75 | Cel: (82) 99320-0513</p>
+                  <p className="text-xs">Rua I — Coruripe/AL</p>
+                  <p className="text-xs font-bold mt-2 uppercase">
+                    RELATÓRIO DE MOVIMENTAÇÃO ({tipoFiltroMov}) — PERÍODO: {tipoPeriodo.toUpperCase()}
+                  </p>
+                </div>
+                
+                <table className="w-full text-xs border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100 text-left">
+                      <th className="border p-1.5">Data</th>
+                      <th className="border p-1.5">Tipo</th>
+                      <th className="border p-1.5">Produto</th>
+                      <th className="border p-1.5">Qtd</th>
+                      <th className="border p-1.5">Val. Unit.</th>
+                      <th className="border p-1.5">Desc.</th>
+                      <th className="border p-1.5">Val. Total</th>
+                      <th className="border p-1.5">Cliente/Forn.</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {historicoFiltrado.map(h => {
+                      const vUnit = h.valorUnitario || 0;
+                      const desc = h.descontoCalculado || 0;
+                      const vTotal = h.valorTotal !== undefined ? h.valorTotal : ((h.quantidade || 0) * vUnit - desc);
+                      return (
+                        <tr key={h.id}>
+                          <td className="border p-1.5">{fmtDate(h.data)}</td>
+                          <td className="border p-1.5 font-bold">{h.tipo}</td>
+                          <td className="border p-1.5">{h.produtoNome}</td>
+                          <td className="border p-1.5">{h.quantidade} {h.unidade}</td>
+                          <td className="border p-1.5">{fmtBRL(vUnit)}</td>
+                          <td className="border p-1.5">{desc > 0 ? fmtBRL(desc) : '-'}</td>
+                          <td className="border p-1.5 font-bold">{fmtBRL(vTotal)}</td>
+                          <td className="border p-1.5">{h.cliente || h.fornecedor || '-'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                <div className="mt-4 text-right text-xs font-bold">
+                  <span>VALOR TOTAL NO PERÍODO: </span>
+                  <span className="text-emerald-900 text-sm">{fmtBRL(totalRelatorioPeriodo)}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="no-print">
+            <header className="bg-[#14532d] text-white p-4 shadow-md">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-base font-black tracking-wider uppercase">RELATÓRIOS HERBICIDA AGROBRAZ</h1>
+                  <p className="text-[11px] text-emerald-200 font-medium">Programa Cicero</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {produtosAlerta.length > 0 && (
+                    <div className="bg-[#78350f]/80 text-amber-200 px-2 py-0.5 rounded-full text-xs font-bold border border-amber-600/50 blinking-alert">
+                      ⚠️ {produtosAlerta.length}
+                    </div>
+                  )}
+                  <button onClick={handleLogout} className="bg-red-700 hover:bg-red-800 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-md border border-red-500 shadow">
+                    SAIR
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <main className="p-4 space-y-4">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex justify-between items-center">
+                <div>
+                  <p className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wide">VALOR EM ESTOQUE</p>
+                  <p className="text-xl font-black text-[#14532d] mt-0.5">{fmtBRL(valorTotalEstoque)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] font-extrabold text-gray-500 uppercase tracking-wide">TOTAL DE ITENS</p>
+                  <p className="text-xl font-black text-[#c2410c] mt-0.5">{totalItens} <span className="text-xs font-normal text-gray-500">itens</span></p>
+                </div>
+              </div>
+
+              {produtosAlerta.length > 0 && (
+                <div className="bg-[#fff7ed] border border-[#ea580c] rounded-xl p-3 shadow-sm flex items-start gap-3 blinking-alert">
+                  <div>
+                    <p className="text-xs font-black text-[#c2410c]">
+                      ⚠️ Por favor, repor estoque dos produtos destacados abaixo!
+                    </p>
+                    <p className="text-[11px] text-[#9a3412] mt-0.5">
+                      Existe(m) <strong>{produtosAlerta.length} produto(s)</strong> com estoque igual ou abaixo do mínimo.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* MODAL DE EDIÇÃO DE MOVIMENTAÇÃO / SAÍDA */}
+              {editandoHistObj && (
+                <form onSubmit={handleSalvarEdicaoHistorico} className="bg-amber-50 p-4 rounded-xl shadow-md border border-amber-300 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <h2 className="font-extrabold text-amber-900 text-sm uppercase tracking-wider">
+                      ✏️ Editar {editandoHistObj.tipo} — {editandoHistObj.produtoNome}
+                    </h2>
+                    <button 
+                      type="button" 
+                      onClick={() => setEditandoHistObj(null)}
+                      className="text-xs font-bold text-gray-500 hover:text-gray-800"
+                    >
+                      ✖ Cancelar
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Quantidade ({editandoHistObj.unidade})</label>
+                      <input 
+                        type="number" 
+                        step="any"
+                        value={editandoHistObj.quantidade} 
+                        onChange={e => setEditandoHistObj({...editandoHistObj, quantidade: e.target.value})} 
+                        className="w-full p-2 border rounded bg-white text-sm font-bold"
+                        required 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Valor Unitário (R$)</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        value={editandoHistObj.valorUnitario} 
+                        onChange={e => setEditandoHistObj({...editandoHistObj, valorUnitario: e.target.value})} 
+                        className="w-full p-2 border rounded bg-white text-sm font-bold"
+                        required 
+                      />
+                    </div>
+                  </div>
+
+                  {editandoHistObj.tipo === 'SAIDA' && (
+                    <>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Nome do Cliente</label>
+                        <input 
+                          type="text" 
+                          value={editandoHistObj.cliente || ''} 
+                          onChange={e => setEditandoHistObj({...editandoHistObj, cliente: e.target.value})} 
+                          className="w-full p-2 border rounded bg-white text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Forma de Pagamento</label>
+                        <select
+                          value={editandoHistObj.formaPagamento || 'Pix'}
+                          onChange={e => setEditandoHistObj({...editandoHistObj, formaPagamento: e.target.value})}
+                          className="w-full p-2 border rounded bg-white text-sm"
+                        >
+                          <option value="Pix">Pix</option>
+                          <option value="Boleto">Boleto</option>
+                          <option value="Dinheiro à vista">Dinheiro à vista / Espécie</option>
+                          <option value="Cartão de Crédito">Cartão de Crédito</option>
+                          <option value="Cartão de Débito">Cartão de Débito</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+
+                  {editandoHistObj.tipo === 'ENTRADA' && (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Nome do Fornecedor</label>
+                      <input 
+                        type="text" 
+                        value={editandoHistObj.fornecedor || ''} 
+                        onChange={e => setEditandoHistObj({...editandoHistObj, fornecedor: e.target.value})} 
+                        className="w-full p-2 border rounded bg-white text-sm"
+                      />
+                    </div>
+                  )}
+
+                  <button type="submit" className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 rounded-lg text-sm shadow">
+                    💾 Salvar Alterações na Movimentação
+                  </button>
+                </form>
+              )}
+
+              {activeTab === 'estoque' && (
+                <div className="space-y-3">
+                  <h2 className="text-xs font-black text-[#14532d] uppercase tracking-wider">
+                    QUANTIDADE EM ESTOQUE
+                  </h2>
+
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {produtos.map(p => {
+                      const alerta = (p.qtdEstoque || 0) <= (p.minimo || 3);
+                      const emEdicao = editandoId === p.id;
+
+                      return (
+                        <div 
+                          key={p.id} 
+                          className={`bg-white rounded-xl p-2.5 shadow-sm border flex flex-col justify-between relative min-h-[180px] ${
+                            alerta ? 'border-[#f97316] bg-[#fff7ed]' : 'border-gray-200'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center w-full absolute top-1.5 left-0 px-1.5 z-10">
+                            <button 
+                              onClick={() => {
+                                if (emEdicao) {
+                                  setEditandoId(null);
+                                } else {
+                                  setEditandoId(p.id);
+                                  setNovaQtdCard(p.qtdEstoque || 0);
+                                }
+                              }}
+                              className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200 text-xs shadow-sm"
+                              title="Editar quantidade aqui"
+                            >
+                              ✏️
+                            </button>
+
+                            <button 
+                              onClick={() => handleExcluirProduto(p.id, p.nome)}
+                              className="w-6 h-6 bg-red-50 rounded-full flex items-center justify-center text-red-600 hover:bg-red-100 text-xs shadow-sm"
+                              title="Excluir produto"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+
+                          <div className="mt-4">
+                            {alerta && (
+                              <p className="text-[9px] font-black text-[#c2410c] uppercase tracking-tighter leading-none mb-1 text-center blinking-alert">
+                                ⚠️ REPOR
+                              </p>
+                            )}
+
+                            {emEdicao ? (
+                              <div className="space-y-1 text-center my-1">
+                                <input 
+                                  type="number" 
+                                  value={novaQtdCard}
+                                  onChange={e => setNovaQtdCard(e.target.value)}
+                                  className="w-full p-1 border rounded text-center text-xs font-bold"
+                                  autoFocus
+                                />
+                                <button 
+                                  onClick={() => handleSalvarQtdCard(p.id)}
+                                  className="w-full bg-emerald-700 text-white text-[10px] font-bold py-0.5 rounded shadow"
+                                >
+                                  Salvar
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="text-center mt-1">
+                                <span className={`text-2xl font-black ${alerta ? 'text-[#ea580c]' : 'text-[#15803d]'}`}>
+                                  {p.qtdEstoque || 0}
+                                </span>
+                                <span className="text-[10px] font-bold text-gray-500 ml-0.5">{p.unidade}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="my-1 flex justify-center">
+                            <div className={`w-10 h-10 rounded-lg border-2 flex items-end justify-center overflow-hidden relative ${
+                              alerta ? 'border-gray-300 bg-emerald-50' : 'border-[#15803d] bg-emerald-100'
+                            }`}>
+                              <div 
+                                className={`w-full transition-all duration-500 ${alerta ? 'bg-emerald-200' : 'bg-[#15803d]'}`} 
+                                style={{ height: `${Math.min(100, ((p.qtdEstoque || 0) / 20) * 100)}%` }} 
+                              />
+                            </div>
+                          </div>
+
+                          <div className="text-center">
+                            <h3 className="font-extrabold text-gray-800 text-xs leading-tight truncate">{p.nome}</h3>
+                            <p className="text-[10px] font-black text-emerald-800 mt-0.5">{fmtBRL(p.valorUnitario)}</p>
+                            <p className={`text-[9px] font-bold ${alerta ? 'text-[#c2410c]' : 'text-gray-400'}`}>
+                              mín: {p.minimo || 3} {p.unidade}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'produtos' && (
+                <div className="space-y-4">
+                  {editandoProdObj ? (
+                    <form onSubmit={handleSalvarEdicaoProduto} className="bg-amber-50 p-4 rounded-xl shadow-sm border border-amber-300 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <h2 className="font-extrabold text-amber-900 text-sm uppercase tracking-wider">
+                          ✏️ Editar Produto
+                        </h2>
+                        <button 
+                          type="button" 
+                          onClick={() => setEditandoProdObj(null)}
+                          className="text-xs font-bold text-gray-500 hover:text-gray-800"
+                        >
+                          ✖ Cancelar
+                        </button>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-700 mb-1">Nome do Produto</label>
+                        <input 
+                          type="text" 
+                          value={editandoProdObj.nome} 
+                          onChange={e => setEditandoProdObj({...editandoProdObj, nome: e.target.value})} 
+                          className="w-full p-2.5 border rounded-lg bg-white text-sm"
+                          required 
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Valor Unitário (R$)</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={editandoProdObj.valorUnitario} 
+                            onChange={e => setEditandoProdObj({...editandoProdObj, valorUnitario: e.target.value})} 
+                            className="w-full p-2.5 border rounded-lg bg-white text-sm"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Estoque Mínimo</label>
+                          <input 
+                            type="number" 
+                            value={editandoProdObj.minimo} 
+                            onChange={e => setEditandoProdObj({...editandoProdObj, minimo: e.target.value})} 
+                            className="w-full p-2.5 border rounded-lg bg-white text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Estoque Atual</label>
+                          <input 
+                            type="number" 
+                            value={editandoProdObj.qtdEstoque} 
+                            onChange={e => setEditandoProdObj({...editandoProdObj, qtdEstoque: e.target.value})} 
+                            className="w-full p-2.5 border rounded-lg bg-white text-sm"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-700 mb-1">Unidade</label>
+                          <input 
+                            type="text" 
+                            value={editandoProdObj.unidade} 
+                            onChange={e => setEditandoProdObj({...editandoProdObj, unidade: e.target.value})} 
+                            className="w-full p-2.5 border rounded-lg bg-white text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <button type="submit" className="w-full bg-amber-700 hover:bg-amber-800 text-white font-bold py-2.5 rounded-lg text-sm shadow">
+                        💾 Salvar Alterações
+                      </button>
+                    </form>
+                  ) : (
+                    <form onSubmit={handleAddProduto} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-3">
+                      <h2 className="font-extrabold text-gray-800 text-sm uppercase tracking-wider text-[#14532d]">
+                        Cadastrar Novo Produto
+                      </h2>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-600 mb-1">Nome do Produto</label>
+                        <input 
+                          type="text" 
+                          value={novoNome} 
+                          onChange={e => setNovoNome(e.target.value)} 
+                          placeholder="Ex: GLIFOSATO 480" 
+                          className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm"
+                          required 
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-600 mb-1">Valor (R$)</label>
+                          <input 
+                            type="number" 
+                            step="0.01"
+                            value={novoValor} 
+                            onChange={e => setNovoValor(e.target.value)} 
+                            placeholder="45.00" 
+                            className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-600 mb-1">Estoque Mín.</label>
+                          <input 
+                            type="number" 
+                            value={novoMinimo} 
+                            onChange={e => setNovoMinimo(e.target.value)} 
+                            placeholder="3" 
+                            className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-600 mb-1">Estoque Atual</label>
+                          <input 
+                            type="number" 
+                            value={novoEstoqueInicial} 
+                            onChange={e => setNovoEstoqueInicial(e.target.value)} 
+                            placeholder="0" 
+                            className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-600 mb-1">Unidade de Medida</label>
+                        <select 
+                          value={novaUnidade} 
+                          onChange={e => setNovaUnidade(e.target.value)} 
+                          className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm font-medium"
+                        >
+                          <option value="L">Litro (L)</option>
+                          <option value="Kg">Quilo (Kg)</option>
+                          <option value="g">Grama (g)</option>
+                          <option value="gl">Galão (gl)</option>
+                          <option value="UN">Unidade (UN)</option>
+                          <option value="OUTRA">➕ Outra... (Digitar personalizada)</option>
+                        </select>
+                      </div>
+
+                      {novaUnidade === 'OUTRA' && (
+                        <div>
+                          <label className="block text-xs font-bold text-emerald-800 mb-1">Digite a Nova Unidade</label>
+                          <input 
+                            type="text" 
+                            value={unidadeCustomizada} 
+                            onChange={e => setUnidadeCustomizada(e.target.value)} 
+                            placeholder="Ex: Saca, Tambor, Frasco..." 
+                            className="w-full p-2.5 border border-emerald-400 rounded-lg bg-emerald-50 text-sm"
+                            required
+                          />
+                        </div>
+                      )}
+
+                      <button type="submit" className="w-full bg-[#15803d] hover:bg-emerald-800 text-white font-bold py-3 rounded-lg text-sm shadow">
+                        💾 Salvar Novo Produto
+                      </button>
+                    </form>
+                  )}
+
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-2">
+                    <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                      Produtos Cadastrados ({produtos.length})
+                    </h3>
+
+                    {produtos.map(p => (
+                      <div key={p.id} className="p-2.5 border rounded-lg bg-gray-50 flex justify-between items-center text-xs">
+                        <div>
+                          <p className="font-bold text-gray-800">{p.nome}</p>
+                          <p className="text-[11px] text-gray-500">
+                            Preço: <b className="text-emerald-800">{fmtBRL(p.valorUnitario)}</b> / {p.unidade} · Mínimo: {p.minimo || 3}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <span className="font-bold text-gray-700 bg-white px-2 py-1 rounded border">
+                            {p.qtdEstoque || 0} {p.unidade}
+                          </span>
+                          
+                          <button 
+                            onClick={() => setEditandoProdObj(p)}
+                            className="text-gray-600 hover:text-emerald-800 text-sm p-1 rounded bg-gray-100 hover:bg-gray-200"
+                            title="Editar Dados do Produto"
+                          >
+                            ✏️
+                          </button>
+
+                          <button 
+                            onClick={() => handleExcluirProduto(p.id, p.nome)}
+                            className="text-red-600 hover:text-red-800 text-sm p-1 rounded bg-red-50 hover:bg-red-100"
+                            title="Excluir Produto"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'movimentar' && (
+                <form onSubmit={handleMovimentar} className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-4">
+                  <h2 className="font-bold text-gray-700">Registrar Entrada / Saída</h2>
+                  
+                  <div>
+                    <label className="block text-xs font-bold text-gray-500 mb-1">Produto</label>
+                    <select 
+                      value={prodSel} 
+                      onChange={e => handleSelectProdutoMov(e.target.value)} 
+                      className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm font-bold text-emerald-900"
+                      required
+                    >
+                      <option value="">Selecione um produto...</option>
+                      {produtos.map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.nome} (Estoque: {p.qtdEstoque || 0} {p.unidade})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTipoMov('SAIDA')}
+                      className={`p-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 border ${tipoMov === 'SAIDA' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-gray-50 text-gray-500'}`}
+                    >
+                      ➖ Saída
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTipoMov('ENTRADA')}
+                      className={`p-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 border ${tipoMov === 'ENTRADA' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-gray-50 text-gray-500'}`}
+                    >
+                      ➕ Entrada
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Quantidade</label>
+                      <input 
+                        type="number" 
+                        value={qtdMov} 
+                        onChange={e => setQtdMov(e.target.value)} 
+                        placeholder="Ex: 5" 
+                        className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm"
+                        required 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Valor Unitário (R$)</label>
+                      <input 
+                        type="number" 
+                        step="0.01"
+                        value={valorManual} 
+                        onChange={e => setValorManual(e.target.value)} 
+                        placeholder="Ex: 40.00" 
+                        className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm font-bold text-emerald-900"
+                        required 
+                      />
+                    </div>
+                  </div>
+
+                  {tipoMov === 'SAIDA' && (
+                    <div className="bg-amber-50 p-3 rounded-lg border border-amber-200 space-y-2">
+                      <label className="block text-xs font-bold text-amber-900">Aplicar Desconto (Opcional)</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <select 
+                          value={tipoDesconto} 
+                          onChange={e => setTipoDesconto(e.target.value)}
+                          className="p-2 border rounded-lg bg-white text-xs font-bold text-gray-700"
+                        >
+                          <option value="VALOR">Em Reais (R$)</option>
+                          <option value="PORCENTAGEM">Em Porcentagem (%)</option>
+                        </select>
+                        <input 
+                          type="number" 
+                          step="0.01"
+                          value={valorDesconto} 
+                          onChange={e => setValorDesconto(e.target.value)} 
+                          placeholder={tipoDesconto === 'PORCENTAGEM' ? 'Ex: 10 (%)' : 'Ex: 15.00 (R$)'} 
+                          className="p-2 border rounded-lg bg-white text-xs font-bold"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {produtoSelecionadoObj && qtdMov && Number(qtdMov) > 0 && (
+                    <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg text-xs space-y-1">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal ({qtdMov} {produtoSelecionadoObj.unidade} × {fmtBRL(prevValUnit)}):</span>
+                        <span>{fmtBRL(prevSubtotal)}</span>
+                      </div>
+                      {prevDescCalculado > 0 && (
+                        <div className="flex justify-between text-amber-800 font-bold">
+                          <span>Desconto ({tipoDesconto === 'PORCENTAGEM' ? `${valorDesconto}%` : fmtBRL(Number(valorDesconto))}):</span>
+                          <span>- {fmtBRL(prevDescCalculado)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between font-black text-emerald-900 text-sm border-t border-emerald-200 pt-1">
+                        <span>VALOR TOTAL FINAL:</span>
+                        <span>{fmtBRL(prevTotalFinal)}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {tipoMov === 'SAIDA' ? (
+                    <>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Nome do Cliente (Opcional)</label>
+                        <input 
+                          type="text" 
+                          value={clienteMov} 
+                          onChange={e => setClienteMov(e.target.value)} 
+                          placeholder="Ex: João da Silva" 
+                          className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Forma de Pagamento</label>
+                        <select
+                          value={formaPagamento}
+                          onChange={e => setFormaPagamento(e.target.value)}
+                          className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm font-medium"
+                        >
+                          <option value="Pix">Pix</option>
+                          <option value="Boleto">Boleto</option>
+                          <option value="Dinheiro à vista">Dinheiro à vista / Espécie</option>
+                          <option value="Cartão de Crédito">Cartão de Crédito</option>
+                          <option value="Cartão de Débito">Cartão de Débito</option>
+                        </select>
+                      </div>
+                    </>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Nome do Fornecedor (Opcional)</label>
+                      <input 
+                        type="text" 
+                        value={fornecedorMov} 
+                        onChange={e => setFornecedorMov(e.target.value)} 
+                        placeholder="Ex: Syngenta / Bayer" 
+                        className="w-full p-2.5 border rounded-lg bg-gray-50 text-sm"
+                      />
+                    </div>
+                  )}
+
+                  <button type="submit" className="w-full bg-[#15803d] text-white font-bold py-3 rounded-lg text-sm shadow">
+                    Confirmar Movimentação
+                  </button>
+
+                  {ultimaVenda && (
+                    <div className="pt-2 grid grid-cols-2 gap-2">
+                      <button 
+                        type="button"
+                        onClick={() => enviarWhatsAppVenda(ultimaVenda)}
+                        className="bg-[#25D366] hover:bg-[#1ebd59] text-white font-bold py-2.5 rounded-lg text-xs shadow flex items-center justify-center gap-1"
+                      >
+                        📱 WhatsApp
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => imprimirComprovantePDF(ultimaVenda)}
+                        className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2.5 rounded-lg text-xs shadow flex items-center justify-center gap-1"
+                      >
+                        📄 Gerar PDF
+                      </button>
+                    </div>
+                  )}
+                </form>
+              )}
+
+              {activeTab === 'relatorios' && (
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 space-y-4">
+                  <h2 className="font-bold text-gray-700">Relatórios & Segurança</h2>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+                    <p className="text-xs font-bold text-blue-900">💾 Backup e Restauração de Dados</p>
+                    <p className="text-[11px] text-blue-700">Backup automático executado a cada 7 dias.</p>
+                    
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      <button 
+                        onClick={() => gerarBackup(false)} 
+                        className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 rounded-lg text-xs shadow"
+                      >
+                        ⬇️ Fazer Backup
+                      </button>
+
+                      <label className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg text-xs shadow text-center cursor-pointer block">
+                        📤 Restaurar Backup
+                        <input 
+                          type="file" 
+                          accept=".json" 
+                          onChange={restaurarBackup} 
+                          className="hidden" 
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* FILTROS AVANÇADOS SOLICITADOS */}
+                  <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-3">
+                    <h3 className="text-xs font-bold text-gray-700 uppercase">🎯 Filtros de Relatório</h3>
+
+                    {/* 1. Selecionar Tipo: Saídas, Entradas ou Ambos */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-600 mb-1">Tipo de Movimentação:</label>
+                      <div className="grid grid-cols-3 gap-1 text-xs">
+                        <button 
+                          type="button"
+                          onClick={() => setTipoFiltroMov('AMBOS')}
+                          className={`p-2 rounded font-bold border ${tipoFiltroMov === 'AMBOS' ? 'bg-emerald-800 text-white border-emerald-900' : 'bg-white text-gray-700'}`}
+                        >
+                          Ambos
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setTipoFiltroMov('SAIDA')}
+                          className={`p-2 rounded font-bold border ${tipoFiltroMov === 'SAIDA' ? 'bg-red-700 text-white border-red-800' : 'bg-white text-gray-700'}`}
+                        >
+                          Saídas
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setTipoFiltroMov('ENTRADA')}
+                          className={`p-2 rounded font-bold border ${tipoFiltroMov === 'ENTRADA' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-gray-700'}`}
+                        >
+                          Entradas
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 2. Selecionar Período */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-600 mb-1">Filtrar por Período:</label>
+                      <div className="grid grid-cols-4 gap-1 text-[11px]">
+                        <button 
+                          type="button"
+                          onClick={() => setTipoPeriodo('dia')} 
+                          className={`p-2 rounded font-bold border ${tipoPeriodo === 'dia' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-gray-600'}`}
+                        >
+                          Dia
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setTipoPeriodo('semana')} 
+                          className={`p-2 rounded font-bold border ${tipoPeriodo === 'semana' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-gray-600'}`}
+                        >
+                          Semana
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setTipoPeriodo('quinzena')} 
+                          className={`p-2 rounded font-bold border ${tipoPeriodo === 'quinzena' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-gray-600'}`}
+                        >
+                          Quinzena
+                        </button>
+                        <button 
+                          type="button"
+                          onClick={() => setTipoPeriodo('mes')} 
+                          className={`p-2 rounded font-bold border ${tipoPeriodo === 'mes' ? 'bg-emerald-600 text-white border-emerald-700' : 'bg-white text-gray-600'}`}
+                        >
+                          Mês
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* CONTROLES ESPECÍFICOS DO PERÍODO ESCOLHIDO */}
+                    {tipoPeriodo === 'dia' && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1">Selecione o Dia:</label>
+                        <input 
+                          type="date"
+                          value={filtroDataUnica}
+                          onChange={e => setFiltroDataUnica(e.target.value)}
+                          className="w-full p-2 border rounded bg-white text-xs font-bold"
+                        />
+                      </div>
+                    )}
+
+                    {tipoPeriodo === 'semana' && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">De (Início):</label>
+                          <input 
+                            type="date"
+                            value={filtroDataInicio}
+                            onChange={e => setFiltroDataInicio(e.target.value)}
+                            className="w-full p-2 border rounded bg-white text-xs font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Até (Fim):</label>
+                          <input 
+                            type="date"
+                            value={filtroDataFim}
+                            onChange={e => setFiltroDataFim(e.target.value)}
+                            className="w-full p-2 border rounded bg-white text-xs font-bold"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {tipoPeriodo === 'quinzena' && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Mês e Ano:</label>
+                          <input 
+                            type="month"
+                            value={filtroMesAno}
+                            onChange={e => setFiltroMesAno(e.target.value)}
+                            className="w-full p-2 border rounded bg-white text-xs font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 mb-1">Quinzena:</label>
+                          <select 
+                            value={filtroQuinzenaNum}
+                            onChange={e => setFiltroQuinzenaNum(e.target.value)}
+                            className="w-full p-2 border rounded bg-white text-xs font-bold"
+                          >
+                            <option value="1">1ª Quinzena (Dia 1 a 15)</option>
+                            <option value="2">2ª Quinzena (Dia 16 em diante)</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {tipoPeriodo === 'mes' && (
+                      <div>
+                        <label className="block text-[10px] font-bold text-gray-500 mb-1">Selecione o Mês e Ano:</label>
+                        <input 
+                          type="month"
+                          value={filtroMesAno}
+                          onChange={e => setFiltroMesAno(e.target.value)}
+                          className="w-full p-2 border rounded bg-white text-xs font-bold"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <button 
+                      onClick={exportarExcel} 
+                      className="bg-emerald-700 text-white font-bold py-3 rounded-lg text-xs shadow flex items-center justify-center gap-1"
+                    >
+                      📊 Baixar Excel (.CSV)
+                    </button>
+                    <button 
+                      onClick={exportarRelatorioGeralPDF} 
+                      className="bg-orange-600 text-white font-bold py-3 rounded-lg text-xs shadow flex items-center justify-center gap-1"
+                    >
+                      📄 Relatório PDF
+                    </button>
+                  </div>
+
+                  <div className="pt-2 border-t space-y-2">
+                    <div className="flex justify-between items-center text-xs font-bold text-gray-600">
+                      <span>Registros Encontrados ({historicoFiltrado.length}):</span>
+                      <span className="text-emerald-800">Total: {fmtBRL(totalRelatorioPeriodo)}</span>
+                    </div>
+
+                    {historicoFiltrado.map(h => {
+                      const vUnit = h.valorUnitario || 0;
+                      const desc = h.descontoCalculado || 0;
+                      const vTotal = h.valorTotal !== undefined ? h.valorTotal : ((h.quantidade || 0) * vUnit - desc);
+                      return (
+                        <div key={h.id} className="text-xs p-2.5 bg-gray-50 rounded-lg border space-y-1">
+                          <div className="flex justify-between font-bold text-gray-800">
+                            <span>{h.produtoNome} ({h.tipo})</span>
+                            <span className="text-emerald-900">{fmtBRL(vTotal)}</span>
+                          </div>
+                          <div className="flex justify-between text-[11px] text-gray-600">
+                            <span>Qtd: {h.quantidade} {h.unidade} × {fmtBRL(vUnit)}</span>
+                            <span>{fmtDate(h.data)}</span>
+                          </div>
+                          {desc > 0 && (
+                            <p className="text-[10px] text-amber-800 font-bold">Desconto: - {fmtBRL(desc)}</p>
+                          )}
+                          {h.cliente && <p className="text-[10px] text-gray-500">Cliente: {h.cliente} ({h.formaPagamento || 'Não inf.'})</p>}
+                          {h.fornecedor && <p className="text-[10px] text-gray-500">Fornecedor: {h.fornecedor}</p>}
+                          
+                          <div className="grid grid-cols-4 gap-1 pt-1.5 border-t mt-1">
+                            <button
+                              onClick={() => setEditandoHistObj({ ...h, quantidadeAntiga: h.quantidade })}
+                              className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] py-1 rounded font-bold"
+                              title="Editar registro"
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button
+                              onClick={() => handleExcluirHistorico(h)}
+                              className="bg-red-600 hover:bg-red-700 text-white text-[10px] py-1 rounded font-bold"
+                              title="Excluir registro e estornar estoque"
+                            >
+                              🗑️ Excluir
+                            </button>
+                            {h.tipo === 'SAIDA' && (
+                              <>
+                                <button
+                                  onClick={() => enviarWhatsAppVenda({
+                                    produtoNome: h.produtoNome,
+                                    quantidade: h.quantidade,
+                                    unidade: h.unidade,
+                                    valorUnitario: vUnit,
+                                    descontoCalculado: desc,
+                                    cliente: h.cliente,
+                                    formaPagamento: h.formaPagamento || 'Não informada',
+                                    valorTotal: vTotal,
+                                    data: fmtDate(h.data)
+                                  })}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] py-1 rounded font-bold"
+                                >
+                                  📱 Zap
+                                </button>
+                                <button
+                                  onClick={() => imprimirComprovantePDF({
+                                    produtoNome: h.produtoNome,
+                                    quantidade: h.quantidade,
+                                    unidade: h.unidade,
+                                    valorUnitario: vUnit,
+                                    descontoCalculado: desc,
+                                    cliente: h.cliente,
+                                    formaPagamento: h.formaPagamento || 'Não informada',
+                                    valorTotal: vTotal,
+                                    data: fmtDate(h.data)
+                                  })}
+                                  className="bg-orange-600 hover:bg-orange-700 text-white text-[10px] py-1 rounded font-bold"
+                                >
+                                  📄 PDF
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'historico' && (
+                <div className="space-y-2">
+                  <h2 className="text-sm font-bold text-gray-600 uppercase">Últimas Movimentações</h2>
+                  {historico.length === 0 ? (
+                    <p className="text-xs text-gray-400 text-center py-6">Nenhuma movimentação registrada.</p>
+                  ) : (
+                    historico.map(h => {
+                      const vUnit = h.valorUnitario || 0;
+                      const desc = h.descontoCalculado || 0;
+                      const vTotal = h.valorTotal !== undefined ? h.valorTotal : ((h.quantidade || 0) * vUnit - desc);
+                      return (
+                        <div key={h.id} className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 space-y-1 text-xs">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className={`font-bold px-1.5 py-0.5 rounded text-[10px] mr-2 ${h.tipo === 'ENTRADA' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                                {h.tipo}
+                              </span>
+                              <strong className="text-gray-800">{h.produtoNome}</strong>
+                            </div>
+                            <div className="font-bold text-gray-700">
+                              {h.tipo === 'ENTRADA' ? '+' : '-'}{h.quantidade} {h.unidade}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-between text-[11px] text-gray-600 pt-0.5">
+                            <span>Preço un: <b>{fmtBRL(vUnit)}</b></span>
+                            <span>Total: <b className="text-emerald-900">{fmtBRL(vTotal)}</b></span>
+                          </div>
+                          {desc > 0 && (
+                            <p className="text-[10px] text-amber-800 font-bold">Desconto aplicado: - {fmtBRL(desc)}</p>
+                          )}
+
+                          {h.cliente && <p className="text-gray-500 text-[11px]">Cliente: <b>{h.cliente}</b></p>}
+                          {h.fornecedor && <p className="text-gray-500 text-[11px]">Fornecedor: <b>{h.fornecedor}</b></p>}
+                          {h.formaPagamento && <p className="text-gray-500 text-[11px]">Pagamento: <b>{h.formaPagamento}</b></p>}
+
+                          <div className="grid grid-cols-4 gap-1 pt-1.5 border-t mt-1">
+                            <button
+                              onClick={() => setEditandoHistObj({ ...h, quantidadeAntiga: h.quantidade })}
+                              className="bg-amber-600 hover:bg-amber-700 text-white text-[10px] py-1 rounded font-bold"
+                            >
+                              ✏️ Editar
+                            </button>
+                            <button
+                              onClick={() => handleExcluirHistorico(h)}
+                              className="bg-red-600 hover:bg-red-700 text-white text-[10px] py-1 rounded font-bold"
+                            >
+                              🗑️ Excluir
+                            </button>
+                            {h.tipo === 'SAIDA' && (
+                              <>
+                                <button
+                                  onClick={() => enviarWhatsAppVenda({
+                                    produtoNome: h.produtoNome,
+                                    quantidade: h.quantidade,
+                                    unidade: h.unidade,
+                                    valorUnitario: vUnit,
+                                    descontoCalculado: desc,
+                                    cliente: h.cliente,
+                                    formaPagamento: h.formaPagamento || 'Não informada',
+                                    valorTotal: vTotal,
+                                    data: fmtDate(h.data)
+                                  })}
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] py-1 rounded font-bold"
+                                >
+                                  📱 Zap
+                                </button>
+                                <button
+                                  onClick={() => imprimirComprovantePDF({
+                                    produtoNome: h.produtoNome,
+                                    quantidade: h.quantidade,
+                                    unidade: h.unidade,
+                                    valorUnitario: vUnit,
+                                    descontoCalculado: desc,
+                                    cliente: h.cliente,
+                                    formaPagamento: h.formaPagamento || 'Não informada',
+                                    valorTotal: vTotal,
+                                    data: fmtDate(h.data)
+                                  })}
+                                  className="bg-orange-600 hover:bg-orange-700 text-white text-[10px] py-1 rounded font-bold"
+                                >
+                                  📄 PDF
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+            </main>
+
+            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-2 max-w-md mx-auto shadow-lg z-50">
+              <button onClick={() => setActiveTab('estoque')} className={`flex flex-col items-center text-[10px] ${activeTab === 'estoque' ? 'text-[#15803d] font-bold' : 'text-gray-400'}`}>
+                📦<br/>Estoque
+              </button>
+              <button onClick={() => setActiveTab('produtos')} className={`flex flex-col items-center text-[10px] ${activeTab === 'produtos' ? 'text-[#15803d] font-bold' : 'text-gray-400'}`}>
+                🏷️<br/>Produtos
+              </button>
+              <button onClick={() => setActiveTab('movimentar')} className={`flex flex-col items-center text-[10px] ${activeTab === 'movimentar' ? 'text-[#15803d] font-bold' : 'text-gray-400'}`}>
+                📈<br/>Movimentar
+              </button>
+              <button onClick={() => setActiveTab('relatorios')} className={`flex flex-col items-center text-[10px] ${activeTab === 'relatorios' ? 'text-[#15803d] font-bold' : 'text-gray-400'}`}>
+                📑<br/>Relatórios
+              </button>
+              <button onClick={() => setActiveTab('historico')} className={`flex flex-col items-center text-[10px] ${activeTab === 'historico' ? 'text-[#15803d] font-bold' : 'text-gray-400'}`}>
+                📜<br/>Histórico
+              </button>
+            </nav>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

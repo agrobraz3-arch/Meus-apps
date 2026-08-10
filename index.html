@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Agrobraz — Catálogo</title>
+<meta name="theme-color" content="#1F3D2B">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Oswald:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5EFDC;
+    --bg-card:#FFFDF7;
+    --verde-mata:#1F3D2B;
+    --verde-campo:#3E6B4A;
+    --milho:#D9A441;
+    --milho-escuro:#B4822E;
+    --terra:#8B5A2B;
+    --texto:#2B2B24;
+    --texto-suave:#5C5A4C;
+    --linha:#DCD2B4;
+    --vermelho:#A8402E;
+    --radius:10px;
+    --sombra:0 2px 10px rgba(31,61,43,0.10);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  [hidden]{display:none !important;}
+  body{margin:0; background:var(--bg); color:var(--texto); font-family:'Work Sans',sans-serif; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:'Fraunces',serif; margin:0; color:var(--verde-mata);}
+  .tag-label{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.08em;}
+  a{color:inherit;}
+  button{font-family:inherit; cursor:pointer;}
+  :focus-visible{outline:3px solid var(--milho); outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important;} }
+
+  /* ---------- HEADER ---------- */
+  header.topo{
+    background:var(--verde-mata);
+    color:#F5EFDC;
+    padding:14px 16px;
+    position:sticky; top:0; z-index:30;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+  }
+  .topo-linha{display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:960px; margin:0 auto;}
+  .marca{display:flex; align-items:center; gap:10px;}
+  .marca .selo{
+    width:38px; height:38px; border-radius:50%;
+    background:var(--milho); color:var(--verde-mata);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:15px;
+    flex-shrink:0;
+  }
+  .marca h1{color:#fff; font-size:20px; line-height:1.1;}
+  .marca span{display:block; font-size:11px; color:#C9D9C9; font-family:'Oswald',sans-serif; letter-spacing:.06em; text-transform:uppercase;}
+  .icone-btn{
+    background:none; border:1.5px solid rgba(255,255,255,.35); border-radius:8px;
+    width:42px; height:42px; display:flex; align-items:center; justify-content:center;
+    color:#fff; position:relative;
+  }
+  .icone-btn:active{background:rgba(255,255,255,.12);}
+  .badge-qtd{
+    position:absolute; top:-6px; right:-6px; background:var(--milho); color:var(--verde-mata);
+    font-family:'Oswald',sans-serif; font-weight:700; font-size:11px;
+    min-width:18px; height:18px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    padding:0 3px;
+  }
+  .busca-wrap{max-width:960px; margin:10px auto 0; position:relative;}
+  .busca-wrap input{
+    width:100%; padding:11px 14px 11px 38px; border-radius:8px; border:none;
+    background:rgba(255,255,255,.95); font-size:15px; color:var(--texto);
+  }
+  .busca-wrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:.55;}
+
+  /* ---------- CATEGORIAS ---------- */
+  .categorias{
+    display:flex; gap:8px; overflow-x:auto; padding:14px 16px 4px; max-width:960px; margin:0 auto;
+    scrollbar-width:none;
+  }
+  .categorias::-webkit-scrollbar{display:none;}
+  .chip-cat{
+    flex-shrink:0; padding:8px 16px; border-radius:20px; border:1.5px solid var(--verde-mata);
+    background:transparent; color:var(--verde-mata); font-family:'Oswald',sans-serif;
+    font-size:13px; letter-spacing:.05em; text-transform:uppercase; font-weight:500;
+    transition:background .15s, color .15s;
+  }
+  .chip-cat.ativo{background:var(--verde-mata); color:#fff;}
+
+  /* ---------- GRID PRODUTOS ---------- */
+  main{max-width:960px; margin:0 auto; padding:8px 16px 100px;}
+  .aviso-vazio{text-align:center; padding:60px 20px; color:var(--texto-suave);}
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px; margin-top:14px;
+  }
+  .card{
+    background:var(--bg-card); border-radius:var(--radius); box-shadow:var(--sombra);
+    overflow:hidden; display:flex; flex-direction:column; position:relative;
+    border:1px solid var(--linha);
+  }
+  .card .foto{
+    aspect-ratio:1/1; background:#EDE6CE center/cover no-repeat; display:flex; align-items:center; justify-content:center;
+    color:var(--terra); position:relative;
+  }
+  .card .foto svg{opacity:.35;}
+  .etiqueta{
+    position:absolute; top:8px; left:0; background:var(--milho); color:var(--verde-mata);
+    font-family:'Oswald',sans-serif; font-size:10.5px; font-weight:600; letter-spacing:.05em;
+    padding:3px 9px 3px 8px; border-radius:0 4px 4px 0; text-transform:uppercase;
+  }
+  .card .corpo{padding:10px 12px 12px; display:flex; flex-direction:column; gap:4px; flex:1;}
+  .card .nome{font-family:'Fraunces',serif; font-weight:600; font-size:15px; line-height:1.25; color:var(--texto);}
+  .card .unidade{font-size:12px; color:var(--texto-suave);}
+  .card .preco{font-family:'Oswald',sans-serif; font-weight:600; font-size:17px; color:var(--verde-mata); margin-top:auto; padding-top:6px;}
+  .card .preco small{font-size:11px; font-weight:500; color:var(--texto-suave);}
+  .btn-add{
+    margin-top:8px; background:var(--verde-mata); color:#fff; border:none; border-radius:7px;
+    padding:9px; font-family:'Oswald',sans-serif; font-size:12.5px; letter-spacing:.04em; text-transform:uppercase;
+    font-weight:600; display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .btn-add:active{background:var(--verde-campo);}
+  .stepper{
+    margin-top:8px; display:flex; align-items:center; justify-content:space-between;
+    background:var(--verde-mata); border-radius:7px; padding:4px;
+  }
+  .stepper button{background:none; border:none; color:#fff; width:30px; height:26px; font-size:16px; font-weight:700;}
+  .stepper span{color:#fff; font-family:'Oswald',sans-serif; font-weight:600; font-size:13px;}
+
+  /* ---------- CARRINHO (painel lateral) ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(31,61,43,.45); z-index:40; opacity:0; pointer-events:none;
+    transition:opacity .2s;
+  }
+  .overlay.aberto{opacity:1; pointer-events:auto;}
+  .painel{
+    position:fixed; top:0; right:0; height:100%; width:min(400px,92vw); background:var(--bg);
+    z-index:50; transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column;
+    box-shadow:-6px 0 20px rgba(0,0,0,.2);
+  }
+  .painel.aberto{transform:translateX(0);}
+  .painel-topo{
+    background:var(--verde-mata); color:#fff; padding:16px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .painel-topo h2{color:#fff; font-size:19px;}
+  .fechar-btn{background:none; border:none; color:#fff; font-size:22px; line-height:1;}
+  .painel-corpo{flex:1; overflow-y:auto; padding:14px 16px;}
+  .item-carrinho{
+    display:flex; gap:10px; padding:12px 0; border-bottom:1px solid var(--linha); align-items:center;
+  }
+  .item-carrinho .foto-mini{
+    width:52px; height:52px; border-radius:6px; background:#EDE6CE center/cover no-repeat; flex-shrink:0;
+  }
+  .item-carrinho .info{flex:1; min-width:0;}
+  .item-carrinho .info .nome{font-size:14px; font-weight:600; color:var(--texto); line-height:1.2;}
+  .item-carrinho .info .sub{font-size:12px; color:var(--texto-suave); margin-top:2px;}
+  .item-carrinho .stepper{margin-top:0; width:92px;}
+  .remover{background:none; border:none; color:var(--vermelho); font-size:12px; text-decoration:underline; padding:0; margin-top:4px;}
+  .painel-rodape{padding:16px; border-top:1px solid var(--linha); background:var(--bg-card);}
+  .linha-total{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;}
+  .linha-total span:first-child{font-family:'Oswald',sans-serif; text-transform:uppercase; font-size:13px; color:var(--texto-suave); letter-spacing:.05em;}
+  .linha-total span:last-child{font-family:'Fraunces',serif; font-weight:700; font-size:24px; color:var(--verde-mata);}
+  .btn-primario{
+    width:100%; background:var(--milho); color:var(--verde-mata); border:none; border-radius:8px;
+    padding:14px; font-family:'Oswald',sans-serif; font-weight:700; font-size:14.5px; letter-spacing:.04em; text-transform:uppercase;
+  }
+  .btn-primario:active{background:var(--milho-escuro);}
+  .btn-primario:disabled{opacity:.5;}
+  .btn-secundario{
+    width:100%; background:none; border:1.5px solid var(--verde-mata); color:var(--verde-mata); border-radius:8px;
+    padding:12px; font-family:'Oswald',sans-serif; font-weight:600; font-size:13.5px; letter-spacing:.04em; text-transform:uppercase; margin-top:8px;
+  }
+
+  /* ---------- CHECKOUT ---------- */
+  .campo{margin-bottom:12px;}
+  .campo label{display:block; font-size:12.5px; font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:.04em; color:var(--texto-suave); margin-bottom:5px;}
+  .campo input, .campo select{
+    width:100%; padding:11px 12px; border-radius:7px; border:1.5px solid var(--linha); font-size:15px; background:#fff; color:var(--texto);
+    font-family:'Work Sans',sans-serif;
+  }
+  .campo input:focus, .campo select:focus{border-color:var(--verde-campo);}
+  .retirada-caixa{
+    background:#EEF3EB; border:1px dashed var(--verde-campo); border-radius:8px; padding:12px; font-size:13.5px; color:var(--verde-mata); margin-bottom:16px; line-height:1.4;
+  }
+
+  /* ---------- FOOTER / BOTAO FLUTUANTE ---------- */
+  .flutuante{
+    position:fixed; bottom:16px; right:16px; z-index:20;
+    background:var(--verde-mata); color:#fff; border:none; border-radius:30px;
+    padding:13px 20px; box-shadow:0 4px 14px rgba(31,61,43,.4);
+    display:flex; align-items:center; gap:8px; font-family:'Oswald',sans-serif; font-weight:600; font-size:14px;
+  }
+  .flutuante .badge-qtd{position:static; margin-left:2px;}
+
+  .rodape-loja{max-width:960px; margin:30px auto 0; padding:20px 16px; text-align:center; color:var(--texto-suave); font-size:12.5px; border-top:1px solid var(--linha);}
+
+  /* admin */
+  .link-admin{position:fixed; bottom:6px; left:8px; font-size:10px; color:var(--texto-suave); opacity:.4; z-index:10; background:none; border:none;}
+  .modal-admin{position:fixed; inset:0; background:rgba(31,61,43,.55); z-index:60; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .caixa-admin{background:#fff; border-radius:10px; padding:22px; width:100%; max-width:380px; max-height:88vh; overflow-y:auto;}
+  .lista-admin-item{display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--linha); font-size:13.5px;}
+  .lista-admin-item button{background:none; border:none; color:var(--vermelho); font-size:12px;}
+  .msg-status{font-size:13px; text-align:center; margin-top:8px; min-height:18px;}
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-linha">
+    <div class="marca">
+      <div class="selo">AB</div>
+      <div>
+        <h1>Agrobraz</h1>
+        <span>Insumos agrícolas</span>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="icone-btn" id="btnMeusPedidos" aria-label="Meus pedidos">📋</button>
+      <button class="icone-btn" id="btnAbrirCarrinho" aria-label="Abrir carrinho">
+        🛒
+        <span class="badge-qtd" id="badgeCarrinho" hidden>0</span>
+      </button>
+    </div>
+  </div>
+  <div class="busca-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5C5A4C" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="campoBusca" placeholder="Buscar produto...">
+  </div>
+</header>
+
+<div class="categorias" id="filtrosCategoria"></div>
+
+<main>
+  <div id="grid" class="grid"></div>
+  <div id="avisoVazio" class="aviso-vazio" hidden>Nenhum produto encontrado.</div>
+  <div class="rodape-loja">Agrobraz — retirada dos pedidos na loja. Pagamento pelo site via Mercado Pago.</div>
+</main>
+
+<button class="flutuante" id="btnVerCarrinhoFlutuante" hidden>
+  Ver pedido <span class="badge-qtd" id="badgeFlutuante">0</span> · <span id="totalFlutuante">R$ 0,00</span>
+</button>
+
+<button class="link-admin" id="btnAdmin">admin</button>
+
+<!-- Painel do carrinho -->
+<div class="overlay" id="overlay"></div>
+<aside class="painel" id="painelCarrinho">
+  <div class="painel-topo">
+    <h2 id="tituloPainel">Seu pedido</h2>
+    <button class="fechar-btn" id="fecharPainel">×</button>
+  </div>
+  <div class="painel-corpo" id="corpoPainel"></div>
+  <div class="painel-rodape" id="rodapePainel"></div>
+</aside>
+
+<!-- Modal admin -->
+<div class="modal-admin" id="modalAdmin" hidden>
+  <div class="caixa-admin" id="caixaAdmin"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, setDoc, serverTimestamp,
+  query, orderBy, getDocs, where
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getStorage, ref, uploadBytes, getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+/* =======================================================
+   1) CONFIGURAÇÃO DO FIREBASE
+   Troque pelos dados do SEU projeto Firebase
+   (Console Firebase > Configurações do projeto > Seus apps)
+======================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyB8AXKNROo2B5_1zeqTu-GGX4Ujxb428-k",
+  authDomain: "meu-site-agrobraz.firebaseapp.com",
+  projectId: "meu-site-agrobraz",
+  storageBucket: "meu-site-agrobraz.firebasestorage.app",
+  messagingSenderId: "670452515567",
+  appId: "1:670452515567:web:b6b7e4e3ea8d1a2636111a",
+  measurementId: "G-N1B883FVYH"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+/* =======================================================
+   2) ESTADO
+======================================================= */
+let produtos = [];       // vindo do Firestore
+let categoriaAtiva = "Todos";
+let termoBusca = "";
+let carrinho = {};        // { produtoId: quantidade }
+let usuarioAdmin = null;
+
+const formatBRL = (v) => v.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+
+/* =======================================================
+   3) CARREGAR PRODUTOS EM TEMPO REAL
+======================================================= */
+onSnapshot(collection(db, "produtos"), (snap) => {
+  produtos = snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(p => p.ativo !== false)
+    .sort((a,b) => (a.nome||"").localeCompare(b.nome||""));
+  montarFiltros();
+  renderizarGrid();
+  if (document.getElementById("caixaAdmin") && !document.getElementById("modalAdmin").hidden) renderAdminProdutos();
+});
+
+function montarFiltros(){
+  const categorias = ["Todos", ...new Set(produtos.map(p => p.categoria).filter(Boolean))];
+  const wrap = document.getElementById("filtrosCategoria");
+  wrap.innerHTML = categorias.map(c =>
+    `<button class="chip-cat ${c===categoriaAtiva?'ativo':''}" data-cat="${c}">${c}</button>`
+  ).join("");
+  wrap.querySelectorAll(".chip-cat").forEach(btn => {
+    btn.onclick = () => { categoriaAtiva = btn.dataset.cat; montarFiltros(); renderizarGrid(); };
+  });
+}
+
+/* =======================================================
+   4) RENDER DO GRID
+======================================================= */
+function iconeCaixa(){
+  return `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 8l-9-5-9 5 9 5 9-5z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>`;
+}
+
+function renderizarGrid(){
+  let lista = produtos;
+  if (categoriaAtiva !== "Todos") lista = lista.filter(p => p.categoria === categoriaAtiva);
+  if (termoBusca.trim()) {
+    const t = termoBusca.trim().toLowerCase();
+    lista = lista.filter(p => (p.nome||"").toLowerCase().includes(t) || (p.descricao||"").toLowerCase().includes(t));
+  }
+
+  const grid = document.getElementById("grid");
+  document.getElementById("avisoVazio").hidden = lista.length !== 0;
+  grid.innerHTML = lista.map(p => {
+    const qtd = carrinho[p.id] || 0;
+    return `
+    <div class="card">
+      <div class="foto" style="${p.imagem ? `background-image:url('${p.imagem}')` : ''}">
+        ${p.categoria ? `<span class="etiqueta">${p.categoria}</span>` : ''}
+        ${!p.imagem ? iconeCaixa() : ''}
+      </div>
+      <div class="corpo">
+        <div class="nome">${p.nome}</div>
+        ${p.unidade ? `<div class="unidade">${p.unidade}</div>` : ''}
+        <div class="preco">${formatBRL(Number(p.preco)||0)}</div>
+        ${qtd === 0
+          ? `<button class="btn-add" data-add="${p.id}">+ Adicionar</button>`
+          : `<div class="stepper" data-stepper="${p.id}">
+               <button data-menos="${p.id}">−</button>
+               <span>${qtd}</span>
+               <button data-mais="${p.id}">+</button>
+             </div>`
+        }
+      </div>
+    </div>`;
+  }).join("");
+
+  grid.querySelectorAll("[data-add]").forEach(b => b.onclick = () => alterarQtd(b.dataset.add, 1));
+  grid.querySelectorAll("[data-mais]").forEach(b => b.onclick = () => alterarQtd(b.dataset.mais, 1));
+  grid.querySelectorAll("[data-menos]").forEach(b => b.onclick = () => alterarQtd(b.dataset.menos, -1));
+}
+
+function alterarQtd(id, delta){
+  const nova = (carrinho[id] || 0) + delta;
+  if (nova <= 0) delete carrinho[id]; else carrinho[id] = nova;
+  renderizarGrid();
+  atualizarBadges();
+  if (!document.getElementById("painelCarrinho").classList.contains("aberto")) return;
+  renderPainelCarrinho();
+}
+
+document.getElementById("campoBusca").addEventListener("input", (e) => {
+  termoBusca = e.target.value; renderizarGrid();
+});
+
+/* =======================================================
+   5) CARRINHO / PAINEL
+======================================================= */
+function totalCarrinho(){
+  return Object.entries(carrinho).reduce((soma, [id, qtd]) => {
+    const p = produtos.find(x => x.id === id);
+    return soma + (p ? Number(p.preco)*qtd : 0);
+  }, 0);
+}
+function qtdTotalCarrinho(){ return Object.values(carrinho).reduce((a,b)=>a+b,0); }
+
+function atualizarBadges(){
+  const qtd = qtdTotalCarrinho();
+  const total = totalCarrinho();
+  const badge = document.getElementById("badgeCarrinho");
+  const flut = document.getElementById("btnVerCarrinhoFlutuante");
+  badge.hidden = qtd === 0; badge.textContent = qtd;
+  document.getElementById("badgeFlutuante").textContent = qtd;
+  document.getElementById("totalFlutuante").textContent = formatBRL(total);
+  flut.hidden = qtd === 0;
+}
+
+const rotulosStatus = {
+  aguardando_pagamento: { texto: "Aguardando pagamento", cor: "#B4822E" },
+  pendente: { texto: "Pendente", cor: "#B4822E" },
+  pago: { texto: "Pago ✓", cor: "#3E6B4A" },
+  recusado: { texto: "Recusado", cor: "#A8402E" },
+  cancelado: { texto: "Cancelado", cor: "#A8402E" }
+};
+
+function abrirMeusPedidos(){
+  document.getElementById("overlay").classList.add("aberto");
+  document.getElementById("painelCarrinho").classList.add("aberto");
+  renderMeusPedidosBusca();
+}
+
+function renderCardPedido(p){
+  const st = rotulosStatus[p.status] || { texto: p.status || "—", cor: "var(--texto-suave)" };
+  const dataPedido = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleString('pt-BR') : "";
+  const itensTexto = (p.itens || []).map(i => `${i.quantidade}x ${i.nome}`).join(", ");
+  return `
+  <div style="border:1px solid var(--linha); border-radius:8px; padding:12px; margin-bottom:10px; background:var(--bg-card);">
+    <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
+      <div style="font-size:13px; color:var(--texto-suave);">${dataPedido}</div>
+      <span style="font-size:11px; font-family:'Oswald',sans-serif; font-weight:600; color:#fff; background:${st.cor}; padding:3px 8px; border-radius:10px; white-space:nowrap;">${st.texto}</span>
+    </div>
+    <div style="font-size:14px; margin-top:8px; color:var(--texto);">${itensTexto}</div>
+    <div style="text-align:right; margin-top:8px; font-family:'Oswald',sans-serif; font-weight:700; color:var(--verde-mata);">${formatBRL(Number(p.total)||0)}</div>
+  </div>`;
+}
+
+function renderMeusPedidosBusca(){
+  document.getElementById("tituloPainel").textContent = "Meus pedidos";
+  const corpo = document.getElementById("corpoPainel");
+  const rodape = document.getElementById("rodapePainel");
+  corpo.innerHTML = `
+    <p style="color:var(--texto-suave); font-size:13.5px; margin-bottom:14px;">Digite o telefone que você usou na compra pra ver o status do seu pedido.</p>
+    <div class="campo">
+      <label for="buscaTelefone">WhatsApp / telefone</label>
+      <input id="buscaTelefone" type="tel" placeholder="(99) 99999-9999">
+    </div>
+    <div id="resultadoPedidos"></div>
+  `;
+  rodape.innerHTML = `<button class="btn-primario" id="btnBuscarPedidos">Buscar meus pedidos</button>`;
+  document.getElementById("btnBuscarPedidos").onclick = buscarPedidosCliente;
+  document.getElementById("buscaTelefone").addEventListener("keydown", (e) => { if (e.key === "Enter") buscarPedidosCliente(); });
+}
+
+async function buscarPedidosCliente(){
+  const telefone = document.getElementById("buscaTelefone").value.trim();
+  const resultado = document.getElementById("resultadoPedidos");
+  if (!telefone){
+    resultado.innerHTML = `<p style="color:var(--vermelho); font-size:13px;">Digite o telefone usado na compra.</p>`;
+    return;
+  }
+  resultado.innerHTML = `<p style="color:var(--texto-suave); font-size:13px;">Buscando...</p>`;
+  try {
+    const q = query(collection(db, "pedidos"), where("cliente.telefone", "==", telefone));
+    const snap = await getDocs(q);
+    if (snap.empty){
+      resultado.innerHTML = `<p style="color:var(--texto-suave); font-size:13px;">Nenhum pedido encontrado com esse telefone.</p>`;
+      return;
+    }
+    const pedidos = snap.docs.map(d => d.data());
+    pedidos.sort((a, b) => (b.criadoEm?.toMillis?.() || 0) - (a.criadoEm?.toMillis?.() || 0));
+    resultado.innerHTML = pedidos.map(p => renderCardPedido(p)).join("");
+  } catch (err) {
+    console.error(err);
+    resultado.innerHTML = `<p style="color:var(--vermelho); font-size:13px;">Erro ao buscar: ${err.message || err.code}</p>`;
+  }
+}
+
+function abrirPainel(){
+  document.getElementById("overlay").classList.add("aberto");
+  document.getElementById("painelCarrinho").classList.add("aberto");
+  renderPainelCarrinho();
+}
+function fecharPainelFn(){
+  document.getElementById("overlay").classList.remove("aberto");
+  document.getElementById("painelCarrinho").classList.remove("aberto");
+}
+document.getElementById("btnAbrirCarrinho").onclick = abrirPainel;
+document.getElementById("btnMeusPedidos").onclick = abrirMeusPedidos;
+document.getElementById("btnVerCarrinhoFlutuante").onclick = abrirPainel;
+document.getElementById("fecharPainel").onclick = fecharPainelFn;
+document.getElementById("overlay").onclick = fecharPainelFn;
+
+function renderPainelCarrinho(){
+  document.getElementById("tituloPainel").textContent = "Seu pedido";
+  const itens = Object.entries(carrinho);
+  const corpo = document.getElementById("corpoPainel");
+  const rodape = document.getElementById("rodapePainel");
+
+  if (itens.length === 0){
+    corpo.innerHTML = `<p style="color:var(--texto-suave); text-align:center; margin-top:40px;">Seu carrinho está vazio.<br>Adicione produtos do catálogo.</p>`;
+    rodape.innerHTML = "";
+    return;
+  }
+
+  corpo.innerHTML = itens.map(([id, qtd]) => {
+    const p = produtos.find(x => x.id === id);
+    if (!p) return "";
+    return `
+    <div class="item-carrinho">
+      <div class="foto-mini" style="${p.imagem ? `background-image:url('${p.imagem}')` : ''}"></div>
+      <div class="info">
+        <div class="nome">${p.nome}</div>
+        <div class="sub">${formatBRL(Number(p.preco))} ${p.unidade ? '· '+p.unidade : ''}</div>
+        <button class="remover" data-rem="${id}">remover</button>
+      </div>
+      <div class="stepper">
+        <button data-menos2="${id}">−</button>
+        <span>${qtd}</span>
+        <button data-mais2="${id}">+</button>
+      </div>
+    </div>`;
+  }).join("");
+
+  corpo.querySelectorAll("[data-mais2]").forEach(b => b.onclick = () => alterarQtd(b.dataset.mais2, 1));
+  corpo.querySelectorAll("[data-menos2]").forEach(b => b.onclick = () => alterarQtd(b.dataset.menos2, -1));
+  corpo.querySelectorAll("[data-rem]").forEach(b => b.onclick = () => { delete carrinho[b.dataset.rem]; renderizarGrid(); atualizarBadges(); renderPainelCarrinho(); });
+
+  rodape.innerHTML = `
+    <div class="linha-total"><span>Total</span><span>${formatBRL(totalCarrinho())}</span></div>
+    <button class="btn-primario" id="btnIrCheckout">Fechar pedido</button>
+  `;
+  document.getElementById("btnIrCheckout").onclick = renderCheckout;
+}
+
+/* =======================================================
+   6) CHECKOUT (dados do cliente + retirada + pagamento)
+======================================================= */
+function renderCheckout(){
+  document.getElementById("tituloPainel").textContent = "Finalizar pedido";
+  const corpo = document.getElementById("corpoPainel");
+  const rodape = document.getElementById("rodapePainel");
+
+  corpo.innerHTML = `
+    <div class="retirada-caixa">📦 <strong>Retirada na loja.</strong> Sem entrega — você retira seu pedido no balcão da Agrobraz após a confirmação do pagamento.</div>
+    <div class="campo">
+      <label for="cNome">Nome completo</label>
+      <input id="cNome" type="text" placeholder="Seu nome" autocomplete="name">
+    </div>
+    <div class="campo">
+      <label for="cTelefone">WhatsApp / telefone</label>
+      <input id="cTelefone" type="tel" placeholder="(99) 99999-9999" autocomplete="tel">
+    </div>
+    <div class="campo">
+      <label for="cEmail">E-mail (para o recibo do Mercado Pago)</label>
+      <input id="cEmail" type="email" placeholder="seuemail@exemplo.com" autocomplete="email">
+    </div>
+    <div id="msgErroCheckout" class="msg-status" style="color:var(--vermelho);"></div>
+  `;
+
+  rodape.innerHTML = `
+    <div class="linha-total"><span>Total</span><span>${formatBRL(totalCarrinho())}</span></div>
+    <button class="btn-primario" id="btnPagar">Pagar com Mercado Pago</button>
+    <button class="btn-secundario" id="btnVoltarCarrinho">Voltar ao carrinho</button>
+  `;
+  document.getElementById("btnVoltarCarrinho").onclick = renderPainelCarrinho;
+  document.getElementById("btnPagar").onclick = enviarParaPagamento;
+}
+
+async function enviarParaPagamento(){
+  const nome = document.getElementById("cNome").value.trim();
+  const telefone = document.getElementById("cTelefone").value.trim();
+  const email = document.getElementById("cEmail").value.trim();
+  const erroEl = document.getElementById("msgErroCheckout");
+
+  if (!nome || !telefone || !email){
+    erroEl.textContent = "Preencha nome, telefone e e-mail para continuar.";
+    return;
+  }
+
+  const btn = document.getElementById("btnPagar");
+  btn.disabled = true; btn.textContent = "Gerando pagamento...";
+  erroEl.textContent = "";
+
+  const itensPedido = Object.entries(carrinho).map(([id, qtd]) => {
+    const p = produtos.find(x => x.id === id);
+    return { id, nome: p.nome, preco: Number(p.preco), quantidade: qtd, unidade: p.unidade || "" };
+  });
+
+  try {
+    // 1) salva o pedido no Firestore com status "aguardando_pagamento"
+    const pedidoRef = await addDoc(collection(db, "pedidos"), {
+      cliente: { nome, telefone, email },
+      itens: itensPedido,
+      total: totalCarrinho(),
+      retirada: "loja",
+      status: "aguardando_pagamento",
+      criadoEm: serverTimestamp()
+    });
+
+    // 2) chama a Netlify Function que cria a preferência no Mercado Pago
+    const resp = await fetch("/api/criar-pagamento", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pedidoId: pedidoRef.id,
+        itens: itensPedido,
+        cliente: { nome, email }
+      })
+    });
+
+    if (!resp.ok) throw new Error("Falha ao criar pagamento");
+    const data = await resp.json();
+
+    if (data.init_point){
+      window.location.href = data.init_point; // redireciona para o checkout do Mercado Pago
+    } else {
+      throw new Error("Link de pagamento não retornado");
+    }
+  } catch (err){
+    console.error(err);
+    erroEl.textContent = "Não foi possível gerar o pagamento. Tente novamente em instantes.";
+    btn.disabled = false; btn.textContent = "Pagar com Mercado Pago";
+  }
+}
+
+/* =======================================================
+   7) ADMIN — login e CRUD de produtos
+======================================================= */
+document.getElementById("btnAdmin").onclick = () => {
+  document.getElementById("modalAdmin").hidden = false;
+  renderAdminLogin();
+};
+
+onAuthStateChanged(auth, (user) => { usuarioAdmin = user; });
+
+function fecharModalAdmin(){ document.getElementById("modalAdmin").hidden = true; }
+
+function renderAdminLogin(){
+  const caixa = document.getElementById("caixaAdmin");
+  if (usuarioAdmin){ renderAdminProdutos(); return; }
+  caixa.innerHTML = `
+    <h3 style="margin-bottom:14px;">Acesso da loja</h3>
+    <div class="campo"><label>E-mail</label><input id="admEmail" type="email"></div>
+    <div class="campo"><label>Senha</label><input id="admSenha" type="password"></div>
+    <div class="msg-status" id="admMsg" style="color:var(--vermelho);"></div>
+    <button class="btn-primario" id="admEntrar">Entrar</button>
+    <button class="btn-secundario" id="admCancelar">Cancelar</button>
+  `;
+  document.getElementById("admCancelar").onclick = fecharModalAdmin;
+  document.getElementById("admEntrar").onclick = async () => {
+    const email = document.getElementById("admEmail").value.trim();
+    const senha = document.getElementById("admSenha").value;
+    try {
+      await signInWithEmailAndPassword(auth, email, senha);
+      renderAdminProdutos();
+    } catch(e){
+      document.getElementById("admMsg").textContent = "E-mail ou senha incorretos.";
+    }
+  };
+}
+
+function renderAdminProdutos(){
+  const caixa = document.getElementById("caixaAdmin");
+  caixa.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h3>Produtos</h3>
+      <button id="admSair" style="background:none;border:none;color:var(--vermelho);font-size:12.5px;">sair</button>
+    </div>
+    <button class="btn-secundario" id="admNovo" style="margin-bottom:8px;">+ Novo produto</button>
+    <button class="btn-secundario" id="admVerPedidos" style="margin-bottom:12px;">📋 Ver pedidos</button>
+    <div id="admLista"></div>
+    <button class="btn-secundario" id="admFechar" style="margin-top:14px;">Fechar</button>
+  `;
+  document.getElementById("admFechar").onclick = fecharModalAdmin;
+  document.getElementById("admSair").onclick = async () => { await signOut(auth); fecharModalAdmin(); };
+  document.getElementById("admNovo").onclick = () => renderAdminForm(null);
+  document.getElementById("admVerPedidos").onclick = () => renderAdminPedidos();
+
+  const lista = document.getElementById("admLista");
+  lista.innerHTML = produtos.map(p => `
+    <div class="lista-admin-item">
+      <span>${p.nome} — ${formatBRL(Number(p.preco)||0)}</span>
+      <span>
+        <button data-editar="${p.id}" style="color:var(--verde-mata); margin-right:10px;">editar</button>
+        <button data-excluir="${p.id}">excluir</button>
+      </span>
+    </div>
+  `).join("") || `<p style="color:var(--texto-suave); font-size:13.5px;">Nenhum produto cadastrado ainda.</p>`;
+
+  lista.querySelectorAll("[data-editar]").forEach(b => b.onclick = () => renderAdminForm(produtos.find(p => p.id === b.dataset.editar)));
+  lista.querySelectorAll("[data-excluir]").forEach(b => b.onclick = async () => {
+    if (confirm("Excluir este produto?")) await deleteDoc(doc(db, "produtos", b.dataset.excluir));
+  });
+}
+
+async function renderAdminPedidos(){
+  const caixa = document.getElementById("caixaAdmin");
+  caixa.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+      <h3>Pedidos</h3>
+    </div>
+    <div id="listaPedidos" style="color:var(--texto-suave); font-size:13.5px;">Carregando...</div>
+    <button class="btn-secundario" id="pedVoltar" style="margin-top:14px;">Voltar</button>
+  `;
+  document.getElementById("pedVoltar").onclick = renderAdminProdutos;
+
+  try {
+    const q = query(collection(db, "pedidos"), orderBy("criadoEm", "desc"));
+    const snap = await getDocs(q);
+    const lista = document.getElementById("listaPedidos");
+    if (snap.empty){
+      lista.innerHTML = `<p>Nenhum pedido ainda.</p>`;
+      return;
+    }
+    lista.innerHTML = snap.docs.map(d => {
+      const p = d.data();
+      const st = rotulosStatus[p.status] || { texto: p.status || "—", cor: "var(--texto-suave)" };
+      const dataPedido = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleString('pt-BR') : "";
+      const itensTexto = (p.itens || []).map(i => `${i.quantidade}x ${i.nome}`).join(", ");
+      return `
+      <div style="border:1px solid var(--linha); border-radius:8px; padding:12px; margin-bottom:10px; background:#fff;">
+        <div style="display:flex; justify-content:space-between; align-items:start; gap:8px;">
+          <div>
+            <div style="font-weight:600; color:var(--texto); font-size:14px;">${p.cliente?.nome || "Sem nome"}</div>
+            <div style="font-size:12px; color:var(--texto-suave);">${p.cliente?.telefone || ""} ${p.cliente?.email ? '· '+p.cliente.email : ''}</div>
+          </div>
+          <span style="font-size:11px; font-family:'Oswald',sans-serif; font-weight:600; color:#fff; background:${st.cor}; padding:3px 8px; border-radius:10px; white-space:nowrap;">${st.texto}</span>
+        </div>
+        <div style="font-size:13px; margin-top:8px; color:var(--texto);">${itensTexto}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+          <span style="font-size:11px; color:var(--texto-suave);">${dataPedido}</span>
+          <span style="font-family:'Oswald',sans-serif; font-weight:700; color:var(--verde-mata);">${formatBRL(Number(p.total)||0)}</span>
+        </div>
+        ${p.status !== "pago" ? `<button data-marcar-pago="${d.id}" style="width:100%; margin-top:10px; background:var(--verde-mata); color:#fff; border:none; border-radius:6px; padding:8px; font-family:'Oswald',sans-serif; font-size:12px; text-transform:uppercase; letter-spacing:.04em;">Marcar como pago</button>` : ''}
+      </div>`;
+    }).join("");
+    lista.querySelectorAll("[data-marcar-pago]").forEach(b => b.onclick = async () => {
+      if (!confirm("Confirmar que esse pedido foi pago?")) return;
+      await updateDoc(doc(db, "pedidos", b.dataset.marcarPago), { status: "pago", atualizadoEm: serverTimestamp() });
+      renderAdminPedidos();
+    });
+  } catch (err) {
+    console.error(err);
+    document.getElementById("listaPedidos").innerHTML = `<p style="color:var(--vermelho);">Erro ao carregar pedidos: ${err.message || err.code}</p>`;
+  }
+}
+
+function renderAdminForm(produto){
+  const caixa = document.getElementById("caixaAdmin");
+  const p = produto || { nome:"", categoria:"", preco:"", unidade:"", descricao:"", imagem:"", ativo:true };
+  caixa.innerHTML = `
+    <h3 style="margin-bottom:14px;">${produto ? "Editar produto" : "Novo produto"}</h3>
+    <div class="campo"><label>Nome</label><input id="fNome" value="${p.nome}"></div>
+    <div class="campo"><label>Categoria</label><input id="fCategoria" value="${p.categoria}" placeholder="Ex: Fertilizante, Adubo, Defensivo, Geral"></div>
+    <div class="campo"><label>Preço (R$)</label><input id="fPreco" type="number" step="0.01" value="${p.preco}"></div>
+    <div class="campo"><label>Unidade</label><input id="fUnidade" value="${p.unidade}" placeholder="Ex: saco 25kg, litro, unidade"></div>
+    <div class="campo">
+      <label>Foto do produto</label>
+      <div id="previewFoto" style="width:100%; aspect-ratio:4/3; border-radius:8px; background:#EDE6CE center/cover no-repeat; margin-bottom:8px; ${p.imagem ? `background-image:url('${p.imagem}')` : ''}"></div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="btn-secundario" id="btnEscolherGaleria" style="margin-top:0; width:auto; flex:1;">🖼️ Galeria</button>
+        <button type="button" class="btn-secundario" id="btnTirarFoto" style="margin-top:0; width:auto; flex:1;">📷 Câmera</button>
+      </div>
+      <input type="file" id="fArquivoGaleria" accept="image/*" style="display:none;">
+      <input type="file" id="fArquivoCamera" accept="image/*" capture="environment" style="display:none;">
+      <div id="fUploadMsg" style="font-size:12px; color:var(--texto-suave); margin-top:6px;"></div>
+      <label style="margin-top:10px;">Ou cole o link da foto (de qualquer site)</label>
+      <input type="text" id="fImagem" value="${p.imagem || ''}" placeholder="https://...">
+    </div>
+    <div class="campo"><label>Descrição</label><input id="fDescricao" value="${p.descricao||''}"></div>
+    <div class="msg-status" id="fMsg"></div>
+    <button class="btn-primario" id="fSalvar">Salvar</button>
+    <button class="btn-secundario" id="fVoltar">Voltar</button>
+  `;
+  document.getElementById("fVoltar").onclick = renderAdminProdutos;
+
+  async function enviarFoto(arquivo){
+    if (!arquivo) return;
+    const uploadMsg = document.getElementById("fUploadMsg");
+    uploadMsg.textContent = "Enviando foto...";
+    try {
+      const caminho = `produtos/${Date.now()}-${arquivo.name}`;
+      const refArquivo = ref(storage, caminho);
+      await uploadBytes(refArquivo, arquivo);
+      const url = await getDownloadURL(refArquivo);
+      document.getElementById("fImagem").value = url;
+      document.getElementById("previewFoto").style.backgroundImage = `url('${url}')`;
+      uploadMsg.textContent = "Foto enviada ✓";
+    } catch (err) {
+      console.error(err);
+      uploadMsg.textContent = "Erro ao enviar a foto. Tente novamente.";
+    }
+  }
+
+  document.getElementById("btnEscolherGaleria").onclick = () => document.getElementById("fArquivoGaleria").click();
+  document.getElementById("btnTirarFoto").onclick = () => document.getElementById("fArquivoCamera").click();
+  document.getElementById("fArquivoGaleria").onchange = (e) => enviarFoto(e.target.files[0]);
+  document.getElementById("fArquivoCamera").onchange = (e) => enviarFoto(e.target.files[0]);
+  document.getElementById("fImagem").oninput = (e) => {
+    document.getElementById("previewFoto").style.backgroundImage = e.target.value ? `url('${e.target.value}')` : '';
+  };
+
+  document.getElementById("fSalvar").onclick = async () => {
+    const msgEl = document.getElementById("fMsg");
+    const dados = {
+      nome: document.getElementById("fNome").value.trim(),
+      categoria: document.getElementById("fCategoria").value.trim(),
+      preco: parseFloat(document.getElementById("fPreco").value.replace(",", ".")) || 0,
+      unidade: document.getElementById("fUnidade").value.trim(),
+      imagem: document.getElementById("fImagem").value.trim(),
+      descricao: document.getElementById("fDescricao").value.trim(),
+      ativo: true
+    };
+    if (!dados.nome || !dados.preco){
+      msgEl.style.color = "var(--vermelho)";
+      msgEl.textContent = "Preencha ao menos nome e preço.";
+      return;
+    }
+    if (!auth.currentUser){
+      msgEl.style.color = "var(--vermelho)";
+      msgEl.textContent = "Sua sessão de admin expirou. Toque em Voltar, saia e entre de novo.";
+      return;
+    }
+    const btnSalvar = document.getElementById("fSalvar");
+    btnSalvar.disabled = true; btnSalvar.textContent = "Salvando...";
+    msgEl.style.color = "var(--texto-suave)";
+    msgEl.textContent = "";
+    try {
+      if (produto) await updateDoc(doc(db, "produtos", produto.id), dados);
+      else await addDoc(collection(db, "produtos"), dados);
+      renderAdminProdutos();
+    } catch (err) {
+      console.error(err);
+      msgEl.style.color = "var(--vermelho)";
+      msgEl.textContent = "Erro ao salvar: " + (err.message || err.code || "tente novamente.");
+      btnSalvar.disabled = false; btnSalvar.textContent = "Salvar";
+    }
+  };
+}
+
+atualizarBadges();
+</script>
+</body>
+</html>

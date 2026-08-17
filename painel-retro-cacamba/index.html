@@ -18,6 +18,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <style>
   :root {
@@ -30,6 +31,8 @@
     --accent-retro: #0F766E;
     --accent-caca: #15803D;
     --accent: #0F766E;
+    --modulo-accent: #FFFFFF;
+    --modulo-accent-text: #1E293B;
   }
   * { box-sizing: border-box; }
   body {
@@ -38,9 +41,9 @@
     background: var(--bg-page);
     color: var(--text-dark);
   }
-  .app { max-width: 980px; margin: 0 auto; background: var(--card-bg); border-radius: 14px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border-color); }
+  .app { max-width: 980px; margin: 0 auto; background: var(--card-bg); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border-color); }
 
-  header { background: var(--header-bg); color: #fff; padding: 20px 24px 0; }
+  header { background: var(--header-bg); color: #fff; padding: 20px 24px 0; border-radius: 14px 14px 0 0; position: sticky; top: 0; z-index: 50; }
   .header-top { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; }
   header h1 { margin: 0; font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 700; }
   .sub-desc { font-size: 0.78rem; color: #94A3B8; margin-top: 3px; }
@@ -51,14 +54,13 @@
   .btn-sair { background:none; border:1px solid rgba(255,255,255,0.4); color:#fff; padding:4px 10px; border-radius:6px; font-size:0.7rem; cursor:pointer; }
 
   nav.modulos { display:flex; gap:8px; padding: 14px 24px; flex-wrap:wrap; background: #0B1420; }
-  nav.modulos button { flex:1; min-width:130px; border:none; padding:11px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#1B2637; color:#B9C4D4; transition:0.2s; }
-  nav.modulos button.active { background:#fff; color:var(--header-bg); }
-  nav.modulos button.mod-retro.active { color: var(--accent-retro); }
-  nav.modulos button.mod-cacamba.active { color: var(--accent-caca); }
+  nav.modulos button { display:flex; align-items:center; justify-content:center; gap:7px; flex:1; min-width:130px; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#1B2637; color:#B9C4D4; transition:0.2s; }
+  nav.modulos button svg { flex-shrink:0; }
+  nav.modulos button.active { background: var(--modulo-accent, #fff); color: var(--modulo-accent-text, var(--header-bg)); }
 
-  nav.tabs { display: flex; background: var(--header-bg); padding: 14px 20px 18px; gap: 8px; flex-wrap: wrap; }
+  nav.tabs { display: flex; background: var(--header-bg); padding: 16px 20px 18px; gap: 8px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.08); position: sticky; z-index: 40; }
   nav.tabs button { flex: 1; min-width: 120px; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.83rem; cursor: pointer; transition: 0.2s; }
-  nav.tabs button.active { background: #FFFFFF; color: var(--header-bg); }
+  nav.tabs button.active { background: var(--modulo-accent, #fff); color: var(--modulo-accent-text, var(--header-bg)); }
   nav.tabs button:not(.active) { background: #334155; color: #CBD5E1; }
 
   main.modulo-content { padding: 22px; }
@@ -104,8 +106,8 @@
   .sum-row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   .sum-card { border-radius:10px; padding:12px 14px; }
   .sum-card.dark { background: var(--header-bg); color:#fff; }
-  .sum-card.brown { background: var(--accent-caca); color:#fff; }
-  .sum-card.green { background: var(--accent-retro); color:#fff; }
+  .sum-card.brown { background: #DC2626; color:#fff; }
+  .sum-card.green { background: #16A34A; color:#fff; }
   .sum-title { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; opacity:0.85; }
   .sum-value { font-size:1.15rem; font-weight:700; margin-top:3px; }
 
@@ -114,6 +116,9 @@
   .categoria-card, .maquina-card-rel { background: var(--header-bg); color:#fff; border-radius: 10px; padding: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
   .categoria-title { font-family:'Fraunces', serif; margin:0 0 6px; font-size:1rem; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:4px; }
   .categoria-row { display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px; opacity:0.95; }
+  .categoria-card label { color: rgba(255,255,255,0.75); margin: 10px 0 6px; }
+  .manut-status { font-size:0.7rem; font-weight:700; padding:3px 9px; border-radius:20px; display:inline-block; }
+  .whatsapp-float-btn { position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%); z-index: 10001; background:#25D366; color:#fff; border:none; padding:12px 20px; border-radius:30px; font-weight:700; font-size:0.85rem; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.35); display:none; align-items:center; gap:8px; }
   .categoria-actions, .maquina-card-actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px; }
   .cat-btn, .maquina-card-actions button { padding:6px 4px; font-size:0.7rem; font-weight:700; border:none; border-radius:6px; cursor:pointer; text-align:center; }
   .cat-btn.pdf, .btn-pdf-maq { background:#FCE4D6; color:#833C0C; }
@@ -171,6 +176,13 @@
 </head>
 <body>
 
+<datalist id="listaTiposMaterial"><option value="AREIA FINA"><option value="AREIA LAVADA"><option value="PIÇARRA PENEIRADA"><option value="PIÇARRA GROSSA"><option value="BRITA ZERO"><option value="BRITA 3/4"><option value="BARRO"><option value="AREIA DE ATERRO"></datalist>
+<datalist id="listaLocaisSaida"><option value="Areal"><option value="Depósito Agrobraz"><option value="Alegrin"><option value="Piçarreira Penedo"><option value="Mibasa"></datalist>
+<datalist id="listaOperadoresRetro"></datalist>
+<datalist id="listaLocaisDestino"><option value="Pindorama"><option value="Botafogo"><option value="Santa Terezinha"><option value="Monte Feliz"><option value="Pescoço"><option value="Palmeira Alta"><option value="Chã da Lagoa"><option value="Vila Machado/Pindorama"><option value="Coruripe"><option value="Miai de Cima"><option value="Barreira"><option value="Pontal de Coruripe"></datalist>
+<datalist id="listaTiposServicoManutencao"><option value="Troca de óleo e filtro"><option value="Troca do filtro de ar do motor"><option value="Troca do filtro de ar condicionado"><option value="Troca do fluido de freio"><option value="Troca das velas"><option value="Troca das correias"><option value="Troca da bateria"><option value="Alinhamento e balanceamento"><option value="Troca de pneu"><option value="Revisão geral"></datalist>
+<datalist id="listaMaquinasManutencao"></datalist>
+
 <div id="loginOverlay">
   <div class="login-card">
     <h2>Acesso ao Sistema</h2>
@@ -199,10 +211,11 @@
       </div>
     </div>
     <nav class="modulos" id="navModulos" style="display:none;">
-      <button class="mod-retro" id="btnModRetro" onclick="mudarModulo('retro')">🚜 Retroescavadeira</button>
-      <button class="mod-cacamba" id="btnModCacamba" onclick="mudarModulo('cacamba')">🚛 Caçambas</button>
-      <button id="btnModComparativo" onclick="mudarModulo('comparativo')">📊 Comparativo</button>
-      <button id="btnModUsuarios" onclick="mudarModulo('usuarios')">👥 Usuários</button>
+      <button class="mod-retro" id="btnModRetro" onclick="mudarModulo('retro')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="9" height="4" rx="1"></rect><circle cx="4.5" cy="19" r="1.5"></circle><circle cx="8.5" cy="19" r="1.5"></circle><rect x="3" y="8" width="6" height="6" rx="1"></rect><path d="M9 10l8-4"></path><path d="M17 6l3 2-2 3-3-1z"></path></svg> Retroescavadeira</button>
+      <button class="mod-cacamba" id="btnModCacamba" onclick="mudarModulo('cacamba')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="13" height="9"></rect><path d="M14 10h4l3 3v3h-7z"></path><circle cx="6" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg> Caçambas</button>
+      <button id="btnModComparativo" onclick="mudarModulo('comparativo')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="12" width="4" height="8"></rect><rect x="10" y="7" width="4" height="13"></rect><rect x="16" y="3" width="4" height="17"></rect></svg> Comparativo</button>
+      <button id="btnModUsuarios" onclick="mudarModulo('usuarios')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Usuários</button>
+      <button id="btnModManutencao" onclick="mudarModulo('manutencao')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Manutenção</button>
     </nav>
   </header>
 
@@ -211,7 +224,7 @@
     <nav class="tabs">
       <button id="rtTabCad" class="active" onclick="rtSwitchTab('cadastro')">Novo Serviço</button>
       <button id="rtTabAbastece" onclick="rtSwitchTab('abastecimento')">⛽ Abastecimento</button>
-      <button id="rtTabPainel" onclick="rtSwitchTab('painel')">Painel</button>
+      <button id="rtTabPainel" onclick="rtSwitchTab('painel')">Painel & Relatórios</button>
     </nav>
     <main class="modulo-content">
       <section id="rtViewCadastro" class="view active">
@@ -221,7 +234,7 @@
           <button type="button" class="btn-tipo" onclick="rtSelecionarTipo('particular')">👤 Particular</button>
         </div>
         <label>NOME DO OPERADOR / EQUIPAMENTO</label>
-        <input type="text" id="rtCOperador" placeholder="Ex: ATEGO, RETRO CARREGAMENTO">
+        <input type="text" id="rtCOperador" list="listaOperadoresRetro" placeholder="Ex: ATEGO, RETRO CARREGAMENTO">
         <label id="rtLabelDataServico">DATA DO SERVIÇO</label>
         <input type="date" id="rtCDataServico">
 
@@ -229,7 +242,7 @@
           <label>LOCAL DO CARREGAMENTO</label>
           <input type="text" id="rtCLocal" placeholder="Ex: AREAL">
           <label>TIPO DE MATERIAL</label>
-          <input type="text" id="rtCMaterial" placeholder="Ex: Areia, Brita, Entulho">
+          <input type="text" id="rtCMaterial" list="listaTiposMaterial" placeholder="Selecione ou digite o material...">
           <label>NOME DA CAÇAMBA</label>
           <input type="text" id="rtCCliente" placeholder="Ex: ATEGO, MARCONES" oninput="rtAoDigitarNomeCacamba()">
           <div class="campo-msg">Preenche sozinho: R$ 100,00 pra qualquer nome, R$ 50,00 só pra ACELLO — pode ajustar manualmente</div>
@@ -276,7 +289,7 @@
         <label>DATA DO ABASTECIMENTO</label>
         <input type="date" id="rtAData">
         <label>NOME DO OPERADOR</label>
-        <input type="text" id="rtAOperador" placeholder="Nome do operador responsável">
+        <input type="text" id="rtAOperador" list="listaOperadoresRetro" placeholder="Nome do operador responsável">
         <label>NOME DO POSTO</label>
         <input type="text" id="rtAPosto" placeholder="Ex: POSTO SÃO JOSÉ">
         <div class="row3">
@@ -292,6 +305,7 @@
           <button id="rtBtnModoDiario" class="btn-toggle" onclick="rtSetModoFiltro('diario')">Diário</button>
           <button id="rtBtnModoSemanal" class="btn-toggle" onclick="rtSetModoFiltro('semanal')">Semanal</button>
           <button id="rtBtnModoMensal" class="btn-toggle" onclick="rtSetModoFiltro('mensal')">Mensal</button>
+          <button id="rtBtnModoAnual" class="btn-toggle" onclick="rtSetModoFiltro('anual')">Anual</button>
         </div>
         <div class="data-range-block">
           <div><label>De (Início):</label><input type="date" id="rtFDataInicio" onchange="rtOnDataRangeChange()"></div>
@@ -301,9 +315,10 @@
         <div class="select-row" style="grid-template-columns:1fr;">
           <select id="rtFMaquinaSelect" onchange="rtRenderPainel()"><option value="todos">Todos os operadores</option></select>
         </div>
+
         <div class="tools-grid dono-only">
           <button class="tools-btn excel" onclick="rtExportarExcel()">🟢 Exportar Excel Geral</button>
-          <button class="tools-btn pdf" onclick="window.print()">📄 Imprimir Relatório</button>
+          <button class="tools-btn pdf" onclick="rtImprimirRelatorioGeral()">📄 Imprimir Relatório</button>
           <button class="tools-btn" onclick="rtFazerBackup()">📥 Backup JSON</button>
           <button class="tools-btn" onclick="document.getElementById('rtInputRestaurar').click()">📤 Restaurar</button>
         </div>
@@ -319,13 +334,25 @@
           </div>
           <div class="sum-card green dono-only"><div class="sum-title">VALOR LÍQUIDO TOTAL (LUCRO)</div><div class="sum-value mono" id="rtSumLiquido">R$ 0,00</div></div>
           <div class="sum-card dark"><div class="sum-title">TOTAL DE CARREGAMENTO / HORAS</div><div class="sum-value mono" id="rtSumViagensHoras">0</div></div>
+          <div class="sum-card dark"><div class="sum-title">CONSUMO MÉDIO (PARTICULAR)</div><div class="sum-value mono" id="rtSumConsumo">—</div><div id="rtConsumoAlerta" style="font-size:0.66rem;font-weight:700;margin-top:4px;color:#FCA5A5;"></div></div>
         </div>
         <div class="section-title dono-only" style="margin-top:20px;">Lucro por Semana (no período selecionado)</div>
         <div class="dono-only" id="rtGraficoSemanal" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px;"></div>
+        <div class="dono-only" style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+          <div class="section-title" style="margin:0;">Evolução Mensal por Veículo</div>
+          <div style="display:flex; gap:4px;">
+            <button id="rtBtnMetricaLiquido" class="btn-toggle active" onclick="rtSetMetricaMensal('liquido')" style="padding:6px 10px; font-size:0.72rem;">Lucro Líquido</button>
+            <button id="rtBtnMetricaFaturamento" class="btn-toggle" onclick="rtSetMetricaMensal('faturamento')" style="padding:6px 10px; font-size:0.72rem;">Faturamento Bruto</button>
+          </div>
+        </div>
+        <div class="dono-only" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; margin-top:10px; height:260px; position:relative;"><canvas id="rtGraficoMensal"></canvas></div>
+        <div class="dono-only table-responsive" id="rtTabelaMensalContainer" style="margin-bottom:15px;"></div>
+        <div class="dono-only" style="font-size:0.82rem; font-weight:700; color:var(--header-bg); margin-bottom:8px;">⛽ Combustível Mensal</div>
+        <div class="dono-only table-responsive" id="rtTabelaCombustivelMensalContainer" style="margin-bottom:15px;"></div>
         <div class="categorias-section-title">Relatório Individual por Categoria</div>
         <div class="categorias-grid" id="rtCategoriaCardsContainer"></div>
         <div style="margin-top:25px;"><label style="font-size:0.82rem; margin-bottom:8px; color:var(--header-bg);">Registros Detalhados</label><div class="table-responsive" id="rtTabelaDetalhadaContainer"></div></div>
-        <div style="margin-top:25px;"><label style="font-size:0.82rem; margin-bottom:8px; color:var(--header-bg);">Registros de Abastecimentos</label><div class="table-responsive" id="rtTabelaAbastecimentosContainer"></div></div>
+        <div style="margin-top:25px;"><label style="font-size:0.82rem; margin-bottom:8px; color:var(--header-bg);">Combustível / Abastecimentos</label><div class="table-responsive" id="rtTabelaAbastecimentosContainer"></div></div>
       </section>
     </main>
   </div>
@@ -348,9 +375,9 @@
         </div>
         <label>Motorista</label><input type="text" id="cbCMotorista" placeholder="Nome do motorista">
         <label>Data da entrega</label><input type="date" id="cbCDataEntrega">
-        <label>Local / saída</label><input type="text" id="cbCLocalSaida" placeholder="Local de saída">
-        <label>Entrega / destino</label><input type="text" id="cbCDestino" placeholder="Destino da entrega">
-        <label>Tipo de Material</label><input type="text" id="cbCTipoMaterial" placeholder="Ex: Areia, Brita...">
+        <label>Local / saída</label><input type="text" id="cbCLocalSaida" list="listaLocaisSaida" placeholder="Local de saída">
+        <label>Entrega / destino</label><input type="text" id="cbCDestino" list="listaLocaisDestino" placeholder="Destino da entrega">
+        <label>Tipo de Material</label><input type="text" id="cbCTipoMaterial" list="listaTiposMaterial" placeholder="Selecione ou digite o material...">
         <label>Cliente</label><input type="text" id="cbCCliente" placeholder="Nome do cliente">
         <label>Km percorrido</label>
         <input type="number" id="cbCKm" class="mono" step="0.1" placeholder="0" oninput="cbCalcularValorPorKm()">
@@ -382,6 +409,7 @@
           <button id="cbBtnModoDiario" class="btn-toggle" onclick="cbSetModoFiltro('diario')">Diário</button>
           <button id="cbBtnModoSemanal" class="btn-toggle" onclick="cbSetModoFiltro('semanal')">Semanal</button>
           <button id="cbBtnModoMensal" class="btn-toggle" onclick="cbSetModoFiltro('mensal')">Mensal</button>
+          <button id="cbBtnModoAnual" class="btn-toggle" onclick="cbSetModoFiltro('anual')">Anual</button>
         </div>
         <div class="data-range-block">
           <div><label>De (Início):</label><input type="date" id="cbFDataInicio" onchange="cbOnDataRangeChange()"></div>
@@ -393,6 +421,14 @@
           <select id="cbFMotoristaSelect" onchange="cbRenderPainel()"><option value="todos">Todos os motoristas</option></select>
         </div>
         <div style="margin-bottom:16px;"><input type="text" id="cbFBuscaTexto" placeholder="🔍 Pesquisar por cliente, motorista, rota ou material..." oninput="cbRenderPainel()"></div>
+
+        <div class="tools-grid dono-only" id="cbAdminTools">
+          <button class="tools-btn excel" onclick="cbExportarExcel()">🟢 Exportar Excel</button>
+          <button class="tools-btn pdf" onclick="cbGerarRelatorioPDF()">📄 Gerar PDF</button>
+          <button class="tools-btn" onclick="cbFazerBackup()">📥 Backup JSON</button>
+          <button class="tools-btn" onclick="document.getElementById('cbInputRestaurar').click()">📤 Restaurar</button>
+        </div>
+        <input type="file" id="cbInputRestaurar" accept=".json" style="display:none" onchange="cbRestaurarBackup(event)">
         <div class="summary-dashboard">
           <div class="sum-row-2">
             <div class="sum-card dark dono-only"><div class="sum-title">FATURAMENTO BRUTO</div><div class="sum-value mono" id="cbStTotal">R$ 0,00</div></div>
@@ -404,22 +440,27 @@
           </div>
           <div class="sum-card dark"><div class="sum-title">TOTAL DE VIAGENS / KM</div><div class="sum-value mono" id="cbStKmViagens">0</div></div>
           <div class="sum-card green dono-only"><div class="sum-title">VALOR LÍQUIDO TOTAL (LUCRO)</div><div class="sum-value mono" id="cbStLiquidoGeral">R$ 0,00</div></div>
+          <div class="sum-card dark"><div class="sum-title">CONSUMO MÉDIO (KM/L)</div><div class="sum-value mono" id="cbSumConsumo">—</div><div id="cbConsumoAlerta" style="font-size:0.66rem;font-weight:700;margin-top:4px;color:#FCA5A5;"></div></div>
         </div>
-        <div id="cbSecaoRelatorioVeiculo" class="dono-only"><div class="section-title">Relatório Individual por Veículo</div><div id="cbMaquinasRelatorioGrid" class="maquinas-relatorio-grid"></div></div>
+        <div id="cbSecaoRelatorioVeiculo" class="dono-only"><div class="section-title">Relatório Individual por Veículo</div><div id="cbMaquinasRelatorioGrid" class="maquinas-relatorio-grid"></div><button class="tools-btn pdf" style="margin-top:6px;margin-bottom:10px;" onclick="cbGerarPDFSelecionadas()">📄 Gerar PDF das Selecionadas</button></div>
         <div id="cbSecaoGraficoSemanal" class="dono-only"><div class="section-title">Lucro por Semana (no período selecionado)</div><div id="cbGraficoSemanal" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px;"></div></div>
+        <div class="dono-only" style="display:flex; justify-content:space-between; align-items:center; margin-top:20px;">
+          <div class="section-title" style="margin:0;">Evolução Mensal por Veículo</div>
+          <div style="display:flex; gap:4px;">
+            <button id="cbBtnMetricaLiquido" class="btn-toggle active" onclick="cbSetMetricaMensal('liquido')" style="padding:6px 10px; font-size:0.72rem;">Lucro Líquido</button>
+            <button id="cbBtnMetricaFaturamento" class="btn-toggle" onclick="cbSetMetricaMensal('faturamento')" style="padding:6px 10px; font-size:0.72rem;">Faturamento Bruto</button>
+          </div>
+        </div>
+        <div class="dono-only" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px; margin-top:10px; height:260px; position:relative;"><canvas id="cbGraficoMensal"></canvas></div>
+        <div class="dono-only table-responsive" id="cbTabelaMensalContainer" style="margin-bottom:15px;"></div>
+        <div class="dono-only" style="font-size:0.82rem; font-weight:700; color:var(--header-bg); margin-bottom:8px;">⛽ Combustível Mensal</div>
+        <div class="dono-only table-responsive" id="cbTabelaCombustivelMensalContainer" style="margin-bottom:15px;"></div>
         <div id="cbSecaoGraficoFaturamento" class="dono-only"><div class="section-title">Resultado por Equipamento (Faturamento x Líquido)</div><div id="cbChartMaquinas" style="background:#fff; padding:12px; border-radius:10px; border:1px solid var(--border-color); margin-bottom:15px;"></div></div>
         <div id="cbRelatorioEquipePrint" style="display:none;"></div>
-        <div class="tools-grid dono-only" id="cbAdminTools">
-          <button class="tools-btn excel" onclick="cbExportarExcel()">🟢 Exportar Excel</button>
-          <button class="tools-btn pdf" onclick="cbGerarRelatorioPDF()">📄 Gerar PDF</button>
-          <button class="tools-btn" onclick="cbFazerBackup()">📥 Backup JSON</button>
-          <button class="tools-btn" onclick="document.getElementById('cbInputRestaurar').click()">📤 Restaurar</button>
-        </div>
-        <input type="file" id="cbInputRestaurar" accept=".json" style="display:none" onchange="cbRestaurarBackup(event)">
         <div class="section-title">Registros Detalhados</div>
         <div class="table-responsive"><table class="data-table"><thead><tr><th>Data</th><th>Veículo / Motorista</th><th>Cliente / Rota</th><th>Material / Qtd</th><th class="dono-only">Total (R$)</th><th>Ações</th></tr></thead><tbody id="cbListaServicosTabela"></tbody></table></div>
         <div class="section-title">⛽ Combustível</div>
-        <div class="table-responsive"><table class="data-table"><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/Litro</th><th class="dono-only">Valor Total</th></tr></thead><tbody id="cbListaCombustivelPainel"></tbody></table></div>
+        <div class="table-responsive"><table class="data-table"><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/Litro</th><th class="dono-only">Valor Total</th><th>Ações</th></tr></thead><tbody id="cbListaCombustivelPainel"></tbody></table></div>
       </section>
     </main>
   </div>
@@ -445,6 +486,12 @@
   <!-- ===================== USUÁRIOS (SÓ DONO) ===================== -->
   <div id="painelUsuarios" class="modulo-painel">
     <main class="modulo-content">
+      <div style="background:#F1F5F9;border-radius:10px;padding:14px;margin-bottom:22px;">
+        <label style="margin-top:0;">NÚMERO DE WHATSAPP PARA RECEBER AVISOS</label>
+        <input type="text" id="uWhatsappNumero" placeholder="Ex: 5582999999999 (DDI+DDD+Número, só números)">
+        <div class="campo-msg">Esse número recebe o botão de envio de comprovantes por WhatsApp após cada lançamento. Use o formato internacional, só números (Brasil: 55 + DDD + número).</div>
+        <button class="tools-btn" style="margin-top:8px;width:100%;" onclick="uSalvarWhatsapp()">💾 Salvar Número</button>
+      </div>
       <label style="margin-top:0;">NOME DO EQUIPAMENTO</label>
       <input type="text" id="uNome" placeholder="Ex: ATEGO, BOB, ACCELO, Retroescavadeira">
       <label>E-MAIL DE ACESSO</label>
@@ -466,11 +513,81 @@
     </main>
   </div>
 
+  <!-- ===================== MANUTENÇÃO (SÓ DONO) ===================== -->
+  <div id="painelManutencao" class="modulo-painel">
+    <main class="modulo-content">
+      <div class="categorias-section-title" style="margin-top:0;">🔧 Manutenção Preventiva — Retroescavadeira</div>
+      <div id="rtManutencaoContainer" style="margin-bottom:20px;"></div>
+      <div class="categorias-section-title">🔧 Manutenção Preventiva — Caçambas</div>
+      <div id="cbManutencaoContainer" style="margin-bottom:28px;"></div>
+
+      <div class="categorias-section-title">📋 Controle por Tipo de Serviço</div>
+      <div class="campo-msg" style="margin-top:0;">Preenchimento próprio, separado do histórico abaixo — cada tipo de serviço tem sua data da manutenção e sua próxima manutenção definidas por você.</div>
+      <label style="margin-top:10px;">MÁQUINA / VEÍCULO</label>
+      <input type="text" id="mcMaquina" list="listaMaquinasManutencao" placeholder="Ex: RETRO CARREGAMENTO, ATEGO, BOB...">
+      <label>TIPO DE SERVIÇO</label>
+      <input type="text" id="mcServico" list="listaTiposServicoManutencao" placeholder="Selecione ou digite o tipo de serviço...">
+      <div class="row2">
+        <div><label>DATA DA MANUTENÇÃO</label><input type="date" id="mcDataManutencao"></div>
+        <div><label>PRÓXIMA MANUTENÇÃO</label><input type="date" id="mcProximaManutencao"></div>
+      </div>
+      <label>DESCRIÇÃO</label>
+      <input type="text" id="mcDescricao" placeholder="Detalhes (opcional)">
+      <button class="btn-submit" id="mcBtnSalvar" onclick="mcSalvar()">Salvar Controle</button>
+      <div class="table-responsive" id="mcTabelaContainer" style="margin:16px 0 28px;"></div>
+
+      <div class="section-title">Registrar Nova Manutenção</div>
+      <label style="margin-top:0;">MÁQUINA / VEÍCULO</label>
+      <input type="text" id="mhMaquina" list="listaMaquinasManutencao" placeholder="Ex: RETRO CARREGAMENTO, ATEGO, BOB...">
+      <label>TIPO DE SERVIÇO</label>
+      <input type="text" id="mhServico" list="listaTiposServicoManutencao" placeholder="Selecione ou digite o tipo de serviço...">
+      <label>DESCRIÇÃO</label>
+      <input type="text" id="mhDescricao" placeholder="Detalhes do serviço (opcional)">
+      <label>DATA</label>
+      <input type="date" id="mhData">
+      <label>CUSTO (R$)</label>
+      <input type="text" inputmode="decimal" id="mhCusto" class="mono" placeholder="0,00">
+      <label>KM / HORÍMETRO</label>
+      <input type="text" inputmode="decimal" id="mhMedidor" class="mono" placeholder="0">
+      <label>LOCAL / OFICINA</label>
+      <input type="text" id="mhLocal" placeholder="Ex: Oficina do Zé">
+      <label style="display:flex; align-items:center; gap:8px; margin-top:12px; font-weight:normal; cursor:pointer;"><input type="checkbox" id="mhResetarPreventiva" style="width:auto;"> Esta manutenção também reseta o intervalo preventivo</label>
+      <button class="btn-submit" id="mhBtnSalvar" onclick="mhSalvar()">Registrar Manutenção</button>
+
+      <div class="section-title" style="margin-top:28px;">Histórico de Manutenções</div>
+      <div class="select-row row3s">
+        <select id="mhFAno" onchange="mhRenderLista()"><option value="todos">Todos os anos</option></select>
+        <select id="mhFMes" onchange="mhRenderLista()">
+          <option value="todos">Todos os meses</option>
+          <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option>
+          <option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option>
+          <option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option>
+          <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+        </select>
+        <select id="mhFMaquina" onchange="mhRenderLista()"><option value="todos">Todas as máquinas</option></select>
+      </div>
+      <div class="select-row" style="grid-template-columns:1fr;">
+        <select id="mhFServico" onchange="mhRenderLista()"><option value="todos">Todos os tipos de serviço</option></select>
+      </div>
+      <div class="table-responsive"><table class="tabela-detalhada"><thead><tr><th>Data</th><th>Máquina</th><th>Serviço</th><th>Descrição</th><th>Km/Horím.</th><th>Local</th><th>Custo</th><th>Ação</th></tr></thead><tbody id="mhTabela"></tbody></table></div>
+    </main>
+  </div>
+
 </div>
 
 <div class="toast" id="toast">Registrado com sucesso!</div>
 
 <script>
+// ===================================================================
+// SERVICE WORKER — PERMITE ABRIR O APP OFFLINE (só funciona quando
+// o arquivo é servido via http/https; em file:// o navegador ignora)
+// ===================================================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker não registrado:', err));
+  });
+}
+
 // ===================================================================
 // CONFIGURAÇÃO COMPARTILHADA — FIREBASE ÚNICO PARA OS DOIS MÓDULOS
 // ===================================================================
@@ -491,6 +608,74 @@ db.enablePersistence({ synchronizeTabs: true }).catch((err) => console.warn('Per
 const EMAIL_DONO = "jcds1991@outlook.com";
 const colUsuarios = db.collection('usuarios');
 
+// ===================================================================
+// CONFIG GERAL (número de WhatsApp para envio de comprovantes)
+// ===================================================================
+const colConfig = db.collection('config');
+let whatsappNumeroConfigurado = '';
+let configListenerAtivo = false;
+function configIniciar() {
+  if(configListenerAtivo) return;
+  configListenerAtivo = true;
+  colConfig.doc('geral').onSnapshot(doc => {
+    whatsappNumeroConfigurado = (doc.exists && doc.data().whatsapp) || '';
+    const inp = document.getElementById('uWhatsappNumero');
+    if(inp && document.activeElement !== inp) inp.value = whatsappNumeroConfigurado;
+  }, err => console.warn('Erro ao carregar configuração:', err));
+}
+function uSalvarWhatsapp() {
+  const numero = document.getElementById('uWhatsappNumero').value.trim().replace(/\D/g, '');
+  if(!numero) return alert('Informe um número válido (só números, com DDI+DDD).');
+  colConfig.doc('geral').set({ whatsapp: numero }, { merge: true }).then(() => showToast('Número salvo!')).catch(err => alert('Erro: ' + err.message));
+}
+let whatsappTextoPendente = '';
+let whatsappTimeoutId = null;
+function mostrarBotaoWhatsApp(texto) {
+  return;
+}
+function enviarWhatsappPendente() {
+  const numero = whatsappNumeroConfigurado.replace(/\D/g, '');
+  window.open(`https://wa.me/${numero}?text=${encodeURIComponent(whatsappTextoPendente)}`, '_blank');
+  document.getElementById('whatsappFloatBtn').style.display = 'none';
+}
+
+// ===================================================================
+// MANUTENÇÃO PREVENTIVA (horímetro da retro / km rodado das caçambas)
+// ===================================================================
+const manutColRef = db.collection('manutencoes');
+let manutCache = {};
+let manutListenerAtivo = false;
+function manutSlug(nome) { return (nome || '').trim().toUpperCase().replace(/[^A-Z0-9]+/g, '_'); }
+function manutIniciar() {
+  if(manutListenerAtivo) return;
+  manutListenerAtivo = true;
+  manutColRef.onSnapshot(snap => {
+    manutCache = {};
+    snap.docs.forEach(d => manutCache[d.id] = d.data());
+    rtRenderManutencao();
+    cbRenderManutencao();
+  }, err => console.warn('Erro ao carregar manutenções:', err));
+}
+function manutSalvarIntervaloRetro(valor) {
+  const n = parseFloat(valor) || 250;
+  const chaveFixa = 'RETROESCAVADEIRA';
+  manutColRef.doc('retro__' + manutSlug(chaveFixa)).set({ tipo: 'retro', maquina: chaveFixa, intervaloHoras: n, atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Intervalo salvo!')).catch(err => alert('Erro: ' + err.message));
+}
+function manutMarcarFeitaRetro() {
+  const chaveFixa = 'RETROESCAVADEIRA';
+  if(!confirm('Confirma que a manutenção da Retroescavadeira foi realizada hoje?')) return;
+  const atual = rtHorimetroAtual();
+  manutColRef.doc('retro__' + manutSlug(chaveFixa)).set({ tipo: 'retro', maquina: chaveFixa, baselineHorimetro: atual, baselineData: fmtDataISO(new Date()), atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Manutenção registrada!')).catch(err => alert('Erro: ' + err.message));
+}
+function manutSalvarIntervaloCacamba(maquina, valor) {
+  const n = parseFloat(valor) || 10000;
+  manutColRef.doc('cacamba__' + manutSlug(maquina)).set({ tipo: 'cacamba', maquina, intervaloKm: n, atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Intervalo salvo!')).catch(err => alert('Erro: ' + err.message));
+}
+function manutMarcarFeitaCacamba(maquina) {
+  if(!confirm(`Confirma que a manutenção do veículo "${maquina}" foi realizada hoje?`)) return;
+  manutColRef.doc('cacamba__' + manutSlug(maquina)).set({ tipo: 'cacamba', maquina, baselineData: fmtDataISO(new Date()), atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Manutenção registrada!')).catch(err => alert('Erro: ' + err.message));
+}
+
 let usuarioAtual = { papel: null, uid: null, nome: null, email: null, maquina: null };
 function souDono() { return usuarioAtual.papel === 'dono'; }
 
@@ -503,6 +688,9 @@ function escapeHtml(str) {
   const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML;
 }
 function fmtMoeda(v) { return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+const MESES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+function getMesChave(dataStr) { if(!dataStr) return null; return dataStr.substring(0,7); }
+function getMesLabel(chave) { const [y,m] = chave.split('-'); return MESES_ABREV[parseInt(m,10)-1] + '/' + y; }
 function fmtData(d) {
   if(!d) return '';
   const parts = d.split('-');
@@ -563,6 +751,15 @@ function atualizarBadgeConexao() {
 }
 window.addEventListener('online', atualizarBadgeConexao);
 window.addEventListener('offline', atualizarBadgeConexao);
+
+function ajustarStickyOffsets() {
+  const header = document.querySelector('header');
+  if(!header) return;
+  const altura = header.offsetHeight;
+  document.querySelectorAll('nav.tabs').forEach(el => el.style.top = altura + 'px');
+}
+window.addEventListener('resize', ajustarStickyOffsets);
+window.addEventListener('load', ajustarStickyOffsets);
 
 async function verificarSenhaDono(senha) {
   const appTemp = firebase.initializeApp(firebaseConfig, 'verificacao-' + Date.now());
@@ -645,9 +842,12 @@ function aposLogin() {
   else if(usuarioAtual.papel === 'operador_retro') badgePapel.textContent = 'OPERADOR RETRO — ' + usuarioAtual.nome.toUpperCase();
   else if(usuarioAtual.papel === 'motorista_cacamba') badgePapel.textContent = 'MOTORISTA CAÇAMBA — ' + usuarioAtual.nome.toUpperCase();
 
+  configIniciar();
   const navModulos = document.getElementById('navModulos');
   if(souDono()) {
     navModulos.style.display = 'flex';
+    manutIniciar();
+    mhIniciar();
     rtIniciar();
     cbIniciar();
     mudarModulo('retro');
@@ -670,27 +870,47 @@ function mudarModulo(mod) {
   document.getElementById('painelCacamba').classList.toggle('active', mod === 'cacamba');
   document.getElementById('painelComparativo').classList.toggle('active', mod === 'comparativo');
   document.getElementById('painelUsuarios').classList.toggle('active', mod === 'usuarios');
+  document.getElementById('painelManutencao').classList.toggle('active', mod === 'manutencao');
 
   document.getElementById('btnModRetro').classList.toggle('active', mod === 'retro');
   document.getElementById('btnModCacamba').classList.toggle('active', mod === 'cacamba');
   document.getElementById('btnModComparativo').classList.toggle('active', mod === 'comparativo');
   document.getElementById('btnModUsuarios').classList.toggle('active', mod === 'usuarios');
+  document.getElementById('btnModManutencao').classList.toggle('active', mod === 'manutencao');
 
   const titulo = document.getElementById('tituloApp'), sub = document.getElementById('subtituloApp');
   const root = document.documentElement;
   if(mod === 'retro') {
     titulo.textContent = 'Controle da Retroescavadeira'; sub.textContent = 'Carregamento, particular e abastecimento';
     root.style.setProperty('--accent', 'var(--accent-retro)');
+    root.style.setProperty('--modulo-accent', '#FFC107');
+    root.style.setProperty('--modulo-accent-text', '#1E293B');
   } else if(mod === 'cacamba') {
     titulo.textContent = 'Controle de Frota'; sub.textContent = 'Gestão de viagens e custos das caçambas';
     root.style.setProperty('--accent', 'var(--accent-caca)');
+    root.style.setProperty('--modulo-accent', 'var(--accent-caca)');
+    root.style.setProperty('--modulo-accent-text', '#FFFFFF');
   } else if(mod === 'comparativo') {
     titulo.textContent = 'Comparativo'; sub.textContent = 'Retroescavadeira x Caçambas, lado a lado';
+    root.style.setProperty('--modulo-accent', '#FFFFFF');
+    root.style.setProperty('--modulo-accent-text', '#1E293B');
     cmpRenderizar();
   } else if(mod === 'usuarios') {
     titulo.textContent = 'Usuários'; sub.textContent = 'Quem acessa cada painel';
+    root.style.setProperty('--modulo-accent', '#FFFFFF');
+    root.style.setProperty('--modulo-accent-text', '#1E293B');
     uCarregarLista();
+  } else if(mod === 'manutencao') {
+    titulo.textContent = 'Manutenção'; sub.textContent = 'Histórico de serviços da Retro e das Caçambas';
+    root.style.setProperty('--modulo-accent', '#FFFFFF');
+    root.style.setProperty('--modulo-accent-text', '#1E293B');
+    mhAtualizarSelectMaquina();
+    mhRenderLista();
+    mcRenderTabela();
+    rtRenderManutencao();
+    cbRenderManutencao();
   }
+  ajustarStickyOffsets();
 }
 
 // ===================================================================
@@ -701,6 +921,8 @@ let rtLista = [];
 let rtTipoAtual = "carregamento";
 let rtOperacaoAbastecimentoAtual = "carregamento";
 let rtModoFiltro = "mensal";
+let rtMetricaMensal = "liquido";
+let rtChartMensal = null;
 let rtEditandoId = null;
 let rtEditandoAbastecimentoId = null;
 let rtTemPendencias = false;
@@ -711,6 +933,47 @@ const RT_NOMES_VALOR_CINQUENTA = ['ACELLO', 'ACCELO'];
 function rtPertenceAoUsuario(item) {
   if(souDono()) return true;
   return usuarioAtual.papel === 'operador_retro';
+}
+
+function rtHorimetroAtual() {
+  return rtLista
+    .filter(i => !i.isAbastecimento && (i.tipo || (i.servicoDesc ? 'particular' : 'carregamento')) === 'particular')
+    .reduce((max, c) => Math.max(max, c.horimetroFinal || 0), 0);
+}
+function rtCalcConsumo(itensServ, itensAbs) {
+  const litros = itensAbs.filter(a => (a.operacaoAbastecimento || 'carregamento') === 'particular').reduce((a, c) => a + (c.litros || 0), 0);
+  const horas = itensServ.filter(i => (i.tipo || (i.servicoDesc ? 'particular' : 'carregamento')) === 'particular').reduce((a, c) => a + (c.horasTrabalhadas || 0), 0);
+  return horas > 0 ? litros / horas : 0;
+}
+function rtAtualizarListaOperadores() {
+  const dl = document.getElementById('listaOperadoresRetro'); if(!dl) return;
+  const nomes = [...new Set(rtLista.map(i => i.operador || i.maquina).filter(Boolean))].sort();
+  dl.innerHTML = nomes.map(n => `<option value="${escapeHtml(n)}">`).join('');
+}
+function rtRenderManutencao() {
+  const cont = document.getElementById('rtManutencaoContainer');
+  if(!cont || !souDono()) return;
+  const temLancamentos = rtLista.some(i => !i.isAbastecimento);
+  if(!temLancamentos) { cont.innerHTML = ''; return; }
+  const chaveFixa = 'RETROESCAVADEIRA';
+  const cfg = manutCache['retro__' + manutSlug(chaveFixa)] || {};
+  const intervalo = cfg.intervaloHoras || 250;
+  const baseline = cfg.baselineHorimetro || 0;
+  const atual = rtHorimetroAtual();
+  const desde = Math.max(0, atual - baseline);
+  const pct = Math.min(100, Math.round((desde / intervalo) * 100));
+  const cor = pct >= 100 ? '#DC2626' : (pct >= 85 ? '#D97706' : '#16A34A');
+  const statusTxt = pct >= 100 ? '⚠️ MANUTENÇÃO VENCIDA' : (pct >= 85 ? '⚠️ Próxima' : 'Em dia');
+  cont.innerHTML = `<div class="categorias-section-title" style="margin-top:0;">🔧 Manutenção Preventiva</div><div class="categoria-card" style="margin-bottom:10px;">
+      <div class="categoria-title">Retroescavadeira <span class="manut-status" style="background:${cor};margin-left:6px;">${statusTxt}</span></div>
+      <div class="categoria-row"><span>Horímetro atual:</span><span>${atual.toFixed(1).replace('.', ',')} h</span></div>
+      <div class="categoria-row"><span>Desde a última manutenção:</span><span style="color:${cor};font-weight:700;">${desde.toFixed(1).replace('.', ',')} h de ${intervalo} h</span></div>
+      <div class="comparativo-bar-track" style="margin:8px 0;"><div class="comparativo-bar-fill" style="width:${pct}%;background:${cor};"></div></div>
+      <div class="row2" style="margin-top:6px;">
+        <div><label>Intervalo (h)</label><input type="number" value="${intervalo}" onchange="manutSalvarIntervaloRetro(this.value)"></div>
+        <div style="display:flex;align-items:flex-end;"><button class="tools-btn" style="width:100%;" onclick="manutMarcarFeitaRetro()">✅ Manutenção feita</button></div>
+      </div>
+    </div>`;
 }
 
 function rtIniciar() {
@@ -726,7 +989,9 @@ function rtIniciar() {
     temPendenciasGlobal = rtTemPendencias || cbTemPendencias;
     atualizarBadgeConexao();
     rtAtualizarOpcoesFiltro();
+    rtAtualizarListaOperadores();
     rtRenderPainel();
+    rtRenderManutencao();
   }, (error) => {
     console.error(error);
     showToast('Erro ao carregar dados da retro: ' + error.message);
@@ -787,6 +1052,10 @@ function rtCalcularTotalAba() {
 }
 function rtSalvarServico() {
   const operador = document.getElementById('rtCOperador').value.trim() || (rtTipoAtual === 'carregamento' ? 'RETRO CARREGAMENTO' : 'RETRO PARTICULAR');
+  const PALAVRAS_INVALIDAS = ['manutenção','manutencao','teste','operador','admin','dono','sem nome','nome'];
+  if(PALAVRAS_INVALIDAS.includes(operador.trim().toLowerCase())) {
+    return alert(`"${operador}" não parece ser um nome de operador válido. Por favor, digite o nome da pessoa ou do veículo responsável.`);
+  }
   const dataServico = document.getElementById('rtCDataServico').value;
   if(!dataServico) return alert('Por favor, preencha a data.');
   const idServico = rtEditandoId ? rtEditandoId : ('r_' + Date.now());
@@ -810,8 +1079,12 @@ function rtSalvarServico() {
   }
   rtColRef.doc(idServico).set(servicoData, { merge: true }).catch(err => alert('Erro ao salvar: ' + err.message));
   const msg = rtEditandoId ? 'Alterações salvas com sucesso!' : 'Registrado com sucesso!';
+  const textoWpp = rtTipoAtual === 'carregamento'
+    ? `📋 *COMPROVANTE - RETRO CARREGAMENTO*\nOperador: ${servicoData.operador}\nData: ${fmtData(servicoData.dataServico)}\nLocal: ${servicoData.local||'-'}\nMaterial: ${servicoData.material||'-'}\nCaçamba: ${servicoData.cliente||'-'}\nQtd: ${servicoData.qtd||0}\nValor por Caçamba: ${fmtMoeda(servicoData.valorCacamba||0)}\n*Total: ${fmtMoeda(servicoData.valorTotal||0)}*`
+    : `📋 *COMPROVANTE - RETRO PARTICULAR*\nOperador: ${servicoData.operador}\nData: ${fmtData(servicoData.dataServico)}\nCliente: ${servicoData.cliente||'-'}\nServiço: ${servicoData.servicoDesc||'-'}\nLocal: ${servicoData.local||'-'}\nHorímetro: ${servicoData.horimetroInicial||0} até ${servicoData.horimetroFinal||0}\nHoras: ${servicoData.horasTrabalhadas||0} h\n*Total: ${fmtMoeda(servicoData.valorTotal||0)}*`;
   rtResetForm();
   showToast(msg + (!navigator.onLine ? ' (offline)' : ''));
+  mostrarBotaoWhatsApp(textoWpp);
   rtSwitchTab('painel');
 }
 function rtSalvarAbastecimento() {
@@ -826,8 +1099,10 @@ function rtSalvarAbastecimento() {
   if(!souDono()) { absData.operadorUid = usuarioAtual.uid; absData.operadorEmail = usuarioAtual.email; }
   rtColRef.doc(idAbastecimento).set(absData, { merge: true }).catch(err => alert('Erro ao salvar abastecimento: ' + err.message));
   const msg = rtEditandoAbastecimentoId ? 'Abastecimento atualizado!' : 'Abastecimento registrado com sucesso!';
+  const textoWpp = `⛽ *ABASTECIMENTO - RETROESCAVADEIRA*\nOperador: ${absData.operador}\nData: ${fmtData(absData.dataServico)}\nOperação: ${(absData.operacaoAbastecimento||'-').toUpperCase()}\nPosto: ${absData.posto}\nLitros: ${absData.litros} L\n*Valor: ${fmtMoeda(absData.combustivel||0)}*`;
   rtResetFormAbastecimento();
   showToast(msg);
+  mostrarBotaoWhatsApp(textoWpp);
   rtSwitchTab('painel');
 }
 function rtResetFormAbastecimento() {
@@ -932,21 +1207,23 @@ function rtSetModoFiltro(modo) {
   document.getElementById('rtBtnModoDiario').classList.toggle('active', modo==='diario');
   document.getElementById('rtBtnModoMensal').classList.toggle('active', modo==='mensal');
   document.getElementById('rtBtnModoSemanal').classList.toggle('active', modo==='semanal');
+  document.getElementById('rtBtnModoAnual').classList.toggle('active', modo==='anual');
   const hoje = new Date(); let inicio, fim;
   if(modo==='diario') { inicio = hoje; fim = hoje; }
   else if(modo==='semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
+  else if(modo==='anual') { inicio = new Date(hoje.getFullYear(), 0, 1); fim = new Date(hoje.getFullYear(), 11, 31); }
   else { inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0); }
   document.getElementById('rtFDataInicio').value = fmtDataISO(inicio);
   document.getElementById('rtFDataFim').value = fmtDataISO(fim);
   rtRenderPainel();
 }
 function rtOnDataRangeChange() {
-  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   rtRenderPainel();
 }
 function rtLimparPeriodo() {
   document.getElementById('rtFDataInicio').value = ''; document.getElementById('rtFDataFim').value = '';
-  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   rtRenderPainel();
 }
 function rtDataDentroDoFiltro(dataStr) {
@@ -969,11 +1246,95 @@ function rtAtualizarOpcoesFiltro() {
   const sel = document.getElementById('rtFMaquinaSelect');
   sel.innerHTML = '<option value="todos">Todos os operadores</option>' + unicos.map(v => `<option value="${v}">${v}</option>`).join('');
 }
+function rtSetMetricaMensal(m) {
+  rtMetricaMensal = m;
+  document.getElementById('rtBtnMetricaLiquido').classList.toggle('active', m==='liquido');
+  document.getElementById('rtBtnMetricaFaturamento').classList.toggle('active', m==='faturamento');
+  rtRenderGraficoMensal();
+}
+function rtRenderGraficoMensal() {
+  if(!souDono() || typeof Chart === 'undefined') return;
+  const canvas = document.getElementById('rtGraficoMensal'); if(!canvas) return;
+  const tabelaCont = document.getElementById('rtTabelaMensalContainer');
+  const itensPeriodo = rtLista.filter(item => rtDataDentroDoFiltro(item.dataServico));
+  const servicos = itensPeriodo.filter(i => !i.isAbastecimento);
+  const combustiveis = itensPeriodo.filter(i => i.isAbastecimento);
+  const categorias = ['carregamento','particular'];
+  const mesesSet = new Set();
+  servicos.forEach(i => { const mk = getMesChave(i.dataServico); if(mk) mesesSet.add(mk); });
+  combustiveis.forEach(i => { const mk = getMesChave(i.dataServico); if(mk) mesesSet.add(mk); });
+  const meses = Array.from(mesesSet).sort();
+  const dados = {};
+  categorias.forEach(c => { dados[c] = {}; meses.forEach(m => dados[c][m] = {fat:0, comb:0}); });
+  servicos.forEach(i => { const tipo = i.tipo || (i.servicoDesc?'particular':'carregamento'); const mk = getMesChave(i.dataServico); if(dados[tipo] && dados[tipo][mk]) dados[tipo][mk].fat += (i.valorTotal||0); });
+  combustiveis.forEach(i => { const tipo = i.operacaoAbastecimento || 'carregamento'; const mk = getMesChave(i.dataServico); if(dados[tipo] && dados[tipo][mk]) dados[tipo][mk].comb += (i.combustivel||0); });
+  const cores = { carregamento: '#0F766E', particular: '#7C3AED' };
+  const labelsCat = { carregamento: 'Carregamento', particular: 'Particular' };
+  const valorCel = (c, m) => { const d = dados[c][m]; if(rtMetricaMensal === 'combustivel') return d.comb; return rtMetricaMensal === 'liquido' ? (d.fat - d.comb) : d.fat; };
+  const datasets = categorias.map(c => ({
+    label: labelsCat[c],
+    backgroundColor: cores[c],
+    borderRadius: 6,
+    borderSkipped: false,
+    maxBarThickness: 42,
+    data: meses.map(m => valorCel(c, m))
+  }));
+  const labels = meses.map(getMesLabel);
+  if(rtChartMensal) rtChartMensal.destroy();
+  if(meses.length === 0) { if(tabelaCont) tabelaCont.innerHTML = ''; if(document.getElementById('rtTabelaCombustivelMensalContainer')) document.getElementById('rtTabelaCombustivelMensalContainer').innerHTML = ''; return; }
+  if(tabelaCont) {
+    let th = '<th>Mês</th>' + categorias.map(c => `<th>${labelsCat[c]}</th>`).join('') + '<th>Total</th>';
+    let corpo = '';
+    const totColuna = {}; categorias.forEach(c => totColuna[c] = 0); let totGeral = 0;
+    meses.forEach(m => {
+      let somaLinha = 0;
+      let tds = categorias.map(c => { const v = valorCel(c, m); somaLinha += v; totColuna[c] += v; return `<td class="mono">${fmtMoeda(v)}</td>`; }).join('');
+      totGeral += somaLinha;
+      corpo += `<tr><td>${getMesLabel(m)}</td>${tds}<td class="mono" style="font-weight:700;">${fmtMoeda(somaLinha)}</td></tr>`;
+    });
+    let tdsTotal = categorias.map(c => `<td class="mono" style="font-weight:700;">${fmtMoeda(totColuna[c])}</td>`).join('');
+    corpo += `<tr style="background:#F1F5F9;"><td style="font-weight:700;">TOTAL</td>${tdsTotal}<td class="mono" style="font-weight:700;">${fmtMoeda(totGeral)}</td></tr>`;
+    tabelaCont.innerHTML = `<table class="tabela-detalhada"><thead><tr>${th}</tr></thead><tbody>${corpo}</tbody></table>`;
+  }
+  const tabelaCombCont = document.getElementById('rtTabelaCombustivelMensalContainer');
+  if(tabelaCombCont) {
+    let thC = '<th>Mês</th>' + categorias.map(c => `<th>${labelsCat[c]}</th>`).join('') + '<th>Total</th>';
+    let corpoC = '';
+    const totColunaC = {}; categorias.forEach(c => totColunaC[c] = 0); let totGeralC = 0;
+    meses.forEach(m => {
+      let somaLinha = 0;
+      let tds = categorias.map(c => { const v = dados[c][m].comb; somaLinha += v; totColunaC[c] += v; return `<td class="mono" style="color:#DC2626;">${fmtMoeda(v)}</td>`; }).join('');
+      totGeralC += somaLinha;
+      corpoC += `<tr><td>${getMesLabel(m)}</td>${tds}<td class="mono" style="font-weight:700;color:#DC2626;">${fmtMoeda(somaLinha)}</td></tr>`;
+    });
+    let tdsTotalC = categorias.map(c => `<td class="mono" style="font-weight:700;color:#DC2626;">${fmtMoeda(totColunaC[c])}</td>`).join('');
+    corpoC += `<tr style="background:#F1F5F9;"><td style="font-weight:700;">TOTAL</td>${tdsTotalC}<td class="mono" style="font-weight:700;color:#DC2626;">${fmtMoeda(totGeralC)}</td></tr>`;
+    tabelaCombCont.innerHTML = `<table class="tabela-detalhada"><thead><tr>${thC}</tr></thead><tbody>${corpoC}</tbody></table>`;
+  }
+  rtChartMensal = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 600, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, padding: 16, font: { family: "'Work Sans', sans-serif", size: 12 } } },
+        tooltip: { backgroundColor: '#1E293B', titleFont: { family: "'Work Sans', sans-serif", weight: '700' }, bodyFont: { family: "'IBM Plex Mono', monospace" }, padding: 10, cornerRadius: 8, displayColors: true, boxPadding: 4, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtMoeda(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: "'Work Sans', sans-serif", size: 11 } } },
+        y: { beginAtZero: true, grid: { color: '#EEF2F6' }, ticks: { font: { family: "'IBM Plex Mono', monospace", size: 10 }, callback: v => 'R$ ' + Number(v).toLocaleString('pt-BR') } }
+      }
+    }
+  });
+}
 function rtRenderPainel() {
   const catCont = document.getElementById('rtCategoriaCardsContainer');
   const tabCont = document.getElementById('rtTabelaDetalhadaContainer');
   const absCont = document.getElementById('rtTabelaAbastecimentosContainer');
   catCont.innerHTML = ''; tabCont.innerHTML = ''; absCont.innerHTML = '';
+  rtRenderGraficoMensal();
   const operadorVal = document.getElementById('rtFMaquinaSelect').value;
   const filtrados = rtLista.filter(item => {
     const op = item.operador || item.maquina || 'RETRO';
@@ -998,6 +1359,13 @@ function rtRenderPainel() {
   document.getElementById('rtSumLiquido').textContent = fmtMoeda(totalLiq);
   document.getElementById('rtSumViagensHoras').textContent = totalVH % 1 === 0 ? totalVH : totalVH.toFixed(1).replace('.', ',');
 
+  const consumoPeriodo = rtCalcConsumo(servicosF, absF);
+  const baseAllTime = operadorVal === 'todos' ? rtLista : rtLista.filter(i => (i.operador || i.maquina || 'RETRO') === operadorVal);
+  const consumoAllTime = rtCalcConsumo(baseAllTime.filter(i => !i.isAbastecimento), baseAllTime.filter(i => i.isAbastecimento));
+  document.getElementById('rtSumConsumo').textContent = consumoPeriodo > 0 ? consumoPeriodo.toFixed(2).replace('.', ',') + ' L/h' : '—';
+  const rtAlertaEl = document.getElementById('rtConsumoAlerta');
+  rtAlertaEl.textContent = (consumoAllTime > 0 && consumoPeriodo > consumoAllTime * 1.15) ? '⚠️ Acima da média histórica (' + consumoAllTime.toFixed(2).replace('.', ',') + ' L/h)' : '';
+
   const carrItens = servicosF.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'carregamento');
   const partItens = servicosF.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'particular');
   const calcCat = (itens, tipoCat) => {
@@ -1015,37 +1383,150 @@ function rtRenderPainel() {
   }
 
   const linhaFat = souDono() ? '<div class="categoria-row"><span>Faturamento:</span><span>{{FAT}}</span></div>' : '';
-  const linhaLiq = souDono() ? '<div class="categoria-row"><span>Líquido:</span><span>{{LIQ}}</span></div>' : '';
+  const linhaLiq = souDono() ? '<div class="categoria-row"><span>Líquido:</span><span style="color:#4ADE80;font-weight:700;">{{LIQ}}</span></div>' : '';
   const acoes = souDono() ? '<div class="categoria-actions"><button class="cat-btn pdf" onclick="rtImprimirRelatorioEspecifico(\'{{TIPO}}\')">📄 PDF</button><button class="cat-btn excel" onclick="rtExportarExcelCategoria(\'{{TIPO}}\')">🟢 Excel</button></div>' : '';
+  const checkCarr = souDono() ? '<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.78rem;cursor:pointer;"><input type="checkbox" class="rt-cat-check" value="carregamento"> Selecionar p/ PDF</label>' : '';
+  const checkPart = souDono() ? '<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.78rem;cursor:pointer;"><input type="checkbox" class="rt-cat-check" value="particular"> Selecionar p/ PDF</label>' : '';
   catCont.innerHTML =
-    `<div class="categoria-card"><div class="categoria-title">RETRO CARREGAMENTO</div><div class="categoria-row"><span>Lançamentos:</span><span>${catCarr.lanc}</span></div>${linhaFat.replace('{{FAT}}', fmtMoeda(catCarr.fat))}<div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(catCarr.comb)}</span></div>${linhaLiq.replace('{{LIQ}}', fmtMoeda(catCarr.liq))}${acoes.replace(/{{TIPO}}/g,'carregamento')}</div>` +
-    `<div class="categoria-card"><div class="categoria-title">RETRO PARTICULAR</div><div class="categoria-row"><span>Lançamentos:</span><span>${catPart.lanc}</span></div>${linhaFat.replace('{{FAT}}', fmtMoeda(catPart.fat))}<div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(catPart.comb)}</span></div>${linhaLiq.replace('{{LIQ}}', fmtMoeda(catPart.liq))}${acoes.replace(/{{TIPO}}/g,'particular')}</div>`;
+    `<div class="categoria-card">${checkCarr}<div class="categoria-title">RETRO CARREGAMENTO</div><div class="categoria-row"><span>Lançamentos:</span><span>${catCarr.lanc}</span></div>${linhaFat.replace('{{FAT}}', fmtMoeda(catCarr.fat))}<div class="categoria-row"><span>Combustível:</span><span style="color:#FF6B6B;font-weight:700;">${fmtMoeda(catCarr.comb)}</span></div>${linhaLiq.replace('{{LIQ}}', fmtMoeda(catCarr.liq))}${acoes.replace(/{{TIPO}}/g,'carregamento')}</div>` +
+    `<div class="categoria-card">${checkPart}<div class="categoria-title">RETRO PARTICULAR</div><div class="categoria-row"><span>Lançamentos:</span><span>${catPart.lanc}</span></div>${linhaFat.replace('{{FAT}}', fmtMoeda(catPart.fat))}<div class="categoria-row"><span>Combustível:</span><span style="color:#FF6B6B;font-weight:700;">${fmtMoeda(catPart.comb)}</span></div>${linhaLiq.replace('{{LIQ}}', fmtMoeda(catPart.liq))}${acoes.replace(/{{TIPO}}/g,'particular')}</div>`;
+  if(souDono() && !document.getElementById('rtBtnPDFSelecionadas')) {
+    const btnWrap = document.createElement('button');
+    btnWrap.id = 'rtBtnPDFSelecionadas';
+    btnWrap.className = 'tools-btn pdf';
+    btnWrap.style.cssText = 'margin-top:6px;margin-bottom:10px;grid-column:1/-1;';
+    btnWrap.textContent = '📄 Gerar PDF das Selecionadas';
+    btnWrap.onclick = rtGerarPDFSelecionadas;
+    catCont.parentNode.insertBefore(btnWrap, catCont.nextSibling);
+  }
 
   if(servicosF.length > 0) {
-    let html = `<table class="tabela-detalhada"><thead><tr><th>DATA</th><th>OPERADOR</th><th>LOCAL</th><th>MATERIAL/SERVIÇO</th><th>CAÇAMBA/CLIENTE</th><th>QTD/HORAS</th><th>VALOR UNIT.</th>${souDono()?'<th>TOTAL</th>':''}<th>AÇÃO</th></tr></thead><tbody>`;
-    servicosF.forEach(item => {
-      const isPart = (item.tipo || (item.servicoDesc?'particular':'carregamento')) === 'particular';
-      const operador = escapeHtml(item.operador || item.maquina || 'RETRO');
-      const acoesTd = `<td><div class="td-acoes"><button onclick="rtCopiarComprovante('${item.id}')" title="Copiar">📋</button><button onclick="rtEditarServico('${item.id}')" title="Editar">✏️</button><button onclick="rtExcluirServico('${item.id}')" title="Excluir">🗑️</button></div></td>`;
-      if(isPart) {
-        html += `<tr><td>${fmtData(item.dataServico)} (Serviço)</td><td><b>${operador}</b></td><td colspan="3"><b>Particular:</b> ${escapeHtml(item.cliente||'-')} - ${escapeHtml(item.servicoDesc||'-')} (${escapeHtml(item.local||'-')})</td><td colspan="2" class="mono">Início: ${item.horimetroInicial||0} | Fim: ${item.horimetroFinal||0}<br><b>${item.horasTrabalhadas||0}h</b> × ${fmtMoeda(item.valorHora||0)}</td>${souDono()?`<td class="mono" style="font-weight:700;color:var(--accent);">${fmtMoeda(item.valorTotal)}</td>`:''}${acoesTd}</tr>`;
-      } else {
-        html += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.local||'-')}</td><td>${escapeHtml(item.material||'-')}</td><td><b>${escapeHtml(item.cliente||'-')}</b></td><td class="mono">${item.qtd||0}</td><td class="mono">${fmtMoeda(item.valorCacamba||0)}</td>${souDono()?`<td class="mono" style="font-weight:700;color:var(--accent);">${fmtMoeda(item.valorTotal)}</td>`:''}${acoesTd}</tr>`;
-      }
-    });
-    tabCont.innerHTML = html + '</tbody></table>';
+    let htmlCarr = '';
+    if(carrItens.length > 0) {
+      htmlCarr = `<div class="categorias-section-title" style="margin-top:20px;">RETROESCAVADEIRA CARREGAMENTO</div><table class="tabela-detalhada"><thead><tr><th>DATA</th><th>OPERADOR</th><th>LOCAL</th><th>MATERIAL</th><th>CAÇAMBA/CLIENTE</th><th>QTD</th><th>VALOR UNIT.</th>${souDono()?'<th>TOTAL</th>':''}<th>AÇÃO</th></tr></thead><tbody>`;
+      carrItens.forEach(item => {
+        const operador = escapeHtml(item.operador || item.maquina || 'RETRO');
+        const acoesTd = `<td><div class="td-acoes"><button onclick="rtCopiarComprovante('${item.id}')" title="Copiar">📋</button><button onclick="rtEditarServico('${item.id}')" title="Editar">✏️</button><button onclick="rtExcluirServico('${item.id}')" title="Excluir">🗑️</button></div></td>`;
+        htmlCarr += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.local||'-')}</td><td>${escapeHtml(item.material||'-')}</td><td><b>${escapeHtml(item.cliente||'-')}</b></td><td class="mono">${item.qtd||0}</td><td class="mono">${fmtMoeda(item.valorCacamba||0)}</td>${souDono()?`<td class="mono" style="font-weight:700;color:var(--accent);">${fmtMoeda(item.valorTotal)}</td>`:''}${acoesTd}</tr>`;
+      });
+      htmlCarr += '</tbody></table>';
+    }
+    let htmlPart = '';
+    if(partItens.length > 0) {
+      htmlPart = `<div class="categorias-section-title" style="margin-top:20px;">RETROESCAVADEIRA PARTICULAR</div><table class="tabela-detalhada"><thead><tr><th>DATA</th><th>OPERADOR</th><th>CLIENTE</th><th>SERVIÇO</th><th>LOCAL</th><th>HORÍMETRO INICIAL</th><th>HORÍMETRO FINAL</th><th>HORAS TRABALHADAS</th><th>VALOR HORA</th>${souDono()?'<th>TOTAL</th>':''}<th>AÇÃO</th></tr></thead><tbody>`;
+      partItens.forEach(item => {
+        const operador = escapeHtml(item.operador || item.maquina || 'RETRO');
+        const acoesTd = `<td><div class="td-acoes"><button onclick="rtCopiarComprovante('${item.id}')" title="Copiar">📋</button><button onclick="rtEditarServico('${item.id}')" title="Editar">✏️</button><button onclick="rtExcluirServico('${item.id}')" title="Excluir">🗑️</button></div></td>`;
+        htmlPart += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.cliente||'-')}</td><td>${escapeHtml(item.servicoDesc||'-')}</td><td>${escapeHtml(item.local||'-')}</td><td class="mono">${item.horimetroInicial||0}</td><td class="mono">${item.horimetroFinal||0}</td><td class="mono">${item.horasTrabalhadas||0}h</td><td class="mono">${fmtMoeda(item.valorHora||0)}</td>${souDono()?`<td class="mono" style="font-weight:700;color:var(--accent);">${fmtMoeda(item.valorTotal)}</td>`:''}${acoesTd}</tr>`;
+      });
+      htmlPart += '</tbody></table>';
+    }
+    tabCont.innerHTML = htmlCarr + htmlPart;
   } else {
     tabCont.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:15px;font-size:0.85rem;background:#fff;margin:0;">Nenhum registro de serviço encontrado.</p>';
   }
   if(absF.length > 0) {
     let html = `<table class="tabela-detalhada"><thead><tr><th>DATA</th><th>OPERAÇÃO</th><th>OPERADOR</th><th>POSTO</th><th>LITROS</th><th>VALOR/L</th><th>VALOR</th><th>AÇÃO</th></tr></thead><tbody>`;
     absF.forEach(a => {
-      html += `<tr><td>${fmtData(a.dataServico)}</td><td><span style="font-weight:600;text-transform:uppercase;">${a.operacaoAbastecimento||'carregamento'}</span></td><td>${escapeHtml(a.operador||'-')}</td><td>${escapeHtml(a.posto||'-')}</td><td class="mono">${a.litros||0} L</td><td class="mono">${fmtMoeda(a.valorLitro||0)}</td><td class="mono" style="font-weight:700;color:#9A3412;">${fmtMoeda(a.combustivel||0)}</td><td><div class="td-acoes"><button onclick="rtCopiarComprovante('${a.id}')" title="Copiar">📋</button><button onclick="rtEditarServico('${a.id}')" title="Editar">✏️</button><button onclick="rtExcluirServico('${a.id}')" title="Excluir">🗑️</button></div></td></tr>`;
+      html += `<tr><td>${fmtData(a.dataServico)}</td><td><span style="font-weight:600;text-transform:uppercase;">${a.operacaoAbastecimento||'carregamento'}</span></td><td>${escapeHtml(a.operador||'-')}</td><td>${escapeHtml(a.posto||'-')}</td><td class="mono" style="color:#DC2626;">${a.litros||0} L</td><td class="mono">${fmtMoeda(a.valorLitro||0)}</td><td class="mono" style="font-weight:700;color:#DC2626;">${fmtMoeda(a.combustivel||0)}</td><td><div class="td-acoes"><button onclick="rtCopiarComprovante('${a.id}')" title="Copiar">📋</button><button onclick="rtEditarServico('${a.id}')" title="Editar">✏️</button><button onclick="rtExcluirServico('${a.id}')" title="Excluir">🗑️</button></div></td></tr>`;
     });
     absCont.innerHTML = html + '</tbody></table>';
   } else {
     absCont.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:15px;font-size:0.85rem;background:#fff;margin:0;">Nenhum abastecimento encontrado.</p>';
   }
+}
+function rtGerarPDFSelecionadas() {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  const marcados = Array.from(document.querySelectorAll('.rt-cat-check:checked')).map(el => el.value);
+  if(marcados.length === 0) return alert('Selecione pelo menos uma categoria (Carregamento e/ou Particular) na caixinha "Selecionar p/ PDF" antes de gerar.');
+  const operadorVal = document.getElementById('rtFMaquinaSelect').value;
+  const mSel = document.getElementById('rtFMaquinaSelect');
+  const textoPeriodo = rtGetTextoPeriodoAtual();
+  const textoOperador = mSel.options[mSel.selectedIndex] ? mSel.options[mSel.selectedIndex].text : '';
+  const filtrados = rtLista.filter(item => {
+    const op = item.operador || item.maquina || 'RETRO';
+    if(operadorVal !== 'todos' && op !== operadorVal) return false;
+    return rtDataDentroDoFiltro(item.dataServico);
+  }).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
+  const servicos = filtrados.filter(i => !i.isAbastecimento && marcados.includes(i.tipo || (i.servicoDesc?'particular':'carregamento')));
+  const abastecimentos = filtrados.filter(i => i.isAbastecimento && marcados.includes(i.operacaoAbastecimento||'carregamento'));
+  const totalFat = servicos.reduce((a,c)=>a+(c.valorTotal||0),0);
+  const totalComb = abastecimentos.reduce((a,c)=>a+(c.combustivel||0),0);
+  const totalLitros = abastecimentos.reduce((a,c)=>a+(c.litros||0),0);
+  const totalLiq = totalFat - totalComb;
+  const totalLanc = servicos.length;
+
+  let secoesHtml = '';
+  marcados.forEach(tipo => {
+    const servicosTipo = servicos.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === tipo);
+    const absTipo = abastecimentos.filter(a => (a.operacaoAbastecimento||'carregamento') === tipo);
+    const tituloTipo = tipo === 'carregamento' ? 'RETROESCAVADEIRA - CARREGAMENTO (CAÇAMBAS)' : 'RETROESCAVADEIRA - PARTICULAR (HORAS)';
+    let linhas = '';
+    if(servicosTipo.length > 0) {
+      servicosTipo.forEach(item => {
+        const operador = escapeHtml(item.operador || item.maquina || 'RETRO'), cliente = escapeHtml(item.cliente || '-');
+        if(tipo === 'particular') {
+          linhas += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${cliente}</td><td>${escapeHtml(item.servicoDesc||'-')}</td><td>${escapeHtml(item.local||'-')}</td><td class="mono">${item.horimetroInicial||0}</td><td class="mono">${item.horimetroFinal||0}</td><td class="mono">${item.horasTrabalhadas||0}h</td><td class="mono">${fmtMoeda(item.valorHora||0)}</td><td class="mono" style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
+        } else {
+          linhas += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.local||'')}</td><td>${escapeHtml(item.material||'')}</td><td><b>${cliente}</b></td><td>${item.qtd||0}</td><td>${fmtMoeda(item.valorCacamba||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
+        }
+      });
+    } else { linhas = `<tr><td colspan="${tipo==='particular'?10:8}" style="text-align:center;padding:15px;">Nenhum registro encontrado.</td></tr>`; }
+    const cabecalho = tipo === 'carregamento'
+      ? '<th>Data</th><th>Operador</th><th>Local</th><th>Material</th><th>Caçamba</th><th>Qtd.</th><th>Valor Caçamba</th><th style="text-align:right;">Total</th>'
+      : '<th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço</th><th>Local</th><th>Horímetro Inicial</th><th>Horímetro Final</th><th>Horas Trabalhadas</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th>';
+    let linhasAbs = '';
+    if(absTipo.length > 0) {
+      absTipo.forEach(a => { linhasAbs += `<tr><td>${fmtData(a.dataServico)}</td><td>${escapeHtml(a.posto||'-')}</td><td>RETROESCAVADEIRA</td><td>${escapeHtml(a.operador||'-')}</td><td style="color:#DC2626;">${a.litros||0} L</td><td>${fmtMoeda(a.valorLitro||0)}</td><td style="font-weight:700;text-align:right;color:#DC2626;">${fmtMoeda(a.combustivel||0)}</td></tr>`; });
+    } else { linhasAbs = '<tr><td colspan="7" style="text-align:center;padding:15px;">Sem combustível no período.</td></tr>'; }
+    secoesHtml += `<h2>${tituloTipo}</h2><table><thead><tr>${cabecalho}</tr></thead><tbody>${linhas}</tbody></table><h2>Relatório Combustível - RETROESCAVADEIRA${tipo==='carregamento'?' Carregamento':' - Particular'}</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/Litro</th><th style="text-align:right;">Valor Total</th></tr></thead><tbody>${linhasAbs}</tbody></table>`;
+  });
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>RELATÓRIO - RETROESCAVADEIRA (SELECIONADAS)</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>RELATÓRIO - RETROESCAVADEIRA</h1><div class="meta">Categorias: <b>${marcados.map(t=>t==='carregamento'?'Carregamento':'Particular').join(' + ')}</b> | Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div></div>${secoesHtml}<script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+function rtImprimirRelatorioGeral() {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  const operadorVal = document.getElementById('rtFMaquinaSelect').value;
+  const mSel = document.getElementById('rtFMaquinaSelect');
+  const textoPeriodo = rtGetTextoPeriodoAtual();
+  const textoOperador = mSel.options[mSel.selectedIndex] ? mSel.options[mSel.selectedIndex].text : '';
+  const filtrados = rtLista.filter(item => {
+    const op = item.operador || item.maquina || 'RETRO';
+    if(operadorVal !== 'todos' && op !== operadorVal) return false;
+    return rtDataDentroDoFiltro(item.dataServico);
+  }).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
+  const servicos = filtrados.filter(i => !i.isAbastecimento);
+  const abastecimentos = filtrados.filter(i => i.isAbastecimento);
+  const carreg = servicos.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'carregamento');
+  const part = servicos.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'particular');
+  const totalFat = servicos.reduce((a,c)=>a+(c.valorTotal||0),0);
+  const totalComb = abastecimentos.reduce((a,c)=>a+(c.combustivel||0),0);
+  const totalLitros = abastecimentos.reduce((a,c)=>a+(c.litros||0),0);
+  const totalLiq = totalFat - totalComb;
+  const totalLanc = servicos.length;
+  let htmlCarreg = '';
+  if(carreg.length > 0) {
+    carreg.forEach(item => {
+      const operador = escapeHtml(item.operador || item.maquina || 'RETRO'), cliente = escapeHtml(item.cliente || '-');
+      htmlCarreg += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.local||'')}</td><td>${escapeHtml(item.material||'')}</td><td><b>${cliente}</b></td><td>${item.qtd||0}</td><td>${fmtMoeda(item.valorCacamba||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
+    });
+  } else { htmlCarreg = '<tr><td colspan="8" style="text-align:center;padding:15px;">Nenhum registro encontrado.</td></tr>'; }
+  let htmlPart = '';
+  if(part.length > 0) {
+    part.forEach(item => {
+      const operador = escapeHtml(item.operador || item.maquina || 'RETRO'), cliente = escapeHtml(item.cliente || '-');
+      htmlPart += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${cliente}</td><td>${escapeHtml(item.servicoDesc||'-')}</td><td>${escapeHtml(item.local||'-')}</td><td class="mono">${item.horimetroInicial||0}</td><td class="mono">${item.horimetroFinal||0}</td><td class="mono">${item.horasTrabalhadas||0}h</td><td class="mono">${fmtMoeda(item.valorHora||0)}</td><td class="mono" style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
+    });
+  } else { htmlPart = '<tr><td colspan="10" style="text-align:center;padding:15px;">Nenhum registro encontrado.</td></tr>'; }
+  let htmlAbs = '';
+  if(abastecimentos.length > 0) {
+    abastecimentos.forEach(a => { htmlAbs += `<tr><td>${fmtData(a.dataServico)}</td><td><span style="text-transform:uppercase;">${a.operacaoAbastecimento||'carregamento'}</span></td><td>${escapeHtml(a.operador||'-')}</td><td>${escapeHtml(a.posto||'-')}</td><td style="color:#DC2626;">${a.litros||0} L</td><td>${fmtMoeda(a.valorLitro||0)}</td><td style="font-weight:700;text-align:right;color:#DC2626;">${fmtMoeda(a.combustivel||0)}</td></tr>`; });
+  } else { htmlAbs = '<tr><td colspan="7" style="text-align:center;padding:15px;">Sem combustível no período.</td></tr>'; }
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>RELATÓRIO GERAL - RETROESCAVADEIRA</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>RELATÓRIO GERAL - RETROESCAVADEIRA</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div></div><h2>RETROESCAVADEIRA - CARREGAMENTO (CAÇAMBAS)</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Local</th><th>Material</th><th>Caçamba</th><th>Qtd.</th><th>Valor Caçamba</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlCarreg}</tbody></table><h2>RETROESCAVADEIRA - PARTICULAR (HORAS)</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço</th><th>Local</th><th>Horímetro Inicial</th><th>Horímetro Final</th><th>Horas Trabalhadas</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th></tr></thead><tbody>${htmlPart}</tbody></table><h2>Combustível / Abastecimentos</h2><table><thead><tr><th>Data</th><th>Operação</th><th>Operador</th><th>Posto</th><th>Litros</th><th>Valor/L</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
 }
 function rtImprimirRelatorioEspecifico(tipo) {
   if(!souDono()) return alert('Acesso restrito ao Dono.');
@@ -1073,21 +1554,21 @@ function rtImprimirRelatorioEspecifico(tipo) {
     servicos.forEach(item => {
       const operador = escapeHtml(item.operador || item.maquina || 'RETRO'), cliente = escapeHtml(item.cliente || '-');
       if(tipo === 'particular') {
-        htmlRows += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${cliente}</td><td>${escapeHtml(item.servicoDesc||'')} / ${escapeHtml(item.local||'')}</td><td>${item.horimetroInicial||0} -> ${item.horimetroFinal||0} (${item.horasTrabalhadas||0}h)</td><td>${fmtMoeda(item.valorHora||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
+        htmlRows += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${cliente}</td><td>${escapeHtml(item.servicoDesc||'-')}</td><td>${escapeHtml(item.local||'-')}</td><td class="mono">${item.horimetroInicial||0}</td><td class="mono">${item.horimetroFinal||0}</td><td class="mono">${item.horasTrabalhadas||0}h</td><td class="mono">${fmtMoeda(item.valorHora||0)}</td><td class="mono" style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
       } else {
         htmlRows += `<tr><td>${fmtData(item.dataServico)}</td><td><b>${operador}</b></td><td>${escapeHtml(item.local||'')}</td><td>${escapeHtml(item.material||'')}</td><td><b>${cliente}</b></td><td>${item.qtd||0}</td><td>${fmtMoeda(item.valorCacamba||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(item.valorTotal)}</td></tr>`;
       }
     });
-  } else { htmlRows = '<tr><td colspan="8" style="text-align:center;padding:20px;">Nenhum registro encontrado.</td></tr>'; }
+  } else { htmlRows = `<tr><td colspan="${tipo==='particular'?10:8}" style="text-align:center;padding:20px;">Nenhum registro encontrado.</td></tr>`; }
   let htmlRowsAbs = '';
   if(abastecimentos.length > 0) {
-    abastecimentos.forEach(a => { htmlRowsAbs += `<tr><td>${fmtData(a.dataServico)}</td><td>${escapeHtml(a.operador||'-')}</td><td>${escapeHtml(a.posto||'-')}</td><td>${a.litros||0} L</td><td>${fmtMoeda(a.valorLitro||0)}</td><td style="font-weight:700;text-align:right;">${fmtMoeda(a.combustivel||0)}</td></tr>`; });
-  } else { htmlRowsAbs = '<tr><td colspan="6" style="text-align:center;padding:15px;">Sem combustível no período.</td></tr>'; }
+    abastecimentos.forEach(a => { htmlRowsAbs += `<tr><td>${fmtData(a.dataServico)}</td><td>${escapeHtml(a.posto||'-')}</td><td>RETROESCAVADEIRA</td><td>${escapeHtml(a.operador||'-')}</td><td style="color:#DC2626;">${a.litros||0} L</td><td>${fmtMoeda(a.valorLitro||0)}</td><td style="font-weight:700;text-align:right;color:#DC2626;">${fmtMoeda(a.combustivel||0)}</td></tr>`; });
+  } else { htmlRowsAbs = '<tr><td colspan="7" style="text-align:center;padding:15px;">Sem combustível no período.</td></tr>'; }
   const cabecalho = tipo === 'carregamento'
     ? '<th>Data</th><th>Operador</th><th>Local</th><th>Material</th><th>Caçamba</th><th>Qtd.</th><th>Valor Caçamba</th><th style="text-align:right;">Total</th>'
-    : '<th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço/Local</th><th>Horímetro</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th>';
+    : '<th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço</th><th>Local</th><th>Horímetro Inicial</th><th>Horímetro Final</th><th>Horas Trabalhadas</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th>';
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>${titulo}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#0F766E;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div><div class="card"><div class="card-title">Total de Carregamento / Horas</div><div class="card-val">${totalCarregHorasTxt}</div></div></div><h2>Relatório de Serviços</h2><table><thead><tr>${cabecalho}</tr></thead><tbody>${htmlRows}</tbody></table><h2>Combustível / Abastecimentos</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Posto</th><th>Litros</th><th>Valor/L</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlRowsAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>${titulo}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div><div class="card"><div class="card-title">Total de Carregamento / Horas</div><div class="card-val">${totalCarregHorasTxt}</div></div></div><h2>Relatório de Serviços</h2><table><thead><tr>${cabecalho}</tr></thead><tbody>${htmlRows}</tbody></table><h2>Relatório Combustível - RETROESCAVADEIRA${tipo==='carregamento'?' Carregamento':' - Particular'}</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/Litro</th><th style="text-align:right;">Valor Total</th></tr></thead><tbody>${htmlRowsAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function rtExportarExcelCategoria(tipo) {
@@ -1182,6 +1663,8 @@ const cbMaquinasDocRef = db.collection('cacamba_maquinas').doc('lista');
 let cbLista = [];
 let cbMaquinaSelecionada = "ATEGO";
 let cbModoFiltro = "mensal";
+let cbMetricaMensal = "liquido";
+let cbChartMensal = null;
 let cbEditandoId = null;
 let cbEditandoCombustivelId = null;
 let cbTemPendencias = false;
@@ -1194,6 +1677,41 @@ function cbPertenceAoUsuario(item) {
   if(souDono()) return true;
   if(usuarioAtual.papel !== 'motorista_cacamba') return false;
   return (item.maquina || '').trim().toUpperCase() === (usuarioAtual.maquina || '').trim().toUpperCase();
+}
+
+function cbKmDesdeData(maquina, dataBase) {
+  return cbLista.filter(i => i.tipoRegistro !== 'combustivel' && i.maquina === maquina && (i.dataEntrega || '') >= dataBase)
+    .reduce((a, c) => a + (c.km || 0), 0);
+}
+function cbCalcConsumo(itensServ, itensComb) {
+  const kmTotal = itensServ.reduce((a, c) => a + (c.km || 0), 0);
+  const litros = itensComb.reduce((a, c) => a + (c.litros || 0), 0);
+  return litros > 0 ? kmTotal / litros : 0;
+}
+function cbRenderManutencao() {
+  const cont = document.getElementById('cbManutencaoContainer');
+  if(!cont || !souDono()) return;
+  const veiculos = cbGetListaTodosVeiculos();
+  if(veiculos.length === 0) { cont.innerHTML = ''; return; }
+  cont.innerHTML = '<div class="categorias-section-title" style="margin-top:0;">🔧 Manutenção Preventiva</div>' + veiculos.map(maq => {
+    const cfg = manutCache['cacamba__' + manutSlug(maq)] || {};
+    const intervalo = cfg.intervaloKm || 10000;
+    const baselineData = cfg.baselineData || '0000-00-00';
+    const desde = cbKmDesdeData(maq, baselineData);
+    const pct = Math.min(100, Math.round((desde / intervalo) * 100));
+    const cor = pct >= 100 ? '#DC2626' : (pct >= 85 ? '#D97706' : '#16A34A');
+    const statusTxt = pct >= 100 ? '⚠️ MANUTENÇÃO VENCIDA' : (pct >= 85 ? '⚠️ Próxima' : 'Em dia');
+    const maqJs = escapeHtml(maq).replace(/'/g, "\\'");
+    return `<div class="categoria-card" style="margin-bottom:10px;">
+      <div class="categoria-title">${escapeHtml(maq)} <span class="manut-status" style="background:${cor};margin-left:6px;">${statusTxt}</span></div>
+      <div class="categoria-row"><span>Km desde a última manutenção:</span><span style="color:${cor};font-weight:700;">${desde.toLocaleString('pt-BR')} km de ${intervalo.toLocaleString('pt-BR')} km</span></div>
+      <div class="comparativo-bar-track" style="margin:8px 0;"><div class="comparativo-bar-fill" style="width:${pct}%;background:${cor};"></div></div>
+      <div class="row2" style="margin-top:6px;">
+        <div><label>Intervalo (km)</label><input type="number" value="${intervalo}" onchange="manutSalvarIntervaloCacamba('${maqJs}', this.value)"></div>
+        <div style="display:flex;align-items:flex-end;"><button class="tools-btn" style="width:100%;" onclick="manutMarcarFeitaCacamba('${maqJs}')">✅ Manutenção feita</button></div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function cbIniciar() {
@@ -1212,6 +1730,7 @@ function cbIniciar() {
     cbAtualizarOpcoesFiltro();
     cbRenderPainel();
     cbRenderListaCombustivel();
+    cbRenderManutencao();
   }, err => showToast('Erro ao carregar dados da frota: ' + err.message));
 }
 
@@ -1384,8 +1903,10 @@ function cbSalvarCombustivel() {
   if(usuarioAtual.papel === 'motorista_cacamba') registro.motoristaUid = usuarioAtual.uid;
   cbColRef.doc(idUnico).set(registro, { merge: true }).catch(err => alert('Erro ao salvar: ' + err.message));
   const msg = cbEditandoCombustivelId ? 'Alterações salvas!' : 'Abastecimento registrado!';
+  const textoWpp = `⛽ *ABASTECIMENTO - FROTA*\nVeículo: ${registro.maquina}\nMotorista: ${registro.motorista}\nData: ${fmtData(registro.dataEntrega)}\nPosto: ${registro.posto}\nLitros: ${registro.litros} L\n*Valor: ${fmtMoeda(registro.valorCombustivel||0)}*`;
   cbResetFormCombustivel();
   showToast(msg + (!navigator.onLine ? ' (offline)' : ''));
+  mostrarBotaoWhatsApp(textoWpp);
 }
 function cbResetFormCombustivel() {
   cbEditandoCombustivelId = null;
@@ -1418,7 +1939,7 @@ function cbRenderListaCombustivel() {
   if(itens.length === 0) { corpo.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;">Nenhum abastecimento registrado.</td></tr>'; return; }
   itens.forEach(item => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td>${escapeHtml(item.posto||'-')}</td><td><b>${escapeHtml(item.maquina||'-')}</b><br><small>👤 ${escapeHtml(item.motorista||'-')}</small></td><td class="mono">${(item.litros||0).toFixed(2)} L<br><small>R$ ${(item.valorCombustivel||0).toFixed(2)}</small></td><td><div class="table-actions"><button onclick="cbEditarCombustivel('${item.id}')">✏️</button><button onclick="cbExcluirServico('${item.id}')">🗑️</button></div></td>`;
+    tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td>${escapeHtml(item.posto||'-')}</td><td><b>${escapeHtml(item.maquina||'-')}</b><br><small>👤 ${escapeHtml(item.motorista||'-')}</small></td><td class="mono">${(item.litros||0).toFixed(2)} L<br><small>R$ ${(item.valorCombustivel||0).toFixed(2)}</small></td><td><div class="table-actions"><button onclick="cbCopiarComprovanteCombustivel('${item.id}')" title="Copiar">📋</button><button onclick="cbEditarCombustivel('${item.id}')" title="Editar">✏️</button><button onclick="cbExcluirServico('${item.id}')" title="Excluir">🗑️</button></div></td>`;
     corpo.appendChild(tr);
   });
 }
@@ -1440,8 +1961,10 @@ function cbSalvarServico() {
   if(usuarioAtual.papel === 'motorista_cacamba') servicoData.motoristaUid = usuarioAtual.uid;
   cbColRef.doc(idUnico).set(servicoData, { merge: true }).catch(err => alert('Erro ao salvar: ' + err.message));
   const msg = cbEditandoId ? 'Alterações salvas!' : 'Serviço registrado!';
+  const textoWpp = `📋 *COMPROVANTE DE ENTREGA - FROTA*\nVeículo: ${servicoData.maquina}\nMotorista: ${servicoData.motorista||'-'}\nData: ${fmtData(servicoData.dataEntrega)}\nSaída: ${servicoData.localSaida||'-'}\nDestino: ${servicoData.destino||'-'}\nMaterial: ${servicoData.tipoMaterial||'-'}\nCliente: ${servicoData.cliente}\nKm: ${servicoData.km||0} km\nViagens: ${servicoData.qtdViagens||0}\n*Total: ${fmtMoeda(servicoData.valorTotal||0)}*`;
   cbResetForm();
   showToast(msg + (!navigator.onLine ? ' (offline)' : ''));
+  mostrarBotaoWhatsApp(textoWpp);
   cbSwitchTab('painel');
 }
 function cbEditarServico(id) {
@@ -1492,21 +2015,23 @@ function cbSetModoFiltro(modo) {
   document.getElementById('cbBtnModoDiario').classList.toggle('active', modo==='diario');
   document.getElementById('cbBtnModoMensal').classList.toggle('active', modo==='mensal');
   document.getElementById('cbBtnModoSemanal').classList.toggle('active', modo==='semanal');
+  document.getElementById('cbBtnModoAnual').classList.toggle('active', modo==='anual');
   const hoje = new Date(); let inicio, fim;
   if(modo === 'diario') { inicio = hoje; fim = hoje; }
   else if(modo === 'semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
+  else if(modo === 'anual') { inicio = new Date(hoje.getFullYear(), 0, 1); fim = new Date(hoje.getFullYear(), 11, 31); }
   else { inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0); }
   document.getElementById('cbFDataInicio').value = fmtDataISO(inicio);
   document.getElementById('cbFDataFim').value = fmtDataISO(fim);
   cbRenderPainel();
 }
 function cbOnDataRangeChange() {
-  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   cbRenderPainel();
 }
 function cbLimparPeriodo() {
   document.getElementById('cbFDataInicio').value = ''; document.getElementById('cbFDataFim').value = '';
-  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
+  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   cbRenderPainel();
 }
 function cbGetTextoPeriodoAtual() {
@@ -1576,8 +2101,93 @@ function cbGetCombustivelFiltrados() {
     return true;
   });
 }
+function cbSetMetricaMensal(m) {
+  cbMetricaMensal = m;
+  document.getElementById('cbBtnMetricaLiquido').classList.toggle('active', m==='liquido');
+  document.getElementById('cbBtnMetricaFaturamento').classList.toggle('active', m==='faturamento');
+  cbRenderGraficoMensal();
+}
+function cbRenderGraficoMensal() {
+  if(!souDono() || typeof Chart === 'undefined') return;
+  const canvas = document.getElementById('cbGraficoMensal'); if(!canvas) return;
+  const tabelaCont = document.getElementById('cbTabelaMensalContainer');
+  const itensPeriodo = cbLista.filter(item => cbDataDentroDoFiltro(item.dataEntrega));
+  const servicos = itensPeriodo.filter(i => i.tipoRegistro !== 'combustivel');
+  const combustiveis = itensPeriodo.filter(i => i.tipoRegistro === 'combustivel');
+  let veiculos = [...new Set(cbLista.map(i=>i.maquina))].filter(Boolean).sort();
+  ["ATEGO","ACCELO","BOB"].forEach(p => { if(!veiculos.includes(p)) veiculos.push(p); });
+  const mesesSet = new Set();
+  servicos.forEach(i => { const mk = getMesChave(i.dataEntrega); if(mk) mesesSet.add(mk); });
+  combustiveis.forEach(i => { const mk = getMesChave(i.dataEntrega); if(mk) mesesSet.add(mk); });
+  const meses = Array.from(mesesSet).sort();
+  const dados = {};
+  veiculos.forEach(v => { dados[v] = {}; meses.forEach(m => dados[v][m] = {fat:0, comb:0}); });
+  servicos.forEach(i => { const mk = getMesChave(i.dataEntrega); if(dados[i.maquina] && dados[i.maquina][mk]) dados[i.maquina][mk].fat += (i.valorTotal||0); });
+  combustiveis.forEach(i => { const mk = getMesChave(i.dataEntrega); if(dados[i.maquina] && dados[i.maquina][mk]) dados[i.maquina][mk].comb += (i.valorCombustivel||0); });
+  const coresFixas = { 'BOB': '#2563EB', 'ATEGO': '#15803D', 'ACCELO': '#D97706' };
+  const coresExtra = ['#7C3AED','#DB2777','#0891B2','#CA8A04'];
+  const valorCel = (v, m) => { const d = dados[v][m]; if(cbMetricaMensal === 'combustivel') return d.comb; return cbMetricaMensal === 'liquido' ? (d.fat - d.comb) : d.fat; };
+  const datasets = veiculos.map((v, idx) => ({
+    label: v,
+    backgroundColor: coresFixas[v] || coresExtra[idx % coresExtra.length],
+    borderRadius: 6,
+    borderSkipped: false,
+    maxBarThickness: 42,
+    data: meses.map(m => valorCel(v, m))
+  }));
+  const labels = meses.map(getMesLabel);
+  if(cbChartMensal) cbChartMensal.destroy();
+  if(meses.length === 0) { if(tabelaCont) tabelaCont.innerHTML = ''; if(document.getElementById('cbTabelaCombustivelMensalContainer')) document.getElementById('cbTabelaCombustivelMensalContainer').innerHTML = ''; return; }
+  if(tabelaCont) {
+    let th = '<th>Mês</th>' + veiculos.map(v => `<th>${v}</th>`).join('') + '<th>Total</th>';
+    let corpo = '';
+    const totColuna = {}; veiculos.forEach(v => totColuna[v] = 0); let totGeral = 0;
+    meses.forEach(m => {
+      let somaLinha = 0;
+      let tds = veiculos.map(v => { const val = valorCel(v, m); somaLinha += val; totColuna[v] += val; return `<td class="mono">${fmtMoeda(val)}</td>`; }).join('');
+      totGeral += somaLinha;
+      corpo += `<tr><td>${getMesLabel(m)}</td>${tds}<td class="mono" style="font-weight:700;">${fmtMoeda(somaLinha)}</td></tr>`;
+    });
+    let tdsTotal = veiculos.map(v => `<td class="mono" style="font-weight:700;">${fmtMoeda(totColuna[v])}</td>`).join('');
+    corpo += `<tr style="background:#F1F5F9;"><td style="font-weight:700;">TOTAL</td>${tdsTotal}<td class="mono" style="font-weight:700;">${fmtMoeda(totGeral)}</td></tr>`;
+    tabelaCont.innerHTML = `<table class="tabela-detalhada"><thead><tr>${th}</tr></thead><tbody>${corpo}</tbody></table>`;
+  }
+  const tabelaCombCont = document.getElementById('cbTabelaCombustivelMensalContainer');
+  if(tabelaCombCont) {
+    let thC = '<th>Mês</th>' + veiculos.map(v => `<th>${v}</th>`).join('') + '<th>Total</th>';
+    let corpoC = '';
+    const totColunaC = {}; veiculos.forEach(v => totColunaC[v] = 0); let totGeralC = 0;
+    meses.forEach(m => {
+      let somaLinha = 0;
+      let tds = veiculos.map(v => { const val = dados[v][m].comb; somaLinha += val; totColunaC[v] += val; return `<td class="mono" style="color:#DC2626;">${fmtMoeda(val)}</td>`; }).join('');
+      totGeralC += somaLinha;
+      corpoC += `<tr><td>${getMesLabel(m)}</td>${tds}<td class="mono" style="font-weight:700;color:#DC2626;">${fmtMoeda(somaLinha)}</td></tr>`;
+    });
+    let tdsTotalC = veiculos.map(v => `<td class="mono" style="font-weight:700;color:#DC2626;">${fmtMoeda(totColunaC[v])}</td>`).join('');
+    corpoC += `<tr style="background:#F1F5F9;"><td style="font-weight:700;">TOTAL</td>${tdsTotalC}<td class="mono" style="font-weight:700;color:#DC2626;">${fmtMoeda(totGeralC)}</td></tr>`;
+    tabelaCombCont.innerHTML = `<table class="tabela-detalhada"><thead><tr>${thC}</tr></thead><tbody>${corpoC}</tbody></table>`;
+  }
+  cbChartMensal = new Chart(canvas, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 600, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { position: 'bottom', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, padding: 16, font: { family: "'Work Sans', sans-serif", size: 12 } } },
+        tooltip: { backgroundColor: '#1E293B', titleFont: { family: "'Work Sans', sans-serif", weight: '700' }, bodyFont: { family: "'IBM Plex Mono', monospace" }, padding: 10, cornerRadius: 8, displayColors: true, boxPadding: 4, callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmtMoeda(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { family: "'Work Sans', sans-serif", size: 11 } } },
+        y: { beginAtZero: true, grid: { color: '#EEF2F6' }, ticks: { font: { family: "'IBM Plex Mono', monospace", size: 10 }, callback: v => 'R$ ' + Number(v).toLocaleString('pt-BR') } }
+      }
+    }
+  });
+}
 function cbRenderPainel() {
   const container = document.getElementById('cbListaServicosTabela'); container.innerHTML = '';
+  cbRenderGraficoMensal();
   const filtrados = cbGetFiltrados();
   const ocultar = usuarioAtual.papel === 'motorista_cacamba';
   let totValor=0, totServicos=0, totComb=0, totLitros=0, totKm=0;
@@ -1607,6 +2217,13 @@ function cbRenderPainel() {
   document.getElementById('cbStLitros').textContent = totLitros.toFixed(2) + ' L';
   document.getElementById('cbStLiquidoGeral').textContent = fmtMoeda(totValor - totComb);
   document.getElementById('cbStKmViagens').textContent = totKm + ' Km / ' + filtrados.reduce((a,b)=>a+(b.qtdViagens||0),0) + ' Viagens';
+  const cbConsumoPeriodo = cbCalcConsumo(filtrados, combustivelF);
+  const maquinaVal = document.getElementById('cbFMaquinaSelect').value;
+  const cbBaseAllTime = maquinaVal === 'todos' ? cbLista : cbLista.filter(i => i.maquina === maquinaVal);
+  const cbConsumoAllTime = cbCalcConsumo(cbBaseAllTime.filter(i => i.tipoRegistro !== 'combustivel'), cbBaseAllTime.filter(i => i.tipoRegistro === 'combustivel'));
+  document.getElementById('cbSumConsumo').textContent = cbConsumoPeriodo > 0 ? cbConsumoPeriodo.toFixed(2).replace('.', ',') + ' km/L' : '—';
+  const cbAlertaEl = document.getElementById('cbConsumoAlerta');
+  cbAlertaEl.textContent = (cbConsumoAllTime > 0 && cbConsumoPeriodo < cbConsumoAllTime * 0.85) ? '⚠️ Consumo pior que a média histórica (' + cbConsumoAllTime.toFixed(2).replace('.', ',') + ' km/L)' : '';
   cbRenderTabelaCombustivelPainel(combustivelF);
   cbRenderCardsRelatorioMaquinas();
   if(souDono()) {
@@ -1619,10 +2236,11 @@ function cbRenderPainel() {
 function cbRenderTabelaCombustivelPainel(itens) {
   const corpo = document.getElementById('cbListaCombustivelPainel'); if(!corpo) return;
   corpo.innerHTML = '';
-  if(itens.length === 0) { corpo.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:16px;">Nenhum abastecimento no período.</td></tr>'; return; }
+  if(itens.length === 0) { corpo.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:16px;">Nenhum abastecimento no período.</td></tr>'; return; }
   itens.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(item => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td>${escapeHtml(item.posto||'-')}</td><td>${escapeHtml(item.maquina||'-')}</td><td>${escapeHtml(item.motorista||'-')}</td><td class="mono">${(item.litros||0).toFixed(2)} L</td><td class="mono">R$ ${(item.valorPorLitro||0).toFixed(2)}</td><td class="mono">R$ ${(item.valorCombustivel||0).toFixed(2)}</td>`;
+    const tdValorTotal = souDono() ? `<td class="mono" style="color:#DC2626;font-weight:700;">R$ ${(item.valorCombustivel||0).toFixed(2)}</td>` : '';
+    tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td>${escapeHtml(item.posto||'-')}</td><td>${escapeHtml(item.maquina||'-')}</td><td>${escapeHtml(item.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${(item.litros||0).toFixed(2)} L</td><td class="mono">R$ ${(item.valorPorLitro||0).toFixed(2)}</td>${tdValorTotal}<td><div class="table-actions"><button onclick="cbCopiarComprovanteCombustivel('${item.id}')" title="Copiar">📋</button><button onclick="cbEditarCombustivel('${item.id}')" title="Editar">✏️</button><button onclick="cbExcluirServico('${item.id}')" title="Excluir">🗑️</button></div></td>`;
     corpo.appendChild(tr);
   });
 }
@@ -1647,7 +2265,7 @@ function cbRenderCardsRelatorioMaquinas() {
     const qtdLanc = itensMaq.filter(i=>i.tipoRegistro!=='combustivel').length;
     const card = document.createElement('div');
     card.className = 'maquina-card-rel';
-    card.innerHTML = `<h4>${maq}</h4><p style="margin-bottom:6px;font-size:0.75rem;">Lançamentos: ${qtdLanc}<br>Viagens/Km: ${totalKm.toLocaleString('pt-BR')} Km / ${totalViagens} Viagens<br>Faturamento: <b>${fmtMoeda(totalFat)}</b><br>Combustível: <span style="color:#ffcccc;">${fmtMoeda(totalComb)} (${totalLitros.toLocaleString('pt-BR')} L)</span><br><span style="font-size:0.85rem;color:#a3e4d7;"><b>Líquido: ${fmtMoeda(totalFat-totalComb)}</b></span></p><div class="maquina-card-actions"><button class="btn-pdf-maq" onclick="cbGerarPDFMaquina('${maq}')">📄 PDF</button><button class="btn-excel-maq" onclick="cbExportarExcelMaquina('${maq}')">🟢 Excel</button></div>`;
+    card.innerHTML = `<label style="display:flex;align-items:center;gap:6px;margin-bottom:4px;font-size:0.78rem;cursor:pointer;"><input type="checkbox" class="cb-maquina-check" value="${escapeHtml(maq)}"> Selecionar p/ PDF</label><h4>${maq}</h4><p style="margin-bottom:6px;font-size:0.75rem;">Lançamentos: ${qtdLanc}<br>Viagens/Km: ${totalKm.toLocaleString('pt-BR')} Km / ${totalViagens} Viagens<br>Faturamento: <b>${fmtMoeda(totalFat)}</b><br>Combustível: <span style="color:#FF6B6B;font-weight:700;">${fmtMoeda(totalComb)} (${totalLitros.toLocaleString('pt-BR')} L)</span><br><span style="font-size:0.85rem;color:#4ADE80;"><b>Líquido: ${fmtMoeda(totalFat-totalComb)}</b></span></p><div class="maquina-card-actions"><button class="btn-pdf-maq" onclick="cbGerarPDFMaquina('${maq}')">📄 PDF</button><button class="btn-excel-maq" onclick="cbExportarExcelMaquina('${maq}')">🟢 Excel</button></div>`;
     grid.appendChild(card);
   });
 }
@@ -1727,7 +2345,7 @@ function cbExportarExcelMaquina(maq) {
 function cbGerarRelatorioPDF() {
   const resumo = cbGetResumoPorEquipe(); if(resumo.length === 0) return alert('Sem dados para gerar o relatório.');
   let totFat=0, totComb=0, totLuc=0, linhas='';
-  resumo.forEach(r => { totFat+=r.faturamento; totComb+=r.combustivel; totLuc+=r.lucro; linhas += `<tr><td>${escapeHtml(r.maquina)}</td><td class="mono">${fmtMoeda(r.faturamento)}</td><td class="mono">${fmtMoeda(r.combustivel)}</td><td class="mono">${fmtMoeda(r.lucro)}</td></tr>`; });
+  resumo.forEach(r => { totFat+=r.faturamento; totComb+=r.combustivel; totLuc+=r.lucro; linhas += `<tr><td>${escapeHtml(r.maquina)}</td><td class="mono">${fmtMoeda(r.faturamento)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(r.combustivel)}</td><td class="mono" style="color:#16A34A;">${fmtMoeda(r.lucro)}</td></tr>`; });
   const dadosDet = cbGetFiltrados();
   const totLanc = dadosDet.length;
   const totKm = dadosDet.reduce((a,c) => a + (c.km||0), 0);
@@ -1742,10 +2360,52 @@ function cbGerarRelatorioPDF() {
   });
   let linhasComb = '';
   combDet.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
-    linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.maquina||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
+    linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.maquina||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
   });
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Faturamento por Equipe</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}h2{margin:20px 0 6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}</style></head><body><h2 style="margin-top:0;">Faturamento por Equipe</h2><div class="meta">Período: <b>${textoPeriodo}</b> | Gerado em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><table><thead><tr><th>Caçamba</th><th>Faturamento</th><th>Combustível</th><th>Lucro</th></tr></thead><tbody>${linhas}<tr style="font-weight:bold;"><td>TOTAL</td><td class="mono">${fmtMoeda(totFat)}</td><td class="mono">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</td><td class="mono">${fmtMoeda(totLuc)}</td></tr></tbody></table><h2>Todas as Entregas</h2><table><thead><tr><th>Data</th><th>Veículo/Motorista</th><th>Cliente/Rota</th><th>Material/Qtd</th><th>Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb || '<tr><td colspan="7" style="text-align:center;padding:10px;">Sem abastecimentos.</td></tr>'}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Faturamento por Equipe</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}h2{margin:20px 0 6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}</style></head><body><h2 style="margin-top:0;">Faturamento por Equipe</h2><div class="meta">Período: <b>${textoPeriodo}</b> | Gerado em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><table><thead><tr><th>Caçamba</th><th>Faturamento</th><th>Combustível</th><th>Lucro</th></tr></thead><tbody>${linhas}<tr style="font-weight:bold;"><td>TOTAL</td><td class="mono">${fmtMoeda(totFat)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</td><td class="mono" style="color:#16A34A;">${fmtMoeda(totLuc)}</td></tr></tbody></table><h2>Todas as Entregas</h2><table><thead><tr><th>Data</th><th>Veículo/Motorista</th><th>Cliente/Rota</th><th>Material/Qtd</th><th>Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb || '<tr><td colspan="7" style="text-align:center;padding:10px;">Sem abastecimentos.</td></tr>'}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+function cbGerarPDFSelecionadas() {
+  if(!souDono()) return alert('Apenas o Dono pode gerar relatórios por veículo.');
+  const marcados = Array.from(document.querySelectorAll('.cb-maquina-check:checked')).map(el => el.value);
+  if(marcados.length === 0) return alert('Selecione pelo menos uma caçamba na caixinha "Selecionar p/ PDF" antes de gerar.');
+  const textoPeriodo = cbGetTextoPeriodoAtual();
+
+  let totFatGeral = 0, totCombGeral = 0, totLancGeral = 0;
+  let secoesHtml = '';
+
+  marcados.forEach(maq => {
+    const dadosMaq = cbGetFiltrados().filter(i => i.maquina === maq);
+    const combMaq = cbGetCombustivelFiltrados().filter(i => i.maquina === maq);
+    const totFat = dadosMaq.reduce((a,c) => a + (c.valorTotal||0), 0);
+    const totComb = combMaq.reduce((a,c) => a + (c.valorCombustivel||0), 0);
+    const totLitros = combMaq.reduce((a,c) => a + (c.litros||0), 0);
+    const totLiq = totFat - totComb;
+    const totKm = dadosMaq.reduce((a,c) => a + (c.km||0), 0);
+    const totViagens = dadosMaq.reduce((a,c) => a + (c.qtdViagens||0), 0);
+    totFatGeral += totFat; totCombGeral += totComb; totLancGeral += dadosMaq.length;
+
+    let linhasDet = '';
+    dadosMaq.forEach(i => {
+      const vFmt = (i.valorViagem||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+      linhasDet += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.motorista||'-')}</td><td>${escapeHtml(i.cliente||'-')}</td><td>📍 ${escapeHtml(i.localSaida||'-')}</td><td>📍 ${escapeHtml(i.destino||'-')}</td><td>${escapeHtml(i.tipoMaterial||'Geral')}</td><td class="mono">${i.qtdViagens||0}</td><td class="mono">${i.km||0} km</td><td class="mono">R$ ${vFmt}</td><td class="mono" style="font-weight:700;text-align:right;">${fmtMoeda(i.valorTotal||0)}</td></tr>`;
+    });
+    if(!linhasDet) linhasDet = '<tr><td colspan="10" style="text-align:center;padding:15px;">Nenhum lançamento no período.</td></tr>';
+
+    let linhasComb = '';
+    combMaq.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
+      linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
+    });
+    if(!linhasComb) linhasComb = '<tr><td colspan="6" style="text-align:center;padding:15px;">Sem abastecimentos no período.</td></tr>';
+
+    secoesHtml += `<h2 style="margin-top:30px;background:#22303C;color:#fff;padding:8px 10px;border-radius:6px;border-bottom:none;">🚚 ${escapeHtml(maq)}</h2><div class="cards"><div class="card"><div class="card-title">Faturamento</div><div class="card-val">${fmtMoeda(totFat)}</div></div><div class="card"><div class="card-title">Combustível</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</div></div><div class="card"><div class="card-title">Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totLiq)}</div></div><div class="card"><div class="card-title">Km / Viagens</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens}</div></div></div><table><thead><tr><th>Data</th><th>Motorista</th><th>Cliente</th><th>Rota Saída</th><th>Rota Entrega</th><th>Material</th><th>Qtd.</th><th>Km</th><th>Valor/Viagem</th><th style="text-align:right;">Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2 style="margin-top:15px;">⛽ Relatório Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb}</tbody></table>`;
+  });
+
+  const totLiqGeral = totFatGeral - totCombGeral;
+  const nomesSelecionados = marcados.join(', ');
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(nomesSelecionados)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-bottom:6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório de Caçambas Selecionadas</h1><div class="meta">Veículos: <b>${escapeHtml(nomesSelecionados)}</b> | Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Total</div><div class="card-val">${fmtMoeda(totFatGeral)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totCombGeral)}</div></div><div class="card"><div class="card-title">Líquido Total</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totLiqGeral)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLancGeral}</div></div></div>${secoesHtml}<script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function cbGerarPDFMaquina(maq) {
@@ -1766,18 +2426,18 @@ function cbGerarPDFMaquina(maq) {
   let linhasDet = '';
   dadosMaq.forEach(i => {
     const vFmt = (i.valorViagem||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-    linhasDet += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.motorista||'-')}</td><td>${escapeHtml(i.cliente||'-')}<br><small>📍 ${escapeHtml(i.localSaida||'-')} ➔ ${escapeHtml(i.destino||'-')}</small></td><td><b>${escapeHtml(i.tipoMaterial||'Geral')} / ${i.qtdViagens||0} viagens</b><br><small>🛣️ ${i.km||0} km (R$ ${vFmt})</small></td><td class="mono">${fmtMoeda(i.valorTotal||0)}</td></tr>`;
+    linhasDet += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.motorista||'-')}</td><td>${escapeHtml(i.cliente||'-')}</td><td>📍 ${escapeHtml(i.localSaida||'-')}</td><td>📍 ${escapeHtml(i.destino||'-')}</td><td>${escapeHtml(i.tipoMaterial||'Geral')}</td><td class="mono">${i.qtdViagens||0}</td><td class="mono">${i.km||0} km</td><td class="mono">R$ ${vFmt}</td><td class="mono" style="font-weight:700;text-align:right;">${fmtMoeda(i.valorTotal||0)}</td></tr>`;
   });
-  if(!linhasDet) linhasDet = '<tr><td colspan="5" style="text-align:center;padding:15px;">Nenhum lançamento no período.</td></tr>';
+  if(!linhasDet) linhasDet = '<tr><td colspan="10" style="text-align:center;padding:15px;">Nenhum lançamento no período.</td></tr>';
 
   let linhasComb = '';
   combMaq.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
-    linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
+    linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
   });
   if(!linhasComb) linhasComb = '<tr><td colspan="6" style="text-align:center;padding:15px;">Sem abastecimentos no período.</td></tr>';
 
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(maq)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-top:22px;margin-bottom:6px;border-bottom:2px solid #22303C;padding-bottom:4px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório Individual — ${escapeHtml(maq)}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento</div><div class="card-val">${fmtMoeda(totFat)}</div></div><div class="card"><div class="card-title">Combustível</div><div class="card-val">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</div></div><div class="card"><div class="card-title">Líquido</div><div class="card-val" style="color:#1B4D3E;">${fmtMoeda(totLiq)}</div></div></div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><h2>Lançamentos</h2><table><thead><tr><th>Data</th><th>Motorista</th><th>Cliente/Rota</th><th>Material/Qtd</th><th>Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(maq)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-top:22px;margin-bottom:6px;border-bottom:2px solid #22303C;padding-bottom:4px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório Individual — ${escapeHtml(maq)}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento</div><div class="card-val">${fmtMoeda(totFat)}</div></div><div class="card"><div class="card-title">Combustível</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</div></div><div class="card"><div class="card-title">Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totLiq)}</div></div></div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><h2>Lançamentos</h2><table><thead><tr><th>Data</th><th>Motorista</th><th>Cliente</th><th>Rota Saída</th><th>Rota Entrega</th><th>Material</th><th>Qtd.</th><th>Km</th><th>Valor/Viagem</th><th style="text-align:right;">Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Relatório Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function cbFazerBackup() {
@@ -1815,6 +2475,11 @@ function cbCopiarComprovante(id) {
   const ocultar = usuarioAtual.papel === 'motorista_cacamba';
   let txt = `📋 *COMPROVANTE DE ENTREGA - FROTA*\n\n🚜 *Veículo:* ${item.maquina}\n👤 *Motorista:* ${item.motorista||'Não informado'}\n📅 *Data:* ${fmtData(item.dataEntrega)}\n📍 *Saída:* ${item.localSaida||'-'}\n🎯 *Destino:* ${item.destino||'-'}\n📦 *Material:* ${item.tipoMaterial||'Geral'}\n🏢 *Cliente:* ${item.cliente}\n🛣️ *Km:* ${item.km||0} km\n🚚 *Viagens:* ${item.qtdViagens||0}`;
   if(!ocultar) txt += `\n💵 *Valor/viagem:* R$ ${(item.valorViagem||0).toFixed(2)}\n💰 *Total:* R$ ${(item.valorTotal||0).toFixed(2)}`;
+  navigator.clipboard.writeText(txt).then(() => showToast('Comprovante copiado!')).catch(() => alert(txt));
+}
+function cbCopiarComprovanteCombustivel(id) {
+  const item = cbLista.find(x => x.id === id && x.tipoRegistro === 'combustivel'); if(!item) return;
+  const txt = `⛽ *COMPROVANTE DE ABASTECIMENTO - FROTA*\n\n🚜 *Veículo:* ${item.maquina||'-'}\n👤 *Motorista:* ${item.motorista||'-'}\n📅 *Data:* ${fmtData(item.dataEntrega)}\n⛽ *Posto:* ${item.posto||'-'}\n🧪 *Litros:* ${(item.litros||0).toFixed(2)} L\n💵 *Valor/Litro:* R$ ${(item.valorPorLitro||0).toFixed(2)}\n💰 *Total:* R$ ${(item.valorCombustivel||0).toFixed(2)}`;
   navigator.clipboard.writeText(txt).then(() => showToast('Comprovante copiado!')).catch(() => alert(txt));
 }
 
@@ -1908,6 +2573,241 @@ async function uExcluir(uid, nome) {
 }
 
 // ===================================================================
+// MANUTENÇÃO — HISTÓRICO DE SERVIÇOS (RETRO + CAÇAMBA, SÓ DONO)
+// ===================================================================
+const mhColRef = db.collection('manutencao_registros');
+let mhLista = [];
+let mhEditandoId = null;
+let mhListenerAtivo = false;
+function mhIniciar() {
+  document.getElementById('mhData').valueAsDate = new Date();
+  mcIniciar();
+  if(mhListenerAtivo) return;
+  mhListenerAtivo = true;
+  mhColRef.onSnapshot(snap => {
+    mhLista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mhAtualizarOpcoesFiltro();
+    mhRenderLista();
+  }, err => showToast('Erro ao carregar manutenções: ' + err.message));
+}
+
+// --- Controle por Tipo de Serviço (preenchimento próprio, separado do histórico) ---
+const mcColRef = db.collection('manutencao_controle');
+let mcLista = [];
+let mcEditandoId = null;
+let mcListenerAtivo = false;
+function mcIniciar() {
+  document.getElementById('mcDataManutencao').valueAsDate = new Date();
+  if(mcListenerAtivo) return;
+  mcListenerAtivo = true;
+  mcColRef.onSnapshot(snap => {
+    mcLista = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mcRenderTabela();
+  }, err => showToast('Erro ao carregar controle de manutenção: ' + err.message));
+}
+function mcSalvar() {
+  const maquina = document.getElementById('mcMaquina').value.trim();
+  const servico = document.getElementById('mcServico').value.trim();
+  const dataManutencao = document.getElementById('mcDataManutencao').value;
+  let proximaManutencao = document.getElementById('mcProximaManutencao').value;
+  const descricao = document.getElementById('mcDescricao').value.trim();
+  if(!maquina) return alert('Informe a máquina/veículo.');
+  if(!servico) return alert('Informe o tipo de serviço.');
+  if(!dataManutencao) return alert('Informe a data da manutenção.');
+  if(!proximaManutencao) {
+    const d = new Date(dataManutencao + 'T00:00:00'); d.setDate(d.getDate() + 180);
+    proximaManutencao = fmtDataISO(d);
+  }
+  const id = mcEditandoId ? mcEditandoId : ('mc_' + Date.now());
+  const registro = { maquina, servico, dataManutencao, proximaManutencao, descricao };
+  mcColRef.doc(id).set(registro, { merge: true }).catch(err => alert('Erro ao salvar: ' + err.message));
+  const msg = mcEditandoId ? 'Controle atualizado!' : 'Controle salvo!';
+  mcResetForm();
+  showToast(msg);
+}
+function mcResetForm() {
+  mcEditandoId = null;
+  const btn = document.getElementById('mcBtnSalvar');
+  btn.textContent = 'Salvar Controle'; btn.style.background = 'var(--accent)';
+  ['mcMaquina','mcServico','mcProximaManutencao','mcDescricao'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mcDataManutencao').valueAsDate = new Date();
+}
+function mcEditar(id) {
+  const item = mcLista.find(x => x.id === id); if(!item) return;
+  mcEditandoId = id;
+  document.getElementById('mcMaquina').value = item.maquina || '';
+  document.getElementById('mcServico').value = item.servico || '';
+  document.getElementById('mcDataManutencao').value = item.dataManutencao || '';
+  document.getElementById('mcProximaManutencao').value = item.proximaManutencao || '';
+  document.getElementById('mcDescricao').value = item.descricao || '';
+  const btn = document.getElementById('mcBtnSalvar');
+  btn.textContent = 'Salvar Alterações'; btn.style.background = '#9A3412';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Modo de edição ativado');
+}
+async function mcExcluir(id) {
+  const senha = prompt('Digite a senha do Dono para excluir o registro:');
+  if(senha === null) return;
+  if(!(await verificarSenhaDono(senha))) return alert('Senha incorreta!');
+  if(confirm('Deseja excluir este registro?')) {
+    mcColRef.doc(id).delete().then(() => showToast('Registro excluído.')).catch(err => alert('Erro ao excluir: ' + err.message));
+  }
+}
+function mcRenderTabela() {
+  const cont = document.getElementById('mcTabelaContainer');
+  if(!cont) return;
+  if(mcLista.length === 0) { cont.innerHTML = '<p style="text-align:center;color:var(--text-muted);padding:15px;font-size:0.85rem;background:#fff;margin:0;border-radius:10px;">Nenhum controle cadastrado ainda.</p>'; return; }
+  const linhas = mcLista.slice().sort((a,b) => (a.maquina||'').localeCompare(b.maquina||'') || (a.servico||'').localeCompare(b.servico||''));
+  const hoje = fmtDataISO(new Date());
+  let html = '<table class="tabela-detalhada"><thead><tr><th>Máquina</th><th>Serviço</th><th>Última manutenção</th><th>Próxima manutenção</th><th>Status</th><th>Ação</th></tr></thead><tbody>';
+  linhas.forEach(item => {
+    const atrasada = item.proximaManutencao && item.proximaManutencao < hoje;
+    const diasRestantes = item.proximaManutencao ? Math.round((new Date(item.proximaManutencao+'T00:00:00') - new Date(hoje+'T00:00:00')) / 86400000) : null;
+    const proxima = !atrasada && diasRestantes !== null && diasRestantes <= 15;
+    const cor = atrasada ? '#DC2626' : (proxima ? '#D97706' : '#16A34A');
+    const statusTxt = atrasada ? '⚠️ ATRASADA' : (proxima ? '⚠️ Próxima' : 'OK');
+    html += `<tr>
+      <td><b>${escapeHtml(item.maquina||'-')}</b></td>
+      <td>${escapeHtml(item.servico||'-')}</td>
+      <td>${fmtData(item.dataManutencao)}</td>
+      <td class="mono">${fmtData(item.proximaManutencao)}</td>
+      <td><span class="manut-status" style="background:${cor};color:#fff;">${statusTxt}</span></td>
+      <td><div class="td-acoes"><button onclick="mcEditar('${item.id}')" title="Editar">✏️</button><button onclick="mcExcluir('${item.id}')" title="Excluir">🗑️</button></div></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+function mhAtualizarSelectMaquina() {
+  const datalist = document.getElementById('listaMaquinasManutencao');
+  if(!datalist) return;
+  const operadoresRetro = [...new Set(rtLista.filter(i => !i.isAbastecimento).map(i => i.operador || i.maquina || 'RETRO'))].filter(Boolean);
+  const veiculosCacamba = cbGetListaTodosVeiculos();
+  const doHistorico = [...new Set(mhLista.map(i => i.maquina))].filter(Boolean);
+  const doControle = [...new Set(mcLista.map(i => i.maquina))].filter(Boolean);
+  const todos = [...new Set([...operadoresRetro, ...veiculosCacamba, ...doHistorico, ...doControle])].sort();
+  datalist.innerHTML = todos.map(n => `<option value="${escapeHtml(n)}">`).join('');
+}
+function mhAtualizarOpcoesFiltro() {
+  const anos = [...new Set(mhLista.map(i => (i.data||'').substring(0,4)))].filter(Boolean).sort().reverse();
+  const selAno = document.getElementById('mhFAno');
+  const anoAtual = selAno.value;
+  selAno.innerHTML = '<option value="todos">Todos os anos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
+  if(anos.includes(anoAtual)) selAno.value = anoAtual;
+
+  const maquinas = [...new Set(mhLista.map(i => i.maquina))].filter(Boolean).sort();
+  const selMaq = document.getElementById('mhFMaquina');
+  const maqAtual = selMaq.value;
+  selMaq.innerHTML = '<option value="todos">Todas as máquinas</option>' + maquinas.map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join('');
+  if(maquinas.includes(maqAtual)) selMaq.value = maqAtual;
+
+  const servicos = [...new Set(mhLista.map(i => i.servico))].filter(Boolean).sort();
+  const selServ = document.getElementById('mhFServico');
+  const servAtual = selServ.value;
+  selServ.innerHTML = '<option value="todos">Todos os tipos de serviço</option>' + servicos.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  if(servicos.includes(servAtual)) selServ.value = servAtual;
+}
+function mhRenderLista() {
+  const corpo = document.getElementById('mhTabela'); if(!corpo) return;
+  const ano = document.getElementById('mhFAno').value;
+  const mes = document.getElementById('mhFMes').value;
+  const maq = document.getElementById('mhFMaquina').value;
+  const serv = document.getElementById('mhFServico').value;
+  const filtrados = mhLista.filter(i => {
+    if(ano !== 'todos' && (i.data||'').substring(0,4) !== ano) return false;
+    if(mes !== 'todos' && (i.data||'').substring(5,7) !== mes) return false;
+    if(maq !== 'todos' && i.maquina !== maq) return false;
+    if(serv !== 'todos' && i.servico !== serv) return false;
+    return true;
+  }).sort((a,b) => (b.data||'').localeCompare(a.data||''));
+  if(filtrados.length === 0) { corpo.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:16px;">Nenhuma manutenção encontrada.</td></tr>'; return; }
+  corpo.innerHTML = filtrados.map(item => `<tr>
+    <td>${fmtData(item.data)}</td>
+    <td><b>${escapeHtml(item.maquina||'-')}</b></td>
+    <td>${escapeHtml(item.servico||'-')}</td>
+    <td>${escapeHtml(item.descricao||'-')}</td>
+    <td class="mono">${item.medidor||0}</td>
+    <td>${escapeHtml(item.local||'-')}</td>
+    <td class="mono">${fmtMoeda(item.custo||0)}</td>
+    <td><div class="td-acoes"><button onclick="mhEditar('${item.id}')" title="Editar">✏️</button><button onclick="mhExcluir('${item.id}')" title="Excluir">🗑️</button></div></td>
+  </tr>`).join('');
+}
+function mhSalvar() {
+  const maquina = document.getElementById('mhMaquina').value.trim();
+  const servico = document.getElementById('mhServico').value.trim();
+  const descricao = document.getElementById('mhDescricao').value.trim();
+  const data = document.getElementById('mhData').value;
+  const medidor = parseFloat(document.getElementById('mhMedidor').value.replace(',', '.')) || 0;
+  const custo = parseFloat(document.getElementById('mhCusto').value.replace(',', '.')) || 0;
+  const local = document.getElementById('mhLocal').value.trim();
+  const resetarPreventiva = document.getElementById('mhResetarPreventiva').checked;
+  if(!maquina) return alert('Informe a máquina/veículo.');
+  if(!servico) return alert('Informe o tipo de serviço.');
+  if(!data) return alert('Informe a data.');
+  const id = mhEditandoId ? mhEditandoId : ('mh_' + Date.now());
+  const registro = { maquina, servico, descricao, data, medidor, custo, local };
+  mhColRef.doc(id).set(registro, { merge: true }).then(() => {
+    document.getElementById('mhFAno').value = 'todos';
+    document.getElementById('mhFMes').value = 'todos';
+    document.getElementById('mhFServico').value = 'todos';
+    const selMaq = document.getElementById('mhFMaquina');
+    if(selMaq) selMaq.value = maquina;
+    mhRenderLista();
+    document.getElementById('mhTabela').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }).catch(err => alert('Erro ao salvar: ' + err.message));
+  let avisoPreventiva = '';
+  if(resetarPreventiva) {
+    const chaveDigitada = manutSlug(maquina);
+    if(chaveDigitada === manutSlug('RETROESCAVADEIRA')) {
+      manutColRef.doc('retro__' + manutSlug('RETROESCAVADEIRA')).set({ tipo: 'retro', maquina: 'RETROESCAVADEIRA', baselineHorimetro: medidor, baselineData: data, atualizadoEm: new Date().toISOString() }, { merge: true });
+      avisoPreventiva = ' Intervalo preventivo da Retroescavadeira resetado.';
+    } else {
+      const veiculoCb = cbGetListaTodosVeiculos().find(v => manutSlug(v) === chaveDigitada);
+      if(veiculoCb) {
+        manutColRef.doc('cacamba__' + manutSlug(veiculoCb)).set({ tipo: 'cacamba', maquina: veiculoCb, baselineData: data, atualizadoEm: new Date().toISOString() }, { merge: true });
+        avisoPreventiva = ` Intervalo preventivo de ${veiculoCb} resetado.`;
+      } else {
+        avisoPreventiva = ' (Não foi possível identificar a máquina para resetar o intervalo preventivo — confira o nome digitado.)';
+      }
+    }
+  }
+  const msg = mhEditandoId ? 'Manutenção atualizada!' : 'Manutenção registrada!';
+  mhResetForm();
+  showToast(msg + avisoPreventiva);
+}
+function mhResetForm() {
+  mhEditandoId = null;
+  const btn = document.getElementById('mhBtnSalvar');
+  btn.textContent = 'Registrar Manutenção'; btn.style.background = 'var(--accent)';
+  ['mhMaquina','mhServico','mhDescricao','mhMedidor','mhCusto','mhLocal'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('mhResetarPreventiva').checked = false;
+  document.getElementById('mhData').valueAsDate = new Date();
+}
+function mhEditar(id) {
+  const item = mhLista.find(x => x.id === id); if(!item) return;
+  mhEditandoId = id;
+  document.getElementById('mhMaquina').value = item.maquina || '';
+  document.getElementById('mhServico').value = item.servico || '';
+  document.getElementById('mhDescricao').value = item.descricao || '';
+  document.getElementById('mhData').value = item.data || '';
+  document.getElementById('mhMedidor').value = item.medidor || '';
+  document.getElementById('mhCusto').value = item.custo || '';
+  document.getElementById('mhLocal').value = item.local || '';
+  const btn = document.getElementById('mhBtnSalvar');
+  btn.textContent = 'Salvar Alterações'; btn.style.background = '#9A3412';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Modo de edição ativado');
+}
+async function mhExcluir(id) {
+  const senha = prompt('Digite a senha do Dono para excluir o registro:');
+  if(senha === null) return;
+  if(!(await verificarSenhaDono(senha))) return alert('Senha incorreta!');
+  if(confirm('Deseja excluir este registro?')) {
+    mhColRef.doc(id).delete().then(() => showToast('Registro excluído.')).catch(err => alert('Erro ao excluir: ' + err.message));
+  }
+}
+
+// ===================================================================
 // COMPARATIVO (SÓ DONO)
 // ===================================================================
 let cmpModoFiltro = 'mensal';
@@ -1988,15 +2888,15 @@ function cmpRenderizar() {
         <h3>🚜 Retroescavadeira</h3>
         <div class="comparativo-row"><span>Lançamentos</span><span>${rtLanc}</span></div>
         <div class="comparativo-row"><span>Faturamento</span><span>${fmtMoeda(rtFat)}</span></div>
-        <div class="comparativo-row"><span>Combustível</span><span>${fmtMoeda(rtComb)}</span></div>
-        <div class="comparativo-row"><span>Líquido</span><span>${fmtMoeda(rtLiq)}</span></div>
+        <div class="comparativo-row"><span>Combustível</span><span style="color:#FF6B6B;">${fmtMoeda(rtComb)}</span></div>
+        <div class="comparativo-row"><span>Líquido</span><span style="color:#4ADE80;">${fmtMoeda(rtLiq)}</span></div>
       </div>
       <div class="comparativo-col caca">
         <h3>🚛 Caçambas</h3>
         <div class="comparativo-row"><span>Lançamentos</span><span>${cbLanc}</span></div>
         <div class="comparativo-row"><span>Faturamento</span><span>${fmtMoeda(cbFat)}</span></div>
-        <div class="comparativo-row"><span>Combustível</span><span>${fmtMoeda(cbComb)}</span></div>
-        <div class="comparativo-row"><span>Líquido</span><span>${fmtMoeda(cbLiq)}</span></div>
+        <div class="comparativo-row"><span>Combustível</span><span style="color:#FF6B6B;">${fmtMoeda(cbComb)}</span></div>
+        <div class="comparativo-row"><span>Líquido</span><span style="color:#4ADE80;">${fmtMoeda(cbLiq)}</span></div>
       </div>
     </div>
     <div class="section-title">Detalhamento — Retroescavadeira</div>
@@ -2004,14 +2904,14 @@ function cmpRenderizar() {
       <div class="categoria-card"><div class="categoria-title">CARREGAMENTO</div>
         <div class="categoria-row"><span>Lançamentos:</span><span>${rtCatCarr.lanc}</span></div>
         <div class="categoria-row"><span>Faturamento:</span><span>${fmtMoeda(rtCatCarr.fat)}</span></div>
-        <div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(rtCatCarr.comb)}</span></div>
-        <div class="categoria-row"><span>Líquido:</span><span>${fmtMoeda(rtCatCarr.liq)}</span></div>
+        <div class="categoria-row"><span>Combustível:</span><span style="color:#FF6B6B;font-weight:700;">${fmtMoeda(rtCatCarr.comb)}</span></div>
+        <div class="categoria-row"><span>Líquido:</span><span style="color:#4ADE80;font-weight:700;">${fmtMoeda(rtCatCarr.liq)}</span></div>
       </div>
       <div class="categoria-card"><div class="categoria-title">PARTICULAR</div>
         <div class="categoria-row"><span>Lançamentos:</span><span>${rtCatPart.lanc}</span></div>
         <div class="categoria-row"><span>Faturamento:</span><span>${fmtMoeda(rtCatPart.fat)}</span></div>
-        <div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(rtCatPart.comb)}</span></div>
-        <div class="categoria-row"><span>Líquido:</span><span>${fmtMoeda(rtCatPart.liq)}</span></div>
+        <div class="categoria-row"><span>Combustível:</span><span style="color:#FF6B6B;font-weight:700;">${fmtMoeda(rtCatPart.comb)}</span></div>
+        <div class="categoria-row"><span>Líquido:</span><span style="color:#4ADE80;font-weight:700;">${fmtMoeda(rtCatPart.liq)}</span></div>
       </div>
     </div>
     <div class="section-title">Detalhamento — Caçambas</div>
@@ -2019,8 +2919,8 @@ function cmpRenderizar() {
       ${cbPorVeiculo.map(v => `<div class="categoria-card"><div class="categoria-title">${escapeHtml(v.maquina)}</div>
         <div class="categoria-row"><span>Lançamentos:</span><span>${v.lanc}</span></div>
         <div class="categoria-row"><span>Faturamento:</span><span>${fmtMoeda(v.fat)}</span></div>
-        <div class="categoria-row"><span>Combustível:</span><span>${fmtMoeda(v.comb)}</span></div>
-        <div class="categoria-row"><span>Líquido:</span><span>${fmtMoeda(v.liq)}</span></div>
+        <div class="categoria-row"><span>Combustível:</span><span style="color:#FF6B6B;font-weight:700;">${fmtMoeda(v.comb)}</span></div>
+        <div class="categoria-row"><span>Líquido:</span><span style="color:#4ADE80;font-weight:700;">${fmtMoeda(v.liq)}</span></div>
       </div>`).join('')}
     </div>
     <div class="comparativo-bar-wrap">

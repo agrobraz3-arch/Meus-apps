@@ -168,7 +168,7 @@
   .destino-row .destino-acoes button { border:none; background:#F1F5F9; padding:6px 9px; border-radius:6px; cursor:pointer; font-size:0.75rem; }
 
   /* ===================== INÍCIO (landing) ===================== */
-  .hero-grid { display:grid; grid-template-columns: 1.1fr 1fr; gap:40px; align-items:center; padding: 30px 0 50px; }
+  .hero-grid { display:grid; grid-template-columns: 1.1fr 1fr; gap:40px; align-items:start; padding: 30px 0 50px; }
   @media (max-width:800px){ .hero-grid { grid-template-columns:1fr; padding-top:10px; } }
   .hero-eyebrow { font-size:0.72rem; font-weight:700; letter-spacing:0.08em; color:var(--accent); text-transform:uppercase; border:1.5px solid var(--border-color); display:inline-block; padding:5px 10px; border-radius:20px; margin-bottom:16px; }
   .hero-titulo { font-size:2.6rem; line-height:1.08; text-transform:uppercase; margin:0 0 16px; }
@@ -188,11 +188,11 @@
   .hero-dots { position:absolute; top:14px; right:14px; display:flex; gap:6px; z-index:2; }
   .hero-dot { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,0.5); }
   .hero-dot.ativo { background:#fff; }
-  .hero-badges { position:absolute; left:14px; right:14px; bottom:14px; display:flex; gap:0; box-shadow:0 10px 25px rgba(0,0,0,0.25); border-radius:8px; overflow:hidden; }
-  .hero-badge-a { background:rgba(210,84,14,0.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); color:#fff; padding:14px 18px; flex:0 0 auto; }
+  .hero-badges { display:flex; gap:0; box-shadow:0 6px 16px rgba(0,0,0,0.12); border-radius:8px; overflow:hidden; margin-top:14px; }
+  .hero-badge-a { background:var(--accent); color:#fff; padding:14px 18px; flex:0 0 auto; }
   .hero-badge-a .num { font-family:'Oswald',sans-serif; font-weight:700; font-size:1.5rem; line-height:1; }
   .hero-badge-a .txt { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; margin-top:4px; }
-  .hero-badge-b { background:rgba(26,26,26,0.7); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); color:#fff; padding:14px 18px; flex:1; font-size:0.8rem; font-weight:600; display:flex; align-items:center; }
+  .hero-badge-b { background:var(--text-dark); color:#fff; padding:14px 18px; flex:1; font-size:0.8rem; font-weight:600; display:flex; align-items:center; }
 
   .features-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; padding:24px 0 44px; border-top:1px solid var(--border-color); }
   @media (max-width:800px){ .features-strip { grid-template-columns:1fr 1fr; } }
@@ -302,10 +302,12 @@
             <button class="hero-btn secundario" onclick="ljAbrirLogin(); ljMostrarCadastro();">Criar Conta</button>
           </div>
         </div>
-        <div class="hero-image-wrap" id="heroImagemWrap">
-          <img class="hero-image ativa" id="heroImagemA" src="https://upload.wikimedia.org/wikipedia/commons/9/91/Boomlift_at_construction_site.jpg" alt="Obra em construção">
-          <img class="hero-image" id="heroImagemB" src="" alt="" style="display:none;">
-          <div class="hero-dots" id="heroDots"></div>
+        <div>
+          <div class="hero-image-wrap" id="heroImagemWrap">
+            <img class="hero-image ativa" id="heroImagemA" src="https://upload.wikimedia.org/wikipedia/commons/9/91/Boomlift_at_construction_site.jpg" alt="Obra em construção">
+            <img class="hero-image" id="heroImagemB" src="" alt="" style="display:none;">
+            <div class="hero-dots" id="heroDots"></div>
+          </div>
           <div class="hero-badges">
             <div class="hero-badge-a"><div class="num">100%</div><div class="txt">Combinado por WhatsApp</div></div>
             <div class="hero-badge-b">Escolha o destino, acompanhe o status do seu pedido.</div>

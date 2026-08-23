@@ -43,8 +43,8 @@
   }
   .app { max-width: 980px; margin: 0 auto; background: var(--card-bg); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid var(--border-color); }
 
-  header { background: var(--header-bg); color: #fff; padding: 20px 24px 0; border-radius: 14px 14px 0 0; position: sticky; top: 0; z-index: 50; }
-  .header-top { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:14px; }
+  header { background: var(--header-bg); color: #fff; padding: 16px 20px 0; border-radius: 14px 14px 0 0; position: sticky; top: 0; z-index: 50; }
+  .header-top { display:flex; justify-content:space-between; align-items:flex-start; padding-bottom:10px; }
   header h1 { margin: 0; font-family: 'Fraunces', serif; font-size: 1.35rem; font-weight: 700; }
   .sub-desc { font-size: 0.78rem; color: #94A3B8; margin-top: 3px; }
   .header-right { display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
@@ -53,13 +53,15 @@
   #badgePapel { font-size:0.66rem; font-weight:700; background:rgba(255,255,255,0.15); padding:3px 9px; border-radius:20px; letter-spacing:0.03em; text-align:right; }
   .btn-sair { background:none; border:1px solid rgba(255,255,255,0.4); color:#fff; padding:4px 10px; border-radius:6px; font-size:0.7rem; cursor:pointer; }
 
-  nav.modulos { display:flex; gap:8px; padding: 14px 24px; flex-wrap:wrap; background: #0B1420; }
-  nav.modulos button { display:flex; align-items:center; justify-content:center; gap:7px; flex:1; min-width:130px; border:none; padding:12px; border-radius:8px; font-weight:700; font-size:0.8rem; cursor:pointer; background:#1B2637; color:#B9C4D4; transition:0.2s; }
-  nav.modulos button svg { flex-shrink:0; }
+  nav.modulos { display:flex; gap:8px; padding: 10px 16px; background: #0B1420; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  nav.modulos::-webkit-scrollbar { display:none; }
+  nav.modulos button { display:flex; align-items:center; justify-content:center; gap:6px; flex-shrink:0; white-space:nowrap; border:none; padding:9px 14px; border-radius:20px; font-weight:700; font-size:0.76rem; cursor:pointer; background:#1B2637; color:#B9C4D4; transition:0.2s; }
+  nav.modulos button svg { flex-shrink:0; width:15px; height:15px; }
   nav.modulos button.active { background: var(--modulo-accent, #fff); color: var(--modulo-accent-text, var(--header-bg)); }
 
-  nav.tabs { display: flex; background: var(--header-bg); padding: 16px 20px 18px; gap: 8px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.08); position: sticky; z-index: 40; }
-  nav.tabs button { flex: 1; min-width: 120px; border: none; padding: 12px; border-radius: 8px; font-weight: 700; font-size: 0.83rem; cursor: pointer; transition: 0.2s; }
+  nav.tabs { display: flex; background: var(--header-bg); padding: 10px 16px; gap: 8px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; border-top: 1px solid rgba(255,255,255,0.08); position: sticky; z-index: 40; }
+  nav.tabs::-webkit-scrollbar { display:none; }
+  nav.tabs button { flex-shrink:0; white-space:nowrap; border: none; padding: 9px 16px; border-radius: 20px; font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: 0.2s; }
   nav.tabs button.active { background: var(--modulo-accent, #fff); color: var(--modulo-accent-text, var(--header-bg)); }
   nav.tabs button:not(.active) { background: #334155; color: #CBD5E1; }
 
@@ -168,6 +170,54 @@
   .comparativo-bar-fill { height:100%; border-radius:7px; }
   .comparativo-bar-val { width: 105px; text-align:right; font-weight:700; font-family:'IBM Plex Mono', monospace; }
 
+  /* ===== ANÁLISE (DASHBOARD) ===== */
+  .an-hero { background: linear-gradient(135deg, #0F172A 0%, #1E293B 55%, #0B3B36 100%); border-radius: 18px; padding: 26px 22px; color:#fff; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(15,23,42,0.25); }
+  .an-hero-title { font-family:'Fraunces', serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+  .an-hero-sub { font-size: 0.82rem; color: rgba(255,255,255,0.72); margin-bottom: 20px; }
+  .an-seletor-row { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  @media (min-width:700px){ .an-seletor-row { grid-template-columns: 260px 1fr; align-items:end; } }
+  .an-seletor-campo label { display:block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+  .an-seletor-campo select { width:100%; padding: 11px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color:#fff; font-size: 0.9rem; font-weight:600; }
+  .an-seletor-campo select option { color:#1E293B; }
+  .an-periodo-btns { display:flex; flex-wrap:wrap; gap: 8px; }
+  .an-btn-periodo { padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); font-size: 0.78rem; font-weight: 600; cursor:pointer; transition: all 0.15s; }
+  .an-btn-periodo.active { background: #F5B700; border-color: #F5B700; color: #1E293B; }
+  .an-btn-periodo:not(.active):hover { background: rgba(255,255,255,0.14); }
+  .an-chips-wrap { display:flex; flex-wrap:wrap; gap: 8px; }
+  .an-chip { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); font-size: 0.78rem; font-weight: 600; cursor:pointer; transition: all 0.15s; white-space:nowrap; }
+  .an-chip.active { background: #F5B700; border-color: #F5B700; color: #1E293B; }
+  .an-chip:not(.active):hover { background: rgba(255,255,255,0.14); }
+  .an-seletor-row-periodo { display:flex; flex-wrap:wrap; gap: 14px; align-items:flex-end; }
+  .an-seletor-row-periodo .an-seletor-campo { flex: 1 1 200px; min-width: 180px; }
+  .an-datas-personalizadas { display:flex; gap: 10px; flex: 1 1 260px; }
+  .an-datas-personalizadas > div { flex:1; }
+  .an-datas-personalizadas label { display:block; font-size: 0.68rem; font-weight: 700; color: rgba(255,255,255,0.65); margin-bottom: 6px; }
+  .an-datas-personalizadas input { width:100%; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color:#fff; font-size: 0.82rem; }
+
+  .an-kpis-grid { display:grid; grid-template-columns: repeat(2,1fr); gap: 12px; margin-bottom: 18px; }
+  @media (min-width:700px){ .an-kpis-grid { grid-template-columns: repeat(4,1fr); } }
+  .an-kpi-card { background:#fff; border-radius: 14px; padding: 16px; border: 1px solid var(--border-color); box-shadow: 0 2px 8px rgba(15,23,42,0.05); position:relative; overflow:hidden; }
+  .an-kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background: var(--an-kpi-cor, #64748B); }
+  .an-kpi-label { font-size: 0.68rem; font-weight: 700; text-transform:uppercase; letter-spacing:0.03em; color: var(--text-muted); margin-bottom: 6px; }
+  .an-kpi-valor { font-family:'IBM Plex Mono', monospace; font-size: 1.35rem; font-weight: 700; color: var(--header-bg); line-height:1.15; }
+  .an-kpi-var { font-size: 0.74rem; font-weight: 700; margin-top: 6px; display:flex; align-items:center; gap: 4px; }
+  .an-kpi-var.up { color: #16A34A; }
+  .an-kpi-var.down { color: #DC2626; }
+  .an-kpi-var.flat { color: var(--text-muted); }
+
+  .an-card-secao { background:#fff; border-radius: 14px; padding: 18px; border: 1px solid var(--border-color); margin-bottom: 16px; box-shadow: 0 2px 8px rgba(15,23,42,0.04); }
+  .an-secao-titulo { font-family:'Fraunces', serif; font-size: 1.05rem; font-weight:700; color: var(--header-bg); margin-bottom: 14px; }
+  .an-chart-wrap { position:relative; height: 260px; }
+
+  .an-comp-grid { display:grid; grid-template-columns: repeat(2,1fr); gap: 12px; }
+  @media (min-width:700px){ .an-comp-grid { grid-template-columns: repeat(4,1fr); } }
+  .an-comp-item { background: #F8FAFC; border-radius: 12px; padding: 14px; text-align:center; }
+  .an-comp-item-label { font-size: 0.68rem; font-weight:700; color: var(--text-muted); text-transform:uppercase; margin-bottom:8px; }
+  .an-comp-item-atual { font-family:'IBM Plex Mono', monospace; font-size: 1.05rem; font-weight:700; color: var(--header-bg); }
+  .an-comp-item-anterior { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
+  .an-comp-item-var { font-size: 0.78rem; font-weight:700; margin-top: 6px; }
+  .an-insight-box { margin-top: 14px; padding: 12px 14px; background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; font-size: 0.82rem; color: #78350F; line-height:1.5; }
+
   .campo-msg { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
   .km-faixa-info { font-size: 0.72rem; color: var(--accent-caca); margin-top: 4px; font-weight: 600; min-height: 14px; }
   .money-hide { display:none !important; }
@@ -179,6 +229,7 @@
 <datalist id="listaTiposMaterial"><option value="AREIA FINA"><option value="AREIA LAVADA"><option value="PIÇARRA PENEIRADA"><option value="PIÇARRA GROSSA"><option value="BRITA ZERO"><option value="BRITA 3/4"><option value="BARRO"><option value="AREIA DE ATERRO"></datalist>
 <datalist id="listaLocaisSaida"><option value="Areal"><option value="Depósito Agrobraz"><option value="Alegrin"><option value="Piçarreira Penedo"><option value="Mibasa"></datalist>
 <datalist id="listaOperadoresRetro"></datalist>
+<datalist id="listaCacambasRP"></datalist>
 <datalist id="listaLocaisDestino"><option value="Pindorama"><option value="Botafogo"><option value="Santa Terezinha"><option value="Monte Feliz"><option value="Pescoço"><option value="Palmeira Alta"><option value="Chã da Lagoa"><option value="Vila Machado/Pindorama"><option value="Coruripe"><option value="Miai de Cima"><option value="Barreira"><option value="Pontal de Coruripe"></datalist>
 <datalist id="listaTiposServicoManutencao"><option value="Troca de óleo e filtro"><option value="Troca do filtro de ar do motor"><option value="Troca do filtro de ar condicionado"><option value="Troca do fluido de freio"><option value="Troca das velas"><option value="Troca das correias"><option value="Troca da bateria"><option value="Alinhamento e balanceamento"><option value="Troca de pneu"><option value="Revisão geral"></datalist>
 <datalist id="listaMaquinasManutencao"></datalist>
@@ -214,8 +265,10 @@
       <button class="mod-retro" id="btnModRetro" onclick="mudarModulo('retro')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="14" width="9" height="4" rx="1"></rect><circle cx="4.5" cy="19" r="1.5"></circle><circle cx="8.5" cy="19" r="1.5"></circle><rect x="3" y="8" width="6" height="6" rx="1"></rect><path d="M9 10l8-4"></path><path d="M17 6l3 2-2 3-3-1z"></path></svg> Retroescavadeira</button>
       <button class="mod-cacamba" id="btnModCacamba" onclick="mudarModulo('cacamba')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="7" width="13" height="9"></rect><path d="M14 10h4l3 3v3h-7z"></path><circle cx="6" cy="18" r="1.8"></circle><circle cx="17" cy="18" r="1.8"></circle></svg> Caçambas</button>
       <button id="btnModComparativo" onclick="mudarModulo('comparativo')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="12" width="4" height="8"></rect><rect x="10" y="7" width="4" height="13"></rect><rect x="16" y="3" width="4" height="17"></rect></svg> Comparativo</button>
+      <button id="btnModAnalise" onclick="mudarModulo('analise')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="M18.7 8l-5.4 5.4-3-3L3 17.7"></path></svg> Análise</button>
       <button id="btnModUsuarios" onclick="mudarModulo('usuarios')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Usuários</button>
       <button id="btnModManutencao" onclick="mudarModulo('manutencao')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Manutenção</button>
+      <button id="btnModRetroParceira" onclick="mudarModulo('retroparceira')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><rect x="15" y="10" width="7" height="5" rx="1"></rect></svg> Retro Parceira</button>
     </nav>
   </header>
 
@@ -312,8 +365,23 @@
           <div><label>Até (Fim):</label><input type="date" id="rtFDataFim" onchange="rtOnDataRangeChange()"></div>
         </div>
         <div class="periodo-info-row"><a href="javascript:void(0)" onclick="rtLimparPeriodo()">Ver todos os períodos</a></div>
+        <div class="select-row">
+          <select id="rtFAno" onchange="rtOnAnoMesChange()"><option value="todos">Todos os anos</option></select>
+          <select id="rtFMes" onchange="rtOnAnoMesChange()">
+            <option value="todos">Todos os meses</option>
+            <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option>
+            <option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option>
+            <option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option>
+            <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+          </select>
+        </div>
         <div class="select-row" style="grid-template-columns:1fr;">
           <select id="rtFMaquinaSelect" onchange="rtRenderPainel()"><option value="todos">Todos os operadores</option></select>
+        </div>
+        <div class="toggle-periodo" style="margin-top:8px;">
+          <button id="rtBtnCatTodos" class="btn-toggle active" onclick="rtSetFiltroCategoria('todos')">Todos</button>
+          <button id="rtBtnCatCarregamento" class="btn-toggle" onclick="rtSetFiltroCategoria('carregamento')">Carregamento</button>
+          <button id="rtBtnCatParticular" class="btn-toggle" onclick="rtSetFiltroCategoria('particular')">Particular</button>
         </div>
 
         <div class="tools-grid dono-only">
@@ -417,6 +485,16 @@
         </div>
         <div class="periodo-info-row"><a href="javascript:void(0)" onclick="cbLimparPeriodo()">Ver todos os períodos</a></div>
         <div class="select-row">
+          <select id="cbFAno" onchange="cbOnAnoMesChange()"><option value="todos">Todos os anos</option></select>
+          <select id="cbFMes" onchange="cbOnAnoMesChange()">
+            <option value="todos">Todos os meses</option>
+            <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option>
+            <option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option>
+            <option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option>
+            <option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+          </select>
+        </div>
+        <div class="select-row">
           <select id="cbFMaquinaSelect" onchange="cbRenderPainel()"><option value="todos">Todos os veículos</option></select>
           <select id="cbFMotoristaSelect" onchange="cbRenderPainel()"><option value="todos">Todos os motoristas</option></select>
         </div>
@@ -480,6 +558,55 @@
       </div>
       <div class="periodo-info-row"><a href="javascript:void(0)" onclick="cmpLimparPeriodo()">Ver todos os períodos</a></div>
       <div id="cmpConteudo"></div>
+    </main>
+  </div>
+
+  <!-- ===================== ANÁLISE (DASHBOARD) ===================== -->
+  <div id="painelAnalise" class="modulo-painel">
+    <main class="modulo-content">
+
+      <div class="an-hero">
+        <div class="an-hero-title">📊 Central de Análise</div>
+        <div class="an-hero-sub">Marque o que quer analisar (pode escolher mais de um) e o período.</div>
+        <div class="an-seletor-campo" style="margin-bottom:14px;">
+          <label>O QUE ANALISAR</label>
+          <div id="anChipsEntidade" class="an-chips-wrap"></div>
+        </div>
+        <div class="an-seletor-row-periodo">
+          <div class="an-seletor-campo">
+            <label>PERÍODO RÁPIDO</label>
+            <select id="anPeriodoSelect" onchange="anOnPeriodoSelectChange()"></select>
+          </div>
+          <div class="an-seletor-campo">
+            <label>OU ESCOLHA UMA SEMANA DO MÊS</label>
+            <select id="anSemanaEspecificaSelect" onchange="anOnSemanaEspecificaChange()">
+              <option value="">— selecione —</option>
+            </select>
+          </div>
+        </div>
+        <div class="an-datas-personalizadas">
+          <div><label>OU DE (dia)</label><input type="date" id="anDataInicioInput" onchange="anOnDataInicioChange()"></div>
+          <div><label>ATÉ (deixe igual ao "De" pra ver só 1 dia)</label><input type="date" id="anDataFimInput" onchange="anOnDataPersonalizadaChange()"></div>
+        </div>
+      </div>
+
+      <div id="anKpisContainer" class="an-kpis-grid"></div>
+
+      <div class="an-card-secao">
+        <div class="an-secao-titulo">📈 Evolução no Período</div>
+        <div class="an-chart-wrap"><canvas id="anGraficoTendencia" height="230"></canvas></div>
+      </div>
+
+      <div class="an-card-secao">
+        <div class="an-secao-titulo">🔍 O que mudou? (vs. período anterior equivalente)</div>
+        <div id="anComparativoContainer"></div>
+      </div>
+
+      <div class="an-card-secao">
+        <div class="an-secao-titulo">📋 Lançamentos do Período</div>
+        <div class="table-responsive"><div id="anDetalhadoContainer"></div></div>
+      </div>
+
     </main>
   </div>
 
@@ -570,6 +697,83 @@
         <select id="mhFServico" onchange="mhRenderLista()"><option value="todos">Todos os tipos de serviço</option></select>
       </div>
       <div class="table-responsive"><table class="tabela-detalhada"><thead><tr><th>Data</th><th>Máquina</th><th>Serviço</th><th>Descrição</th><th>Km/Horím.</th><th>Local</th><th>Custo</th><th>Ação</th></tr></thead><tbody id="mhTabela"></tbody></table></div>
+    </main>
+  </div>
+
+  <!-- ===================== RETRO PARCEIRA ===================== -->
+  <div id="painelRetroParceira" class="modulo-painel">
+    <main class="modulo-content">
+      <label>DATA</label>
+      <input type="date" id="rpData">
+
+      <label>NOME DA MÁQUINA</label>
+      <input type="text" id="rpMaquina" list="listaOperadoresRetro" placeholder="Ex: Retro do Luís">
+
+      <label>NOME DO OPERADOR</label>
+      <input type="text" id="rpOperador" list="listaOperadoresRetro" placeholder="Ex: Luís">
+
+      <label>TIPO DE MATERIAL</label>
+      <input type="text" id="rpMaterial" list="listaTiposMaterial" placeholder="Selecione ou digite o material...">
+
+      <label>TIPO DE CARREGAMENTO</label>
+      <div class="toggle-periodo" style="margin-bottom:14px; grid-template-columns:1fr 1fr;">
+        <button type="button" id="rpBtnTipoCompleta" class="btn-toggle active" onclick="rpSetTipoCarga('completa')">Caçamba Completa</button>
+        <button type="button" id="rpBtnTipoParcial" class="btn-toggle" onclick="rpSetTipoCarga('parcial')">Carga Parcial (m³)</button>
+      </div>
+
+      <div id="rpCamposCompleta">
+        <label>QUANTIDADE (Nº de Caçambas)</label>
+        <input type="number" inputmode="decimal" id="rpQtd" placeholder="Ex: 5" oninput="rpCalcularTotal()">
+      </div>
+      <div id="rpCamposParcial" style="display:none;">
+        <label>METROS CÚBICOS (m³)</label>
+        <input type="number" inputmode="decimal" id="rpMetros" placeholder="Ex: 4" oninput="rpCalcularTotal()">
+      </div>
+
+      <label>NOME DA CAÇAMBA</label>
+      <input type="text" id="rpCacamba" list="listaCacambasRP" placeholder="Ex: BOB, ATEGO, ACCELO...">
+
+      <div id="rpCampoValorCompleta">
+        <label>VALOR POR CAÇAMBA (R$)</label>
+        <input type="text" inputmode="decimal" id="rpValorCacamba" class="mono" placeholder="0,00" oninput="rpCalcularTotal()">
+      </div>
+      <div id="rpCampoValorParcial" style="display:none;">
+        <label>VALOR POR M³ (R$)</label>
+        <input type="text" inputmode="decimal" id="rpValorM3" class="mono" placeholder="0,00" oninput="rpCalcularTotal()">
+      </div>
+
+      <label>VALOR TOTAL (R$)</label>
+      <input type="text" id="rpValorTotal" class="mono" placeholder="0,00" readonly style="background:#F1F5F9;">
+
+      <button class="btn-submit" id="rpBtnSalvar" onclick="rpSalvar()">Registrar Carregamento</button>
+
+      <button class="tools-btn pdf" style="margin-top:16px;" onclick="rpImprimirRelatorio()">📄 Imprimir Relatório</button>
+
+      <div class="section-title" style="margin-top:26px;">Resumo por Caçamba</div>
+      <div class="table-responsive"><table class="tabela-detalhada"><thead><tr><th>Caçamba</th><th>Caçambas Completas</th><th>m³ Parciais</th><th style="text-align:right;">Valor Total</th></tr></thead><tbody id="rpResumoTabela"></tbody></table></div>
+
+      <div class="section-title" style="margin-top:26px;">Registros — Retro Parceira</div>
+      <div class="table-responsive"><table class="tabela-detalhada"><thead><tr><th>Data</th><th>Máquina</th><th>Operador</th><th>Material</th><th>Qtd.</th><th>Caçamba</th><th>Valor Unit.</th><th>Total</th><th>Ação</th></tr></thead><tbody id="rpTabela"></tbody></table></div>
+
+      <div class="section-title" style="margin-top:30px;">💰 Pagamentos à Retro Parceira</div>
+      <div class="sum-row-2" style="margin-bottom:16px; grid-template-columns:1fr 1fr 1fr;">
+        <div class="sum-card dark"><div class="sum-title">TOTAL DE SERVIÇOS</div><div class="sum-value mono" id="rpSaldoTotalServicos">R$ 0,00</div></div>
+        <div class="sum-card green"><div class="sum-title">TOTAL PAGO</div><div class="sum-value mono" id="rpSaldoTotalPago">R$ 0,00</div></div>
+        <div class="sum-card brown"><div class="sum-title">SALDO A PAGAR</div><div class="sum-value mono" id="rpSaldoRestante">R$ 0,00</div></div>
+      </div>
+
+      <label>DATA DO PAGAMENTO</label>
+      <input type="date" id="rpPagData">
+
+      <label>VALOR PAGO (R$)</label>
+      <input type="text" inputmode="decimal" id="rpPagValor" class="mono" placeholder="0,00">
+
+      <label>OBSERVAÇÃO (opcional)</label>
+      <input type="text" id="rpPagObs" placeholder="Ex: Pagamento semanal, PIX...">
+
+      <button class="btn-submit" id="rpPagBtnSalvar" onclick="rpPagSalvar()">Registrar Pagamento</button>
+
+      <div class="table-responsive" style="margin-top:16px;"><table class="tabela-detalhada"><thead><tr><th>Data</th><th>Valor Pago</th><th>Observação</th><th>Ação</th></tr></thead><tbody id="rpPagTabela"></tbody></table></div>
     </main>
   </div>
 
@@ -850,6 +1054,7 @@ function aposLogin() {
     mhIniciar();
     rtIniciar();
     cbIniciar();
+    rpIniciarListener();
     mudarModulo('retro');
   } else if(usuarioAtual.papel === 'operador_retro') {
     navModulos.style.display = 'none';
@@ -869,14 +1074,18 @@ function mudarModulo(mod) {
   document.getElementById('painelRetro').classList.toggle('active', mod === 'retro');
   document.getElementById('painelCacamba').classList.toggle('active', mod === 'cacamba');
   document.getElementById('painelComparativo').classList.toggle('active', mod === 'comparativo');
+  document.getElementById('painelAnalise').classList.toggle('active', mod === 'analise');
   document.getElementById('painelUsuarios').classList.toggle('active', mod === 'usuarios');
   document.getElementById('painelManutencao').classList.toggle('active', mod === 'manutencao');
+  document.getElementById('painelRetroParceira').classList.toggle('active', mod === 'retroparceira');
 
   document.getElementById('btnModRetro').classList.toggle('active', mod === 'retro');
   document.getElementById('btnModCacamba').classList.toggle('active', mod === 'cacamba');
   document.getElementById('btnModComparativo').classList.toggle('active', mod === 'comparativo');
+  document.getElementById('btnModAnalise').classList.toggle('active', mod === 'analise');
   document.getElementById('btnModUsuarios').classList.toggle('active', mod === 'usuarios');
   document.getElementById('btnModManutencao').classList.toggle('active', mod === 'manutencao');
+  document.getElementById('btnModRetroParceira').classList.toggle('active', mod === 'retroparceira');
 
   const titulo = document.getElementById('tituloApp'), sub = document.getElementById('subtituloApp');
   const root = document.documentElement;
@@ -895,6 +1104,11 @@ function mudarModulo(mod) {
     root.style.setProperty('--modulo-accent', '#FFFFFF');
     root.style.setProperty('--modulo-accent-text', '#1E293B');
     cmpRenderizar();
+  } else if(mod === 'analise') {
+    titulo.textContent = 'Análise'; sub.textContent = 'Desempenho, tendências e comparativos da empresa';
+    root.style.setProperty('--modulo-accent', '#FFFFFF');
+    root.style.setProperty('--modulo-accent-text', '#1E293B');
+    anIniciar();
   } else if(mod === 'usuarios') {
     titulo.textContent = 'Usuários'; sub.textContent = 'Quem acessa cada painel';
     root.style.setProperty('--modulo-accent', '#FFFFFF');
@@ -909,6 +1123,10 @@ function mudarModulo(mod) {
     mcRenderTabela();
     rtRenderManutencao();
     cbRenderManutencao();
+  } else if(mod === 'retroparceira') {
+    titulo.textContent = 'Retro Parceira'; sub.textContent = 'Carregamentos feitos pela retro do Luís';
+    root.style.setProperty('--modulo-accent', '#FFFFFF');
+    root.style.setProperty('--modulo-accent-text', '#1E293B');
   }
   ajustarStickyOffsets();
 }
@@ -917,10 +1135,17 @@ function mudarModulo(mod) {
 // MÓDULO RETROESCAVADEIRA
 // ===================================================================
 const rtColRef = db.collection('retro_servicos');
+const rpColRef = db.collection('retro_parceira_servicos');
+const rpPagColRef = db.collection('retro_parceira_pagamentos');
+let rpPagLista = [];
+let rpPagEditandoId = null;
+let rpLista = [];
+let rpEditandoId = null;
 let rtLista = [];
 let rtTipoAtual = "carregamento";
 let rtOperacaoAbastecimentoAtual = "carregamento";
 let rtModoFiltro = "mensal";
+let rtFiltroCategoria = "todos";
 let rtMetricaMensal = "liquido";
 let rtChartMensal = null;
 let rtEditandoId = null;
@@ -990,6 +1215,7 @@ function rtIniciar() {
     atualizarBadgeConexao();
     rtAtualizarOpcoesFiltro();
     rtAtualizarListaOperadores();
+    rtAtualizarOpcoesAnoMes();
     rtRenderPainel();
     rtRenderManutencao();
   }, (error) => {
@@ -1208,6 +1434,7 @@ function rtSetModoFiltro(modo) {
   document.getElementById('rtBtnModoMensal').classList.toggle('active', modo==='mensal');
   document.getElementById('rtBtnModoSemanal').classList.toggle('active', modo==='semanal');
   document.getElementById('rtBtnModoAnual').classList.toggle('active', modo==='anual');
+  document.getElementById('rtFAno').value = 'todos'; document.getElementById('rtFMes').value = 'todos';
   const hoje = new Date(); let inicio, fim;
   if(modo==='diario') { inicio = hoje; fim = hoje; }
   else if(modo==='semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
@@ -1219,11 +1446,49 @@ function rtSetModoFiltro(modo) {
 }
 function rtOnDataRangeChange() {
   ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('rtFAno').value = 'todos'; document.getElementById('rtFMes').value = 'todos';
   rtRenderPainel();
 }
 function rtLimparPeriodo() {
   document.getElementById('rtFDataInicio').value = ''; document.getElementById('rtFDataFim').value = '';
   ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('rtFAno').value = 'todos'; document.getElementById('rtFMes').value = 'todos';
+  rtRenderPainel();
+}
+function rtAtualizarOpcoesAnoMes() {
+  const sel = document.getElementById('rtFAno'); if(!sel) return;
+  const anosSet = new Set([2026]);
+  rtLista.forEach(i => { const ano = (i.dataServico||'').substring(0,4); if(ano) anosSet.add(parseInt(ano,10)); });
+  const anos = Array.from(anosSet).sort((a,b) => a - b);
+  const valorAtual = sel.value;
+  sel.innerHTML = '<option value="todos">Todos os anos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
+  if(anos.map(String).includes(valorAtual)) sel.value = valorAtual;
+}
+function rtOnAnoMesChange() {
+  const ano = document.getElementById('rtFAno').value;
+  const mes = document.getElementById('rtFMes').value;
+  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if(ano === 'todos' && mes === 'todos') {
+    document.getElementById('rtFDataInicio').value = '';
+    document.getElementById('rtFDataFim').value = '';
+  } else {
+    const anoUsar = ano !== 'todos' ? parseInt(ano, 10) : new Date().getFullYear();
+    if(mes === 'todos') {
+      document.getElementById('rtFDataInicio').value = fmtDataISO(new Date(anoUsar, 0, 1));
+      document.getElementById('rtFDataFim').value = fmtDataISO(new Date(anoUsar, 11, 31));
+    } else {
+      const mesIdx = parseInt(mes, 10) - 1;
+      document.getElementById('rtFDataInicio').value = fmtDataISO(new Date(anoUsar, mesIdx, 1));
+      document.getElementById('rtFDataFim').value = fmtDataISO(new Date(anoUsar, mesIdx + 1, 0));
+    }
+  }
+  rtRenderPainel();
+}
+function rtSetFiltroCategoria(cat) {
+  rtFiltroCategoria = cat;
+  document.getElementById('rtBtnCatTodos').classList.toggle('active', cat==='todos');
+  document.getElementById('rtBtnCatCarregamento').classList.toggle('active', cat==='carregamento');
+  document.getElementById('rtBtnCatParticular').classList.toggle('active', cat==='particular');
   rtRenderPainel();
 }
 function rtDataDentroDoFiltro(dataStr) {
@@ -1259,7 +1524,7 @@ function rtRenderGraficoMensal() {
   const itensPeriodo = rtLista.filter(item => rtDataDentroDoFiltro(item.dataServico));
   const servicos = itensPeriodo.filter(i => !i.isAbastecimento);
   const combustiveis = itensPeriodo.filter(i => i.isAbastecimento);
-  const categorias = ['carregamento','particular'];
+  const categorias = rtFiltroCategoria !== 'todos' ? [rtFiltroCategoria] : ['carregamento','particular'];
   const mesesSet = new Set();
   servicos.forEach(i => { const mk = getMesChave(i.dataServico); if(mk) mesesSet.add(mk); });
   combustiveis.forEach(i => { const mk = getMesChave(i.dataServico); if(mk) mesesSet.add(mk); });
@@ -1341,8 +1606,12 @@ function rtRenderPainel() {
     if(operadorVal !== 'todos' && op !== operadorVal) return false;
     return rtDataDentroDoFiltro(item.dataServico);
   });
-  const servicosF = filtrados.filter(i => !i.isAbastecimento).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
-  const absF = filtrados.filter(i => i.isAbastecimento).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
+  let servicosF = filtrados.filter(i => !i.isAbastecimento).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
+  let absF = filtrados.filter(i => i.isAbastecimento).sort((a,b) => (a.dataServico||'').localeCompare(b.dataServico||''));
+  if(rtFiltroCategoria !== 'todos') {
+    servicosF = servicosF.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === rtFiltroCategoria);
+    absF = absF.filter(a => (a.operacaoAbastecimento||'carregamento') === rtFiltroCategoria);
+  }
   const totalLanc = servicosF.length;
   const totalFat = servicosF.reduce((a,c) => a + (c.valorTotal||0), 0);
   const totalComb = absF.reduce((a,c) => a + (c.combustivel||0), 0);
@@ -1355,7 +1624,7 @@ function rtRenderPainel() {
   document.getElementById('rtSumFaturamento').textContent = fmtMoeda(totalFat);
   document.getElementById('rtSumLancamentos').textContent = totalLanc;
   document.getElementById('rtSumCombustivel').textContent = fmtMoeda(totalComb);
-  document.getElementById('rtSumLitros').textContent = totalLitros + ' L';
+  document.getElementById('rtSumLitros').textContent = totalLitros.toLocaleString('pt-BR',{maximumFractionDigits:2}) + ' L';
   document.getElementById('rtSumLiquido').textContent = fmtMoeda(totalLiq);
   document.getElementById('rtSumViagensHoras').textContent = totalVH % 1 === 0 ? totalVH : totalVH.toFixed(1).replace('.', ',');
 
@@ -1455,6 +1724,12 @@ function rtGerarPDFSelecionadas() {
   const totalLitros = abastecimentos.reduce((a,c)=>a+(c.litros||0),0);
   const totalLiq = totalFat - totalComb;
   const totalLanc = servicos.length;
+  const totalQtdCarreg = servicos.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'carregamento').reduce((a,c)=>a+(c.qtd||0),0);
+  const totalHorasPart = servicos.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === 'particular').reduce((a,c)=>a+(c.horasTrabalhadas||0),0);
+  const partesCarregHoras = [];
+  if(marcados.includes('carregamento')) partesCarregHoras.push(`${totalQtdCarreg} Carregamentos`);
+  if(marcados.includes('particular')) partesCarregHoras.push(`${totalHorasPart.toFixed(1).replace('.',',')} Horas`);
+  const totalCarregHorasTxt = partesCarregHoras.join(' / ');
 
   let secoesHtml = '';
   marcados.forEach(tipo => {
@@ -1483,7 +1758,7 @@ function rtGerarPDFSelecionadas() {
   });
 
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>RELATÓRIO - RETROESCAVADEIRA (SELECIONADAS)</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>RELATÓRIO - RETROESCAVADEIRA</h1><div class="meta">Categorias: <b>${marcados.map(t=>t==='carregamento'?'Carregamento':'Particular').join(' + ')}</b> | Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div></div>${secoesHtml}<script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>RELATÓRIO - RETROESCAVADEIRA (SELECIONADAS)</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>RELATÓRIO - RETROESCAVADEIRA</h1><div class="meta">Categorias: <b>${marcados.map(t=>t==='carregamento'?'Carregamento':'Particular').join(' + ')}</b> | Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros.toLocaleString('pt-BR',{maximumFractionDigits:2})} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div><div class="card"><div class="card-title">Total de Carregamento / Horas</div><div class="card-val">${totalCarregHorasTxt}</div></div></div>${secoesHtml}<script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function rtImprimirRelatorioGeral() {
@@ -1525,7 +1800,7 @@ function rtImprimirRelatorioGeral() {
     abastecimentos.forEach(a => { htmlAbs += `<tr><td>${fmtData(a.dataServico)}</td><td><span style="text-transform:uppercase;">${a.operacaoAbastecimento||'carregamento'}</span></td><td>${escapeHtml(a.operador||'-')}</td><td>${escapeHtml(a.posto||'-')}</td><td style="color:#DC2626;">${a.litros||0} L</td><td>${fmtMoeda(a.valorLitro||0)}</td><td style="font-weight:700;text-align:right;color:#DC2626;">${fmtMoeda(a.combustivel||0)}</td></tr>`; });
   } else { htmlAbs = '<tr><td colspan="7" style="text-align:center;padding:15px;">Sem combustível no período.</td></tr>'; }
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>RELATÓRIO GERAL - RETROESCAVADEIRA</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>RELATÓRIO GERAL - RETROESCAVADEIRA</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div></div><h2>RETROESCAVADEIRA - CARREGAMENTO (CAÇAMBAS)</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Local</th><th>Material</th><th>Caçamba</th><th>Qtd.</th><th>Valor Caçamba</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlCarreg}</tbody></table><h2>RETROESCAVADEIRA - PARTICULAR (HORAS)</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço</th><th>Local</th><th>Horímetro Inicial</th><th>Horímetro Final</th><th>Horas Trabalhadas</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th></tr></thead><tbody>${htmlPart}</tbody></table><h2>Combustível / Abastecimentos</h2><table><thead><tr><th>Data</th><th>Operação</th><th>Operador</th><th>Posto</th><th>Litros</th><th>Valor/L</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>RELATÓRIO GERAL - RETROESCAVADEIRA</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>RELATÓRIO GERAL - RETROESCAVADEIRA</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros.toLocaleString('pt-BR',{maximumFractionDigits:2})} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div></div><h2>RETROESCAVADEIRA - CARREGAMENTO (CAÇAMBAS)</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Local</th><th>Material</th><th>Caçamba</th><th>Qtd.</th><th>Valor Caçamba</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlCarreg}</tbody></table><h2>RETROESCAVADEIRA - PARTICULAR (HORAS)</h2><table><thead><tr><th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço</th><th>Local</th><th>Horímetro Inicial</th><th>Horímetro Final</th><th>Horas Trabalhadas</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th></tr></thead><tbody>${htmlPart}</tbody></table><h2>Combustível / Abastecimentos</h2><table><thead><tr><th>Data</th><th>Operação</th><th>Operador</th><th>Posto</th><th>Litros</th><th>Valor/L</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function rtImprimirRelatorioEspecifico(tipo) {
@@ -1568,7 +1843,7 @@ function rtImprimirRelatorioEspecifico(tipo) {
     ? '<th>Data</th><th>Operador</th><th>Local</th><th>Material</th><th>Caçamba</th><th>Qtd.</th><th>Valor Caçamba</th><th style="text-align:right;">Total</th>'
     : '<th>Data</th><th>Operador</th><th>Cliente</th><th>Serviço</th><th>Local</th><th>Horímetro Inicial</th><th>Horímetro Final</th><th>Horas Trabalhadas</th><th>Valor Hora</th><th style="text-align:right;">Faturamento</th>';
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>${titulo}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div><div class="card"><div class="card-title">Total de Carregamento / Horas</div><div class="card-val">${totalCarregHorasTxt}</div></div></div><h2>Relatório de Serviços</h2><table><thead><tr>${cabecalho}</tr></thead><tbody>${htmlRows}</tbody></table><h2>Relatório Combustível - RETROESCAVADEIRA${tipo==='carregamento'?' Carregamento':' - Particular'}</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/Litro</th><th style="text-align:right;">Valor Total</th></tr></thead><tbody>${htmlRowsAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${titulo}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>${titulo}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Operador: <b>${textoOperador}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Bruto</div><div class="card-val">${fmtMoeda(totalFat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totalComb)} (${totalLitros.toLocaleString('pt-BR',{maximumFractionDigits:2})} L)</div></div><div class="card"><div class="card-title">Lucro Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalLiq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totalLanc}</div></div><div class="card"><div class="card-title">Total de Carregamento / Horas</div><div class="card-val">${totalCarregHorasTxt}</div></div></div><h2>Relatório de Serviços</h2><table><thead><tr>${cabecalho}</tr></thead><tbody>${htmlRows}</tbody></table><h2>Relatório Combustível - RETROESCAVADEIRA${tipo==='carregamento'?' Carregamento':' - Particular'}</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/Litro</th><th style="text-align:right;">Valor Total</th></tr></thead><tbody>${htmlRowsAbs}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function rtExportarExcelCategoria(tipo) {
@@ -1728,6 +2003,7 @@ function cbIniciar() {
     temPendenciasGlobal = rtTemPendencias || cbTemPendencias;
     atualizarBadgeConexao();
     cbAtualizarOpcoesFiltro();
+    cbAtualizarOpcoesAnoMes();
     cbRenderPainel();
     cbRenderListaCombustivel();
     cbRenderManutencao();
@@ -1935,7 +2211,7 @@ function cbRenderListaCombustivel() {
   corpo.innerHTML = '';
   let itens = cbLista.filter(i => i.tipoRegistro === 'combustivel');
   if(usuarioAtual.papel === 'motorista_cacamba') itens = itens.filter(cbPertenceAoUsuario);
-  itens = itens.slice().sort((a,b) => (b.dataEntrega||'').localeCompare(a.dataEntrega||''));
+  itens = itens.slice().sort((a,b) => (a.dataEntrega||'').localeCompare(b.dataEntrega||''));
   if(itens.length === 0) { corpo.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;">Nenhum abastecimento registrado.</td></tr>'; return; }
   itens.forEach(item => {
     const tr = document.createElement('tr');
@@ -2016,6 +2292,7 @@ function cbSetModoFiltro(modo) {
   document.getElementById('cbBtnModoMensal').classList.toggle('active', modo==='mensal');
   document.getElementById('cbBtnModoSemanal').classList.toggle('active', modo==='semanal');
   document.getElementById('cbBtnModoAnual').classList.toggle('active', modo==='anual');
+  document.getElementById('cbFAno').value = 'todos'; document.getElementById('cbFMes').value = 'todos';
   const hoje = new Date(); let inicio, fim;
   if(modo === 'diario') { inicio = hoje; fim = hoje; }
   else if(modo === 'semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
@@ -2027,11 +2304,42 @@ function cbSetModoFiltro(modo) {
 }
 function cbOnDataRangeChange() {
   ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('cbFAno').value = 'todos'; document.getElementById('cbFMes').value = 'todos';
   cbRenderPainel();
 }
 function cbLimparPeriodo() {
   document.getElementById('cbFDataInicio').value = ''; document.getElementById('cbFDataFim').value = '';
   ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  document.getElementById('cbFAno').value = 'todos'; document.getElementById('cbFMes').value = 'todos';
+  cbRenderPainel();
+}
+function cbAtualizarOpcoesAnoMes() {
+  const sel = document.getElementById('cbFAno'); if(!sel) return;
+  const anosSet = new Set([2026]);
+  cbLista.forEach(i => { const ano = (i.dataEntrega||'').substring(0,4); if(ano) anosSet.add(parseInt(ano,10)); });
+  const anos = Array.from(anosSet).sort((a,b) => a - b);
+  const valorAtual = sel.value;
+  sel.innerHTML = '<option value="todos">Todos os anos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
+  if(anos.map(String).includes(valorAtual)) sel.value = valorAtual;
+}
+function cbOnAnoMesChange() {
+  const ano = document.getElementById('cbFAno').value;
+  const mes = document.getElementById('cbFMes').value;
+  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if(ano === 'todos' && mes === 'todos') {
+    document.getElementById('cbFDataInicio').value = '';
+    document.getElementById('cbFDataFim').value = '';
+  } else {
+    const anoUsar = ano !== 'todos' ? parseInt(ano, 10) : new Date().getFullYear();
+    if(mes === 'todos') {
+      document.getElementById('cbFDataInicio').value = fmtDataISO(new Date(anoUsar, 0, 1));
+      document.getElementById('cbFDataFim').value = fmtDataISO(new Date(anoUsar, 11, 31));
+    } else {
+      const mesIdx = parseInt(mes, 10) - 1;
+      document.getElementById('cbFDataInicio').value = fmtDataISO(new Date(anoUsar, mesIdx, 1));
+      document.getElementById('cbFDataFim').value = fmtDataISO(new Date(anoUsar, mesIdx + 1, 0));
+    }
+  }
   cbRenderPainel();
 }
 function cbGetTextoPeriodoAtual() {
@@ -2237,7 +2545,7 @@ function cbRenderTabelaCombustivelPainel(itens) {
   const corpo = document.getElementById('cbListaCombustivelPainel'); if(!corpo) return;
   corpo.innerHTML = '';
   if(itens.length === 0) { corpo.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:16px;">Nenhum abastecimento no período.</td></tr>'; return; }
-  itens.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(item => {
+  itens.slice().sort((a,b)=>(a.dataEntrega||'').localeCompare(b.dataEntrega||'')).forEach(item => {
     const tr = document.createElement('tr');
     const tdValorTotal = souDono() ? `<td class="mono" style="color:#DC2626;font-weight:700;">R$ ${(item.valorCombustivel||0).toFixed(2)}</td>` : '';
     tr.innerHTML = `<td>${fmtData(item.dataEntrega)}</td><td>${escapeHtml(item.posto||'-')}</td><td>${escapeHtml(item.maquina||'-')}</td><td>${escapeHtml(item.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${(item.litros||0).toFixed(2)} L</td><td class="mono">R$ ${(item.valorPorLitro||0).toFixed(2)}</td>${tdValorTotal}<td><div class="table-actions"><button onclick="cbCopiarComprovanteCombustivel('${item.id}')" title="Copiar">📋</button><button onclick="cbEditarCombustivel('${item.id}')" title="Editar">✏️</button><button onclick="cbExcluirServico('${item.id}')" title="Excluir">🗑️</button></div></td>`;
@@ -2359,11 +2667,11 @@ function cbGerarRelatorioPDF() {
     linhasDet += `<tr><td>${fmtData(i.dataEntrega)}</td><td><b>${escapeHtml(i.maquina)}</b><br><small>👤 ${escapeHtml(i.motorista||'-')}</small></td><td>${escapeHtml(i.cliente||'-')}<br><small>📍 ${escapeHtml(i.localSaida||'-')} ➔ ${escapeHtml(i.destino||'-')}</small></td><td><b>${escapeHtml(i.tipoMaterial||'Geral')} / ${i.qtdViagens||0} viagens</b><br><small>🛣️ ${i.km||0} km (R$ ${vFmt})</small></td><td class="mono">${fmtMoeda(i.valorTotal||0)}</td></tr>`;
   });
   let linhasComb = '';
-  combDet.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
+  combDet.slice().sort((a,b)=>(a.dataEntrega||'').localeCompare(b.dataEntrega||'')).forEach(i => {
     linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.maquina||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
   });
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Faturamento por Equipe</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}h2{margin:20px 0 6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}</style></head><body><h2 style="margin-top:0;">Faturamento por Equipe</h2><div class="meta">Período: <b>${textoPeriodo}</b> | Gerado em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><table><thead><tr><th>Caçamba</th><th>Faturamento</th><th>Combustível</th><th>Lucro</th></tr></thead><tbody>${linhas}<tr style="font-weight:bold;"><td>TOTAL</td><td class="mono">${fmtMoeda(totFat)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</td><td class="mono" style="color:#16A34A;">${fmtMoeda(totLuc)}</td></tr></tbody></table><h2>Todas as Entregas</h2><table><thead><tr><th>Data</th><th>Veículo/Motorista</th><th>Cliente/Rota</th><th>Material/Qtd</th><th>Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb || '<tr><td colspan="7" style="text-align:center;padding:10px;">Sem abastecimentos.</td></tr>'}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Faturamento por Equipe</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}h2{margin:20px 0 6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}</style></head><body><h2 style="margin-top:0;">Faturamento por Equipe</h2><div class="meta">Período: <b>${textoPeriodo}</b> | Gerado em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><table><thead><tr><th>Caçamba</th><th>Faturamento</th><th>Combustível</th><th>Lucro</th></tr></thead><tbody>${linhas}<tr style="font-weight:bold;"><td>TOTAL</td><td class="mono">${fmtMoeda(totFat)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</td><td class="mono" style="color:#16A34A;">${fmtMoeda(totLuc)}</td></tr></tbody></table><h2>Todas as Entregas</h2><table><thead><tr><th>Data</th><th>Veículo/Motorista</th><th>Cliente/Rota</th><th>Material/Qtd</th><th>Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Veículo</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb || '<tr><td colspan="7" style="text-align:center;padding:10px;">Sem abastecimentos.</td></tr>'}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function cbGerarPDFSelecionadas() {
@@ -2372,7 +2680,7 @@ function cbGerarPDFSelecionadas() {
   if(marcados.length === 0) return alert('Selecione pelo menos uma caçamba na caixinha "Selecionar p/ PDF" antes de gerar.');
   const textoPeriodo = cbGetTextoPeriodoAtual();
 
-  let totFatGeral = 0, totCombGeral = 0, totLancGeral = 0;
+  let totFatGeral = 0, totCombGeral = 0, totLancGeral = 0, totViagensGeral = 0;
   let secoesHtml = '';
 
   marcados.forEach(maq => {
@@ -2384,7 +2692,7 @@ function cbGerarPDFSelecionadas() {
     const totLiq = totFat - totComb;
     const totKm = dadosMaq.reduce((a,c) => a + (c.km||0), 0);
     const totViagens = dadosMaq.reduce((a,c) => a + (c.qtdViagens||0), 0);
-    totFatGeral += totFat; totCombGeral += totComb; totLancGeral += dadosMaq.length;
+    totFatGeral += totFat; totCombGeral += totComb; totLancGeral += dadosMaq.length; totViagensGeral += totViagens;
 
     let linhasDet = '';
     dadosMaq.forEach(i => {
@@ -2394,7 +2702,7 @@ function cbGerarPDFSelecionadas() {
     if(!linhasDet) linhasDet = '<tr><td colspan="10" style="text-align:center;padding:15px;">Nenhum lançamento no período.</td></tr>';
 
     let linhasComb = '';
-    combMaq.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
+    combMaq.slice().sort((a,b)=>(a.dataEntrega||'').localeCompare(b.dataEntrega||'')).forEach(i => {
       linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
     });
     if(!linhasComb) linhasComb = '<tr><td colspan="6" style="text-align:center;padding:15px;">Sem abastecimentos no período.</td></tr>';
@@ -2405,7 +2713,7 @@ function cbGerarPDFSelecionadas() {
   const totLiqGeral = totFatGeral - totCombGeral;
   const nomesSelecionados = marcados.join(', ');
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(nomesSelecionados)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-bottom:6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório de Caçambas Selecionadas</h1><div class="meta">Veículos: <b>${escapeHtml(nomesSelecionados)}</b> | Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Total</div><div class="card-val">${fmtMoeda(totFatGeral)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totCombGeral)}</div></div><div class="card"><div class="card-title">Líquido Total</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totLiqGeral)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLancGeral}</div></div></div>${secoesHtml}<script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(nomesSelecionados)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-bottom:6px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório de Caçambas Selecionadas</h1><div class="meta">Veículos: <b>${escapeHtml(nomesSelecionados)}</b> | Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Total</div><div class="card-val">${fmtMoeda(totFatGeral)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totCombGeral)}</div></div><div class="card"><div class="card-title">Líquido Total</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totLiqGeral)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLancGeral}</div></div><div class="card"><div class="card-title">Total de Carregamento</div><div class="card-val">${totViagensGeral} Viagens</div></div></div>${secoesHtml}<script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function cbGerarPDFMaquina(maq) {
@@ -2431,13 +2739,13 @@ function cbGerarPDFMaquina(maq) {
   if(!linhasDet) linhasDet = '<tr><td colspan="10" style="text-align:center;padding:15px;">Nenhum lançamento no período.</td></tr>';
 
   let linhasComb = '';
-  combMaq.slice().sort((a,b)=>(b.dataEntrega||'').localeCompare(a.dataEntrega||'')).forEach(i => {
+  combMaq.slice().sort((a,b)=>(a.dataEntrega||'').localeCompare(b.dataEntrega||'')).forEach(i => {
     linhasComb += `<tr><td>${fmtData(i.dataEntrega)}</td><td>${escapeHtml(i.posto||'-')}</td><td>${escapeHtml(i.motorista||'-')}</td><td class="mono" style="color:#DC2626;">${i.litros||0} L</td><td class="mono">${fmtMoeda(i.valorPorLitro||0)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(i.valorCombustivel||0)}</td></tr>`;
   });
   if(!linhasComb) linhasComb = '<tr><td colspan="6" style="text-align:center;padding:15px;">Sem abastecimentos no período.</td></tr>';
 
   const win = window.open('', '_blank');
-  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(maq)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-top:22px;margin-bottom:6px;border-bottom:2px solid #22303C;padding-bottom:4px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório Individual — ${escapeHtml(maq)}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento</div><div class="card-val">${fmtMoeda(totFat)}</div></div><div class="card"><div class="card-title">Combustível</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</div></div><div class="card"><div class="card-title">Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totLiq)}</div></div></div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><h2>Lançamentos</h2><table><thead><tr><th>Data</th><th>Motorista</th><th>Cliente</th><th>Rota Saída</th><th>Rota Entrega</th><th>Material</th><th>Qtd.</th><th>Km</th><th>Valor/Viagem</th><th style="text-align:right;">Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Relatório Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - ${escapeHtml(maq)}</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1A2223;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}h1{font-size:1.3rem;}h2{font-size:1rem;margin-top:22px;margin-bottom:6px;border-bottom:2px solid #22303C;padding-bottom:4px;}.meta{font-size:0.8rem;color:#556677;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:10px;}.card{background:#F4F6F9;border:1px solid #E4EBF2;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#556677;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.75rem;}th{background:#22303C;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E4EBF2;}tr:nth-child(even){background:#F8FAF8;}</style></head><body><h1>Relatório Individual — ${escapeHtml(maq)}</h1><div class="meta">Período: <b>${textoPeriodo}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento</div><div class="card-val">${fmtMoeda(totFat)}</div></div><div class="card"><div class="card-title">Combustível</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totComb)} (${totLitros.toLocaleString('pt-BR')} L)</div></div><div class="card"><div class="card-title">Líquido</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totLiq)}</div></div></div><div class="cards"><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totLanc}</div></div><div class="card"><div class="card-title">Total de Viagens / Km</div><div class="card-val">${totKm.toLocaleString('pt-BR')} Km / ${totViagens} Viagens</div></div></div><h2>Lançamentos</h2><table><thead><tr><th>Data</th><th>Motorista</th><th>Cliente</th><th>Rota Saída</th><th>Rota Entrega</th><th>Material</th><th>Qtd.</th><th>Km</th><th>Valor/Viagem</th><th style="text-align:right;">Total</th></tr></thead><tbody>${linhasDet}</tbody></table><h2>⛽ Relatório Combustível</h2><table><thead><tr><th>Data</th><th>Posto</th><th>Motorista</th><th>Litros</th><th>Valor/L</th><th>Total</th></tr></thead><tbody>${linhasComb}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
   win.document.close();
 }
 function cbFazerBackup() {
@@ -2678,6 +2986,285 @@ function mcRenderTabela() {
   html += '</tbody></table>';
   cont.innerHTML = html;
 }
+
+// ===================================================================
+// MÓDULO RETRO PARCEIRA
+// ===================================================================
+let rpTipoCarga = 'completa';
+function rpSetTipoCarga(tipo) {
+  rpTipoCarga = tipo;
+  document.getElementById('rpBtnTipoCompleta').classList.toggle('active', tipo === 'completa');
+  document.getElementById('rpBtnTipoParcial').classList.toggle('active', tipo === 'parcial');
+  document.getElementById('rpCamposCompleta').style.display = tipo === 'completa' ? 'block' : 'none';
+  document.getElementById('rpCamposParcial').style.display = tipo === 'parcial' ? 'block' : 'none';
+  document.getElementById('rpCampoValorCompleta').style.display = tipo === 'completa' ? 'block' : 'none';
+  document.getElementById('rpCampoValorParcial').style.display = tipo === 'parcial' ? 'block' : 'none';
+  rpCalcularTotal();
+}
+
+function rpCalcularTotal() {
+  let total = 0;
+  if(rpTipoCarga === 'completa') {
+    const qtd = parseFloat(document.getElementById('rpQtd').value.replace(',', '.')) || 0;
+    const valorCacamba = parseFloat(document.getElementById('rpValorCacamba').value.replace(',', '.')) || 0;
+    total = qtd * valorCacamba;
+  } else {
+    const metros = parseFloat(document.getElementById('rpMetros').value.replace(',', '.')) || 0;
+    const valorM3 = parseFloat(document.getElementById('rpValorM3').value.replace(',', '.')) || 0;
+    total = metros * valorM3;
+  }
+  document.getElementById('rpValorTotal').value = total.toFixed(2).replace('.', ',');
+}
+
+function rpAtualizarSelectCacamba() {
+  const dl = document.getElementById('listaCacambasRP'); if(!dl) return;
+  const veiculos = cbGetListaTodosVeiculos();
+  dl.innerHTML = veiculos.map(v => `<option value="${escapeHtml(v)}">`).join('');
+}
+
+function rpSalvar() {
+  const data = document.getElementById('rpData').value;
+  const maquina = document.getElementById('rpMaquina').value.trim();
+  const operador = document.getElementById('rpOperador').value.trim();
+  const material = document.getElementById('rpMaterial').value.trim();
+  const cacamba = document.getElementById('rpCacamba').value.trim();
+  if(!data) return alert('Informe a data.');
+  if(!maquina) return alert('Informe o nome da máquina.');
+  if(!material) return alert('Informe o tipo de material.');
+  if(!cacamba) return alert('Informe o nome da caçamba.');
+  const registro = { data, maquina, operador, material, cacamba, tipoCarga: rpTipoCarga, atualizadoEm: new Date().toISOString() };
+  if(rpTipoCarga === 'completa') {
+    const qtd = parseFloat(document.getElementById('rpQtd').value.replace(',', '.')) || 0;
+    const valorCacamba = parseFloat(document.getElementById('rpValorCacamba').value.replace(',', '.')) || 0;
+    if(!qtd) return alert('Informe a quantidade de caçambas.');
+    registro.qtd = qtd; registro.valorCacamba = valorCacamba; registro.valorTotal = qtd * valorCacamba;
+  } else {
+    const metros = parseFloat(document.getElementById('rpMetros').value.replace(',', '.')) || 0;
+    const valorM3 = parseFloat(document.getElementById('rpValorM3').value.replace(',', '.')) || 0;
+    if(!metros) return alert('Informe os metros cúbicos.');
+    registro.metros = metros; registro.valorM3 = valorM3; registro.valorTotal = metros * valorM3;
+  }
+  const id = rpEditandoId ? rpEditandoId : ('rp_' + Date.now());
+  rpColRef.doc(id).set(registro, { merge: true }).then(() => {
+    showToast(rpEditandoId ? 'Registro atualizado!' : 'Carregamento registrado!');
+    rpResetForm();
+  }).catch(err => alert('Erro ao salvar: ' + err.message));
+}
+
+function rpResetForm() {
+  rpEditandoId = null;
+  document.getElementById('rpBtnSalvar').textContent = 'Registrar Carregamento';
+  ['rpMaquina','rpOperador','rpMaterial','rpQtd','rpValorCacamba','rpMetros','rpValorM3','rpValorTotal'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rpCacamba').value = '';
+  document.getElementById('rpData').valueAsDate = new Date();
+  rpSetTipoCarga('completa');
+}
+
+function rpRenderResumo() {
+  const corpo = document.getElementById('rpResumoTabela'); if(!corpo) return;
+  if(rpLista.length === 0) { corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;">Nenhum registro ainda.</td></tr>'; return; }
+  const resumo = {};
+  rpLista.forEach(item => {
+    const nome = item.cacamba || '-';
+    if(!resumo[nome]) resumo[nome] = { caçambas: 0, metros: 0, valor: 0 };
+    if(item.tipoCarga === 'parcial') resumo[nome].metros += (item.metros || 0);
+    else resumo[nome].caçambas += (item.qtd || 0);
+    resumo[nome].valor += (item.valorTotal || 0);
+  });
+  const nomes = Object.keys(resumo).sort();
+  let html = '';
+  let totCac = 0, totM3 = 0, totValor = 0;
+  nomes.forEach(nome => {
+    const r = resumo[nome];
+    totCac += r.caçambas; totM3 += r.metros; totValor += r.valor;
+    html += `<tr><td><b>${escapeHtml(nome)}</b></td><td class="mono">${r.caçambas || '-'}</td><td class="mono">${r.metros ? r.metros + ' m³' : '-'}</td><td class="mono" style="text-align:right;font-weight:700;">${fmtMoeda(r.valor)}</td></tr>`;
+  });
+  html += `<tr style="background:#F1F5F9;"><td style="font-weight:700;">TOTAL</td><td class="mono" style="font-weight:700;">${totCac || '-'}</td><td class="mono" style="font-weight:700;">${totM3 ? totM3 + ' m³' : '-'}</td><td class="mono" style="text-align:right;font-weight:700;">${fmtMoeda(totValor)}</td></tr>`;
+  corpo.innerHTML = html;
+}
+
+function rpRenderLista() {
+  const corpo = document.getElementById('rpTabela'); if(!corpo) return;
+  rpRenderResumo();
+  rpAtualizarSaldo();
+  if(rpLista.length === 0) { corpo.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:16px;">Nenhum registro ainda.</td></tr>'; return; }
+  const ordenados = rpLista.slice().sort((a,b) => (a.data||'').localeCompare(b.data||''));
+  let html = '';
+  ordenados.forEach(item => {
+    const isParcial = item.tipoCarga === 'parcial';
+    const qtdTxt = isParcial ? `${item.metros||0} m³` : (item.qtd||0);
+    const valorUnitTxt = isParcial ? `${fmtMoeda(item.valorM3||0)}/m³` : fmtMoeda(item.valorCacamba||0);
+    html += `<tr>
+      <td>${fmtData(item.data)}</td>
+      <td>${escapeHtml(item.maquina||'-')}</td>
+      <td>${escapeHtml(item.operador||'-')}</td>
+      <td>${escapeHtml(item.material||'-')}</td>
+      <td class="mono">${qtdTxt}</td>
+      <td><b>${escapeHtml(item.cacamba||'-')}</b></td>
+      <td class="mono">${valorUnitTxt}</td>
+      <td class="mono" style="font-weight:700;">${fmtMoeda(item.valorTotal||0)}</td>
+      <td><div class="td-acoes"><button onclick="rpEditar('${item.id}')" title="Editar">✏️</button><button onclick="rpExcluir('${item.id}')" title="Excluir">🗑️</button></div></td>
+    </tr>`;
+  });
+  corpo.innerHTML = html;
+}
+
+function rpEditar(id) {
+  const item = rpLista.find(x => x.id === id); if(!item) return;
+  rpEditandoId = id;
+  document.getElementById('rpData').value = item.data || '';
+  document.getElementById('rpMaquina').value = item.maquina || '';
+  document.getElementById('rpOperador').value = item.operador || '';
+  document.getElementById('rpMaterial').value = item.material || '';
+  rpAtualizarSelectCacamba();
+  document.getElementById('rpCacamba').value = item.cacamba || '';
+  rpSetTipoCarga(item.tipoCarga === 'parcial' ? 'parcial' : 'completa');
+  if(item.tipoCarga === 'parcial') {
+    document.getElementById('rpMetros').value = item.metros || '';
+    document.getElementById('rpValorM3').value = (item.valorM3||0).toString().replace('.', ',');
+  } else {
+    document.getElementById('rpQtd').value = item.qtd || '';
+    document.getElementById('rpValorCacamba').value = (item.valorCacamba||0).toString().replace('.', ',');
+  }
+  rpCalcularTotal();
+  document.getElementById('rpBtnSalvar').textContent = 'Salvar Alterações';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Modo de edição ativado');
+}
+
+function rpExcluir(id) {
+  if(!confirm('Excluir este registro da Retro Parceira?')) return;
+  rpColRef.doc(id).delete().then(() => showToast('Registro excluído.')).catch(err => alert('Erro: ' + err.message));
+}
+
+function rpImprimirRelatorio() {
+  if(!souDono()) return alert('Acesso restrito ao Dono.');
+  const servicos = rpLista.slice().sort((a,b) => (a.data||'').localeCompare(b.data||''));
+  const pagamentos = rpPagLista.slice().sort((a,b) => (a.data||'').localeCompare(b.data||''));
+
+  const totalServicos = servicos.reduce((a,c) => a + (c.valorTotal||0), 0);
+  const totalPago = pagamentos.reduce((a,c) => a + (c.valor||0), 0);
+  const saldo = totalServicos - totalPago;
+
+  // Resumo por caçamba
+  const resumo = {};
+  servicos.forEach(item => {
+    const nome = item.cacamba || '-';
+    if(!resumo[nome]) resumo[nome] = { caçambas: 0, metros: 0, valor: 0 };
+    if(item.tipoCarga === 'parcial') resumo[nome].metros += (item.metros || 0);
+    else resumo[nome].caçambas += (item.qtd || 0);
+    resumo[nome].valor += (item.valorTotal || 0);
+  });
+  const nomesCacamba = Object.keys(resumo).sort();
+  let htmlResumo = '';
+  nomesCacamba.forEach(nome => {
+    const r = resumo[nome];
+    htmlResumo += `<tr><td><b>${escapeHtml(nome)}</b></td><td class="mono">${r.caçambas || '-'}</td><td class="mono">${r.metros ? r.metros + ' m³' : '-'}</td><td class="mono" style="text-align:right;font-weight:700;">${fmtMoeda(r.valor)}</td></tr>`;
+  });
+  if(!htmlResumo) htmlResumo = '<tr><td colspan="4" style="text-align:center;padding:15px;">Nenhum registro no período.</td></tr>';
+
+  // Lançamentos detalhados
+  let htmlLancamentos = '';
+  servicos.forEach(item => {
+    const isParcial = item.tipoCarga === 'parcial';
+    const qtdTxt = isParcial ? `${item.metros||0} m³` : (item.qtd||0);
+    const valorUnitTxt = isParcial ? `${fmtMoeda(item.valorM3||0)}/m³` : fmtMoeda(item.valorCacamba||0);
+    htmlLancamentos += `<tr><td>${fmtData(item.data)}</td><td>${escapeHtml(item.maquina||'-')}</td><td>${escapeHtml(item.operador||'-')}</td><td>${escapeHtml(item.material||'-')}</td><td class="mono">${qtdTxt}</td><td><b>${escapeHtml(item.cacamba||'-')}</b></td><td class="mono">${valorUnitTxt}</td><td class="mono" style="text-align:right;font-weight:700;">${fmtMoeda(item.valorTotal||0)}</td></tr>`;
+  });
+  if(!htmlLancamentos) htmlLancamentos = '<tr><td colspan="8" style="text-align:center;padding:15px;">Nenhum lançamento no período.</td></tr>';
+
+  // Histórico de pagamentos
+  let htmlPagamentos = '';
+  pagamentos.forEach(item => {
+    htmlPagamentos += `<tr><td>${fmtData(item.data)}</td><td class="mono" style="font-weight:700;color:#16A34A;">${fmtMoeda(item.valor||0)}</td><td>${escapeHtml(item.obs||'-')}</td></tr>`;
+  });
+  if(!htmlPagamentos) htmlPagamentos = '<tr><td colspan="3" style="text-align:center;padding:15px;">Nenhum pagamento registrado.</td></tr>';
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Relatório - Retro Parceira</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}h1{font-size:1.3rem;color:#1E293B;}h2{font-size:1rem;margin-top:25px;margin-bottom:8px;color:#1E293B;border-bottom:2px solid #1E293B;padding-bottom:4px;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.78rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.68rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}</style></head><body><h1>Relatório — Retro Parceira</h1><div class="meta">Todos os registros | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Total de Serviços</div><div class="card-val">${fmtMoeda(totalServicos)}</div></div><div class="card"><div class="card-title">Total Pago</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totalPago)}</div></div><div class="card"><div class="card-title">Saldo a Pagar</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(saldo)}</div></div></div><h2>Resumo por Caçamba</h2><table><thead><tr><th>Caçamba</th><th>Caçambas Completas</th><th>m³ Parciais</th><th style="text-align:right;">Valor Total</th></tr></thead><tbody>${htmlResumo}</tbody></table><h2>Lançamentos — Retro Parceira</h2><table><thead><tr><th>Data</th><th>Máquina</th><th>Operador</th><th>Material</th><th>Qtd.</th><th>Caçamba</th><th>Valor Unit.</th><th style="text-align:right;">Total</th></tr></thead><tbody>${htmlLancamentos}</tbody></table><h2>Histórico de Pagamentos</h2><table><thead><tr><th>Data</th><th>Valor Pago</th><th>Observação</th></tr></thead><tbody>${htmlPagamentos}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+
+function rpAtualizarSaldo() {
+  const totalServicos = rpLista.reduce((a,c) => a + (c.valorTotal||0), 0);
+  const totalPago = rpPagLista.reduce((a,c) => a + (c.valor||0), 0);
+  const saldo = totalServicos - totalPago;
+  const elServicos = document.getElementById('rpSaldoTotalServicos');
+  const elPago = document.getElementById('rpSaldoTotalPago');
+  const elSaldo = document.getElementById('rpSaldoRestante');
+  if(elServicos) elServicos.textContent = fmtMoeda(totalServicos);
+  if(elPago) elPago.textContent = fmtMoeda(totalPago);
+  if(elSaldo) elSaldo.textContent = fmtMoeda(saldo);
+}
+
+function rpPagSalvar() {
+  const data = document.getElementById('rpPagData').value;
+  const valor = parseFloat(document.getElementById('rpPagValor').value.replace(',', '.')) || 0;
+  const obs = document.getElementById('rpPagObs').value.trim();
+  if(!data) return alert('Informe a data do pagamento.');
+  if(!valor) return alert('Informe o valor pago.');
+  const registro = { data, valor, obs, atualizadoEm: new Date().toISOString() };
+  const id = rpPagEditandoId ? rpPagEditandoId : ('rppag_' + Date.now());
+  rpPagColRef.doc(id).set(registro, { merge: true }).then(() => {
+    showToast(rpPagEditandoId ? 'Pagamento atualizado!' : 'Pagamento registrado!');
+    rpPagResetForm();
+  }).catch(err => alert('Erro ao salvar: ' + err.message));
+}
+
+function rpPagResetForm() {
+  rpPagEditandoId = null;
+  document.getElementById('rpPagBtnSalvar').textContent = 'Registrar Pagamento';
+  ['rpPagValor','rpPagObs'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('rpPagData').valueAsDate = new Date();
+}
+
+function rpPagRenderLista() {
+  const corpo = document.getElementById('rpPagTabela'); if(!corpo) return;
+  rpAtualizarSaldo();
+  if(rpPagLista.length === 0) { corpo.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;">Nenhum pagamento registrado ainda.</td></tr>'; return; }
+  const ordenados = rpPagLista.slice().sort((a,b) => (a.data||'').localeCompare(b.data||''));
+  let html = '';
+  ordenados.forEach(item => {
+    html += `<tr>
+      <td>${fmtData(item.data)}</td>
+      <td class="mono" style="font-weight:700;color:#16A34A;">${fmtMoeda(item.valor||0)}</td>
+      <td>${escapeHtml(item.obs||'-')}</td>
+      <td><div class="td-acoes"><button onclick="rpPagEditar('${item.id}')" title="Editar">✏️</button><button onclick="rpPagExcluir('${item.id}')" title="Excluir">🗑️</button></div></td>
+    </tr>`;
+  });
+  corpo.innerHTML = html;
+}
+
+function rpPagEditar(id) {
+  const item = rpPagLista.find(x => x.id === id); if(!item) return;
+  rpPagEditandoId = id;
+  document.getElementById('rpPagData').value = item.data || '';
+  document.getElementById('rpPagValor').value = (item.valor||0).toString().replace('.', ',');
+  document.getElementById('rpPagObs').value = item.obs || '';
+  document.getElementById('rpPagBtnSalvar').textContent = 'Salvar Alterações';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  showToast('Modo de edição ativado');
+}
+
+function rpPagExcluir(id) {
+  if(!confirm('Excluir este pagamento?')) return;
+  rpPagColRef.doc(id).delete().then(() => showToast('Pagamento excluído.')).catch(err => alert('Erro: ' + err.message));
+}
+
+function rpIniciarListener() {
+  rpColRef.onSnapshot(snapshot => {
+    rpLista = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    rpAtualizarSelectCacamba();
+    rpRenderLista();
+  }, err => console.warn('Listener retro parceira:', err));
+  rpPagColRef.onSnapshot(snapshot => {
+    rpPagLista = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    rpPagRenderLista();
+  }, err => console.warn('Listener pagamentos retro parceira:', err));
+  rpResetForm();
+  rpPagResetForm();
+}
+
 function mhAtualizarSelectMaquina() {
   const datalist = document.getElementById('listaMaquinasManutencao');
   if(!datalist) return;
@@ -2841,6 +3428,372 @@ function cmpDentroDoFiltro(dataStr) {
   if(fim && dataStr > fim) return false;
   return true;
 }
+// ===================================================================
+// MÓDULO ANÁLISE (DASHBOARD)
+// ===================================================================
+let anEntidadesSelecionadas = ['retro:todos'];
+let anPeriodoModo = '';
+let anDataInicio = '';
+let anDataFim = '';
+
+function anIniciar() {
+  const cont = document.getElementById('anChipsEntidade');
+  let opts = [{ v:'retro:todos', l:'🚜 Retro (Geral)' }, { v:'retro:carregamento', l:'🚜 Retro Carregamento' }, { v:'retro:particular', l:'🚜 Retro Particular' }];
+  cbGetListaTodosVeiculos().forEach(v => opts.push({ v:`cacamba:${v}`, l:`🚚 ${v}` }));
+  cont.innerHTML = opts.map(o => `<button type="button" class="an-chip${anEntidadesSelecionadas.includes(o.v)?' active':''}" onclick="anToggleEntidade('${o.v}', this)">${o.l}</button>`).join('');
+  anPopularPeriodoRapido();
+  anRenderTudo();
+}
+
+function anToggleEntidade(val, btn) {
+  const idx = anEntidadesSelecionadas.indexOf(val);
+  if(idx >= 0) {
+    if(anEntidadesSelecionadas.length === 1) { showToast('Selecione pelo menos uma opção.'); return; }
+    anEntidadesSelecionadas.splice(idx, 1);
+    btn.classList.remove('active');
+  } else {
+    anEntidadesSelecionadas.push(val);
+    btn.classList.add('active');
+  }
+  anRenderTudo();
+}
+
+const NOMES_MESES_LONGO = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function anPopularPeriodoRapido() {
+  const hoje = new Date();
+  const anoAtual = hoje.getFullYear(), mesAtual = hoje.getMonth() + 1;
+  const sel = document.getElementById('anPeriodoSelect');
+  let html = '';
+  for(let m = 1; m <= 12; m++) {
+    html += `<option value="mes:${anoAtual}-${String(m).padStart(2,'0')}">${NOMES_MESES_LONGO[m-1]}/${anoAtual}</option>`;
+  }
+  html += `<option value="quinzena">Últimos 15 dias</option>`;
+  html += `<option value="3m">Últimos 3 meses</option>`;
+  html += `<option value="6m">Últimos 6 meses</option>`;
+  html += `<option value="12m">Últimos 12 meses</option>`;
+  html += `<option value="tudo">Tudo</option>`;
+  sel.innerHTML = html;
+  sel.value = `mes:${anoAtual}-${String(mesAtual).padStart(2,'0')}`;
+  anOnPeriodoSelectChange();
+}
+
+function anOnPeriodoSelectChange() {
+  const modo = document.getElementById('anPeriodoSelect').value;
+  anPeriodoModo = modo;
+  if(modo.startsWith('mes:')) {
+    const [ano, mes] = modo.replace('mes:', '').split('-').map(Number);
+    anAplicarMesCompleto(ano, mes);
+    anPopularSemanasDoMes(ano, mes);
+  } else {
+    document.getElementById('anSemanaEspecificaSelect').innerHTML = '<option value="">— selecione um mês acima —</option>';
+    anAplicarPeriodoModo(modo);
+  }
+  anRenderTudo();
+}
+
+function anAplicarMesCompleto(ano, mes) {
+  const inicio = new Date(ano, mes - 1, 1);
+  const fim = new Date(ano, mes, 0);
+  anDataInicio = fmtDataISO(inicio);
+  anDataFim = fmtDataISO(fim);
+}
+
+function anGerarPeriodosDoMes(ano, mesIdx) {
+  const ultimoDia = new Date(ano, mesIdx + 1, 0);
+  let cursor = new Date(ano, mesIdx, 1);
+  while(cursor.getDay() !== 1) cursor.setDate(cursor.getDate() + 1); // avança até a 1ª segunda-feira do mês
+  const periodos = [];
+  while(cursor <= ultimoDia) {
+    let fim = new Date(cursor); fim.setDate(fim.getDate() + 6);
+    const diasRestantesDepois = (ultimoDia - fim) / 86400000;
+    if(fim >= ultimoDia || diasRestantesDepois < 7) {
+      fim = new Date(ultimoDia);
+      periodos.push({ inicio: fmtDataISO(cursor), fim: fmtDataISO(fim) });
+      break;
+    }
+    periodos.push({ inicio: fmtDataISO(cursor), fim: fmtDataISO(fim) });
+    cursor.setDate(cursor.getDate() + 7);
+  }
+  return periodos;
+}
+
+function anPopularSemanasDoMes(ano, mes) {
+  const sel = document.getElementById('anSemanaEspecificaSelect');
+  const periodos = anGerarPeriodosDoMes(ano, mes - 1);
+  const fmtCurto = (iso) => { const p = iso.split('-'); return p[2] + '/' + p[1]; };
+  let html = `<option value="">Mês inteiro (${NOMES_MESES_LONGO[mes-1]})</option>`;
+  periodos.forEach((p, idx) => {
+    html += `<option value="${idx}" data-inicio="${p.inicio}" data-fim="${p.fim}">Semana: ${fmtCurto(p.inicio)} a ${fmtCurto(p.fim)}</option>`;
+  });
+  sel.innerHTML = html;
+}
+
+function anOnSemanaEspecificaChange() {
+  const sel = document.getElementById('anSemanaEspecificaSelect');
+  const opt = sel.options[sel.selectedIndex];
+  if(!opt || !opt.dataset.inicio) {
+    // "Mês inteiro" foi escolhido de novo: reaplica o mês do Período Rápido
+    const modo = document.getElementById('anPeriodoSelect').value;
+    if(modo.startsWith('mes:')) {
+      const [ano, mes] = modo.replace('mes:', '').split('-').map(Number);
+      anAplicarMesCompleto(ano, mes);
+      anRenderTudo();
+    }
+    return;
+  }
+  anDataInicio = opt.dataset.inicio;
+  anDataFim = opt.dataset.fim;
+  document.getElementById('anDataInicioInput').value = anDataInicio;
+  document.getElementById('anDataFimInput').value = anDataFim;
+  anRenderTudo();
+}
+
+function anAplicarPeriodoModo(modo) {
+  const hoje = new Date();
+  let inicio, fim = hoje;
+  if(modo === 'quinzena') { inicio = new Date(hoje); inicio.setDate(inicio.getDate() - 14); }
+  else if(modo === '3m') { inicio = new Date(hoje.getFullYear(), hoje.getMonth()-2, 1); }
+  else if(modo === '6m') { inicio = new Date(hoje.getFullYear(), hoje.getMonth()-5, 1); }
+  else if(modo === '12m') { inicio = new Date(hoje.getFullYear(), hoje.getMonth()-11, 1); }
+  else { anDataInicio = ''; anDataFim = ''; return; }
+  anDataInicio = fmtDataISO(inicio);
+  anDataFim = fmtDataISO(fim);
+}
+
+function anOnDataInicioChange() {
+  const inicioEl = document.getElementById('anDataInicioInput');
+  const fimEl = document.getElementById('anDataFimInput');
+  if(!fimEl.value || fimEl.value < inicioEl.value) fimEl.value = inicioEl.value;
+  anOnDataPersonalizadaChange();
+}
+function anOnDataPersonalizadaChange() {
+  const inicioEl = document.getElementById('anDataInicioInput');
+  const fimEl = document.getElementById('anDataFimInput');
+  if(inicioEl.value && fimEl.value && fimEl.value < inicioEl.value) inicioEl.value = fimEl.value;
+  anDataInicio = document.getElementById('anDataInicioInput').value;
+  anDataFim = document.getElementById('anDataFimInput').value;
+  anRenderTudo();
+}
+
+function anNormalizarEntidade(entidadeVal) {
+  const [tipo, chave] = entidadeVal.split(':');
+  if(tipo === 'cacamba') {
+    const servicos = cbLista.filter(i => i.tipoRegistro !== 'combustivel' && i.maquina === chave).map(i => ({
+      data: i.dataEntrega, valor: i.valorTotal||0, qtd: i.qtdViagens||0,
+      detalhe: `${escapeHtml(i.cliente||'-')} • ${escapeHtml(i.localSaida||'-')} ➔ ${escapeHtml(i.destino||'-')} • ${escapeHtml(i.tipoMaterial||'-')}`,
+      pessoa: i.motorista||'-', entidade: chave
+    }));
+    const combustiveis = cbLista.filter(i => i.tipoRegistro === 'combustivel' && i.maquina === chave).map(i => ({ data: i.dataEntrega, valor: i.valorCombustivel||0 }));
+    return { servicos, combustiveis };
+  }
+  let servBase = rtLista.filter(i => !i.isAbastecimento);
+  let combBase = rtLista.filter(i => i.isAbastecimento);
+  if(chave !== 'todos') {
+    servBase = servBase.filter(i => (i.tipo || (i.servicoDesc?'particular':'carregamento')) === chave);
+    combBase = combBase.filter(a => (a.operacaoAbastecimento||'carregamento') === chave);
+  }
+  const labelEnt = chave === 'todos' ? 'Retro' : (chave === 'carregamento' ? 'Retro Carreg.' : 'Retro Part.');
+  const servicos = servBase.map(i => ({
+    data: i.dataServico, valor: i.valorTotal||0, qtd: i.qtd||0,
+    detalhe: i.servicoDesc ? `${escapeHtml(i.cliente||'-')} — ${escapeHtml(i.servicoDesc)}` : `${escapeHtml(i.cliente||'-')} • ${escapeHtml(i.local||'-')}`,
+    pessoa: i.operador || i.maquina || '-', entidade: labelEnt
+  }));
+  const combustiveis = combBase.map(i => ({ data: i.dataServico, valor: i.combustivel||0 }));
+  return { servicos, combustiveis };
+}
+
+function anObterDadosMesclados(listaEntidades) {
+  let servicos = [], combustiveis = [];
+  listaEntidades.forEach(ev => {
+    const r = anNormalizarEntidade(ev);
+    servicos = servicos.concat(r.servicos);
+    combustiveis = combustiveis.concat(r.combustiveis);
+  });
+  return { servicos, combustiveis };
+}
+
+function anDataDentro(dataStr, inicio, fim) {
+  if(!dataStr) return false;
+  if(inicio && dataStr < inicio) return false;
+  if(fim && dataStr > fim) return false;
+  return true;
+}
+
+function anAgruparPorPeriodo(servicos, combustiveis, inicio, fim) {
+  const diasSpan = (inicio && fim) ? (new Date(fim) - new Date(inicio)) / 86400000 : 999;
+  const granular = diasSpan <= 20 ? 'dia' : 'mes';
+  const chaveFn = granular === 'dia' ? (d => d) : getMesChave;
+  const labelFn = granular === 'dia' ? (k => fmtData(k)) : getMesLabel;
+  const chavesSet = new Set();
+  servicos.forEach(i => { const k = chaveFn(i.data); if(k) chavesSet.add(k); });
+  combustiveis.forEach(i => { const k = chaveFn(i.data); if(k) chavesSet.add(k); });
+  const chaves = Array.from(chavesSet).sort();
+  const dados = {};
+  chaves.forEach(k => { dados[k] = { fat:0, comb:0, lanc:0 }; });
+  servicos.forEach(i => { const k = chaveFn(i.data); if(dados[k]) { dados[k].fat += i.valor; dados[k].lanc += 1; } });
+  combustiveis.forEach(i => { const k = chaveFn(i.data); if(dados[k]) dados[k].comb += i.valor; });
+  return { chaves, dados, labelFn, granular };
+}
+
+function anFmtVar(pct, inverso) {
+  if(!isFinite(pct)) return '<span class="an-kpi-var flat">— sem dado anterior</span>';
+  const bom = inverso ? pct <= 0 : pct >= 0;
+  const seta = pct > 0.5 ? '▲' : (pct < -0.5 ? '▼' : '●');
+  const classe = Math.abs(pct) < 0.5 ? 'flat' : (bom ? 'up' : 'down');
+  return `<span class="an-kpi-var ${classe}">${seta} ${Math.abs(pct).toFixed(1).replace('.',',')}% vs período anterior</span>`;
+}
+
+function anRenderTudo() {
+  if(!souDono()) return;
+  const { servicos: servTudo, combustiveis: combTudo } = anObterDadosMesclados(anEntidadesSelecionadas);
+  const inicio = anDataInicio, fim = anDataFim;
+  const servicos = servTudo.filter(i => anDataDentro(i.data, inicio, fim));
+  const combustiveis = combTudo.filter(i => anDataDentro(i.data, inicio, fim));
+
+  if(servicos.length === 0 && combustiveis.length === 0) {
+    document.getElementById('anKpisContainer').innerHTML = '<div class="an-card-secao" style="grid-column:1/-1;text-align:center;color:var(--text-muted);">Nenhum lançamento encontrado para essa seleção e período.</div>';
+    document.getElementById('anComparativoContainer').innerHTML = '';
+    document.getElementById('anDetalhadoContainer').innerHTML = '';
+    if(anChartTendencia) { anChartTendencia.destroy(); anChartTendencia = null; }
+    return;
+  }
+
+  const totFat = servicos.reduce((a,c) => a + c.valor, 0);
+  const totComb = combustiveis.reduce((a,c) => a + c.valor, 0);
+  const totLiq = totFat - totComb;
+  const margem = totFat > 0 ? (totLiq/totFat*100) : 0;
+
+  // Período anterior equivalente, para comparação dos KPIs
+  let varFat = NaN, varComb = NaN, varLiq = NaN, varMargem = NaN;
+  let servAnt = [], combAnt = [];
+  if(inicio && fim) {
+    const diasSpan = Math.round((new Date(fim) - new Date(inicio)) / 86400000) + 1;
+    const fimAnt = new Date(inicio); fimAnt.setDate(fimAnt.getDate() - 1);
+    const inicioAnt = new Date(fimAnt); inicioAnt.setDate(inicioAnt.getDate() - diasSpan + 1);
+    const inicioAntStr = fmtDataISO(inicioAnt), fimAntStr = fmtDataISO(fimAnt);
+    servAnt = servTudo.filter(i => anDataDentro(i.data, inicioAntStr, fimAntStr));
+    combAnt = combTudo.filter(i => anDataDentro(i.data, inicioAntStr, fimAntStr));
+    const fatAnt = servAnt.reduce((a,c) => a + c.valor, 0);
+    const combAntVal = combAnt.reduce((a,c) => a + c.valor, 0);
+    const liqAnt = fatAnt - combAntVal;
+    const margemAnt = fatAnt > 0 ? (liqAnt/fatAnt*100) : 0;
+    if(fatAnt > 0) varFat = ((totFat - fatAnt) / fatAnt) * 100;
+    if(combAntVal > 0) varComb = ((totComb - combAntVal) / combAntVal) * 100;
+    if(liqAnt !== 0) varLiq = ((totLiq - liqAnt) / Math.abs(liqAnt)) * 100;
+    if(fatAnt > 0) varMargem = margem - margemAnt;
+  }
+
+  anRenderKpis(totFat, totComb, totLiq, margem, varFat, varComb, varLiq, varMargem);
+  const agrupado = anAgruparPorPeriodo(servicos, combustiveis, inicio, fim);
+  anRenderGrafico(agrupado);
+  anRenderComparativo(totFat, totComb, servicos, servAnt, combustiveis, combAnt);
+  anRenderDetalhado(servicos);
+}
+
+function anRenderKpis(totFat, totComb, totLiq, margem, varFat, varComb, varLiq, varMargem) {
+  const cont = document.getElementById('anKpisContainer');
+  cont.innerHTML = `
+    <div class="an-kpi-card" style="--an-kpi-cor:#1E293B;"><div class="an-kpi-label">Faturamento</div><div class="an-kpi-valor">${fmtMoeda(totFat)}</div>${anFmtVar(varFat,false)}</div>
+    <div class="an-kpi-card" style="--an-kpi-cor:#DC2626;"><div class="an-kpi-label">Combustível</div><div class="an-kpi-valor">${fmtMoeda(totComb)}</div>${anFmtVar(varComb,true)}</div>
+    <div class="an-kpi-card" style="--an-kpi-cor:#16A34A;"><div class="an-kpi-label">Lucro Líquido</div><div class="an-kpi-valor">${fmtMoeda(totLiq)}</div>${anFmtVar(varLiq,false)}</div>
+    <div class="an-kpi-card" style="--an-kpi-cor:#F5B700;"><div class="an-kpi-label">Margem de Lucro</div><div class="an-kpi-valor">${margem.toFixed(1).replace('.',',')}%</div>${isFinite(varMargem) ? `<span class="an-kpi-var ${varMargem>=0?'up':'down'}">${varMargem>=0?'▲':'▼'} ${Math.abs(varMargem).toFixed(1).replace('.',',')} p.p. vs período anterior</span>` : '<span class="an-kpi-var flat">— sem dado anterior</span>'}</div>
+  `;
+}
+
+let anChartTendencia = null;
+function anRenderGrafico(agrupado) {
+  const canvas = document.getElementById('anGraficoTendencia'); if(!canvas || typeof Chart === 'undefined') return;
+  const { chaves, dados, labelFn } = agrupado;
+  const labels = chaves.map(labelFn);
+  const fatData = chaves.map(k => dados[k].fat);
+  const combData = chaves.map(k => dados[k].comb);
+  const liqData = chaves.map(k => dados[k].fat - dados[k].comb);
+  if(anChartTendencia) anChartTendencia.destroy();
+  if(chaves.length === 0) return;
+  anChartTendencia = new Chart(canvas, {
+    type: 'line',
+    data: { labels, datasets: [
+      { label: 'Faturamento', data: fatData, borderColor:'#1E293B', backgroundColor:'rgba(30,41,59,0.08)', fill:true, tension:0.3, borderWidth:2.5 },
+      { label: 'Combustível', data: combData, borderColor:'#DC2626', backgroundColor:'rgba(220,38,38,0.06)', fill:true, tension:0.3, borderWidth:2 },
+      { label: 'Lucro Líquido', data: liqData, borderColor:'#16A34A', backgroundColor:'rgba(22,163,74,0.10)', fill:true, tension:0.3, borderWidth:2.5 }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      animation: { duration: 600, easing:'easeOutQuart' },
+      plugins: {
+        legend: { position:'bottom', labels:{ usePointStyle:true, pointStyle:'circle', boxWidth:8, padding:16, font:{family:"'Work Sans', sans-serif", size:12} } },
+        tooltip: { backgroundColor:'#1E293B', padding:10, cornerRadius:8, callbacks:{ label: ctx => ` ${ctx.dataset.label}: ${fmtMoeda(ctx.parsed.y)}` } }
+      },
+      scales: {
+        x: { grid:{display:false}, ticks:{font:{family:"'Work Sans', sans-serif", size:11}, maxRotation:0, autoSkip:true} },
+        y: { beginAtZero:true, grid:{color:'#EEF2F6'}, ticks:{font:{family:"'IBM Plex Mono', monospace", size:10}, callback: v => 'R$ ' + Number(v).toLocaleString('pt-BR')} }
+      }
+    }
+  });
+}
+
+function anRenderComparativo(totFat, totComb, servicos, servAnt, combustiveis, combAnt) {
+  const cont = document.getElementById('anComparativoContainer');
+  if(servAnt.length === 0 && combAnt.length === 0) { cont.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">Sem dados do período anterior pra comparar (ou período "Tudo" selecionado).</p>'; return; }
+  const fatAnt = servAnt.reduce((a,c) => a + c.valor, 0);
+  const combAntVal = combAnt.reduce((a,c) => a + c.valor, 0);
+  const lancAtual = servicos.length, lancAnt = servAnt.length;
+  const medioAtual = lancAtual > 0 ? totFat / lancAtual : 0;
+  const medioAnterior = lancAnt > 0 ? fatAnt / lancAnt : 0;
+  const combPctAtual = totFat > 0 ? (totComb / totFat * 100) : 0;
+  const combPctAnterior = fatAnt > 0 ? (combAntVal / fatAnt * 100) : 0;
+  const pct = (a, b) => b !== 0 ? ((a-b)/Math.abs(b))*100 : (a !== 0 ? 100 : 0);
+  const varFat = pct(totFat, fatAnt);
+  const varLanc = pct(lancAtual, lancAnt);
+  const varMedio = pct(medioAtual, medioAnterior);
+  const varCombPct = combPctAtual - combPctAnterior;
+
+  const item = (label, atual, anterior, variacao, sufixo, inverso) => {
+    const bom = inverso ? variacao <= 0 : variacao >= 0;
+    const cor = Math.abs(variacao) < 0.5 ? '#64748B' : (bom ? '#16A34A' : '#DC2626');
+    const seta = variacao > 0.5 ? '▲' : (variacao < -0.5 ? '▼' : '●');
+    return `<div class="an-comp-item"><div class="an-comp-item-label">${label}</div><div class="an-comp-item-atual">${atual}${sufixo||''}</div><div class="an-comp-item-anterior">era ${anterior}${sufixo||''} no período anterior</div><div class="an-comp-item-var" style="color:${cor};">${seta} ${Math.abs(variacao).toFixed(1).replace('.',',')}%</div></div>`;
+  };
+
+  let html = `<div class="an-comp-grid">
+    ${item('Faturamento', fmtMoeda(totFat), fmtMoeda(fatAnt), varFat, '', false)}
+    ${item('Nº de Lançamentos', lancAtual, lancAnt, varLanc, '', false)}
+    ${item('Valor Médio / Lançamento', fmtMoeda(medioAtual), fmtMoeda(medioAnterior), varMedio, '', false)}
+    ${item('Combustível % do Faturamento', combPctAtual.toFixed(1).replace('.',','), combPctAnterior.toFixed(1).replace('.',','), varCombPct, '%', true)}
+  </div>`;
+
+  let insight = '';
+  if(Math.abs(varFat) < 1) {
+    insight = `O faturamento ficou praticamente igual ao do período anterior.`;
+  } else {
+    const direcao = varFat > 0 ? 'subiu' : 'caiu';
+    const causaPrincipal = Math.abs(varLanc) >= Math.abs(varMedio)
+      ? `principalmente por causa do número de lançamentos (${varLanc>=0?'+':''}${varLanc.toFixed(1).replace('.',',')}%)`
+      : `principalmente por causa do valor médio por lançamento (${varMedio>=0?'+':''}${varMedio.toFixed(1).replace('.',',')}%)`;
+    insight = `O faturamento ${direcao} ${Math.abs(varFat).toFixed(1).replace('.',',')}% em relação ao período anterior, ${causaPrincipal}.`;
+    if(Math.abs(varCombPct) >= 3) {
+      insight += varCombPct > 0
+        ? ` O combustível também passou a pesar mais no faturamento (+${varCombPct.toFixed(1).replace('.',',')} pontos percentuais), reduzindo a margem.`
+        : ` Por outro lado, o combustível pesou menos no faturamento (${varCombPct.toFixed(1).replace('.',',')} pontos percentuais), ajudando a margem.`;
+    }
+  }
+  html += `<div class="an-insight-box">💡 ${insight}</div>`;
+  cont.innerHTML = html;
+}
+
+function anRenderDetalhado(servicos) {
+  const cont = document.getElementById('anDetalhadoContainer');
+  if(servicos.length === 0) { cont.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;padding:10px 0;">Nenhum lançamento no período selecionado.</p>'; return; }
+  const ordenados = servicos.slice().sort((a,b) => (a.data||'').localeCompare(b.data||''));
+  let html = '<table class="tabela-detalhada"><thead><tr><th>Data</th><th>Origem</th><th>Responsável</th><th>Detalhe</th><th style="text-align:right;">Valor</th></tr></thead><tbody>';
+  ordenados.forEach(i => {
+    html += `<tr><td>${fmtData(i.data)}</td><td><b>${i.entidade}</b></td><td>${escapeHtml(i.pessoa||'-')}</td><td>${i.detalhe}</td><td class="mono" style="text-align:right;font-weight:700;">${fmtMoeda(i.valor)}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  cont.innerHTML = html;
+}
+
 function cmpRenderizar() {
   if(!souDono()) return;
   const rtF = rtLista.filter(i => cmpDentroDoFiltro(i.dataServico));

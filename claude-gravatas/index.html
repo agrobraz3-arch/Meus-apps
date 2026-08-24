@@ -882,6 +882,9 @@ function renderizarProdutos(){
           </div>
           <div class="nome">${p.nome}</div>
           ${p.cor ? `<div class="cor-sub">Cor: ${p.cor}</div>` : ''}
+          <div class="cor-sub" style="color:${semEstoque?'var(--wine)':'var(--green)'};font-weight:700;">
+            ${semEstoque ? 'Sem estoque no momento' : `${estoqueTotal(p)} unidade${estoqueTotal(p)===1?'':'s'} restante${estoqueTotal(p)===1?'':'s'}`}
+          </div>
           <div class="preco-linha">
             ${precoOriginal > preco ? `<span class="preco-original">${formatarPreco(precoOriginal)}</span>` : ''}
             <span class="preco-atual">${formatarPreco(preco)}</span>
@@ -959,7 +962,7 @@ function selecionarLargura(l){
     b.classList.toggle('selecionado', b.dataset.largura===l);
   });
   const estoque = Number((produtoAberto.estoque||{})[l] || 0);
-  document.getElementById('estoque-info-txt').textContent = `${estoque} unidade(s) disponível(is) nesta largura.`;
+  document.getElementById('estoque-info-txt').textContent = `${estoque} unidade${estoque===1?'':'s'} restante${estoque===1?'':'s'} nesta largura.`;
 }
 
 function alterarQtdModal(delta){

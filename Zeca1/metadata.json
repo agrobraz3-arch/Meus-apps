@@ -1,0 +1,10 @@
+{
+  "name": "Restaurante Do Zeca - Delivery & Cardápio",
+  "description": "Aplicativo completo de delivery de marmitas e quentinhas, montagem personalizada com cardápio do dia, pagamento integrado (PIX, Cartão, Dinheiro), rastreamento em tempo real com mapa e painel de controle do restaurante.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

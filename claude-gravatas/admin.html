@@ -79,6 +79,7 @@ tr:hover td{background:#faf8f2;}
   <div class="abas">
     <button class="ativo" onclick="mostrarAba('produtos')" id="aba-btn-produtos">Produtos</button>
     <button onclick="mostrarAba('pedidos')" id="aba-btn-pedidos">Pedidos</button>
+    <button onclick="mostrarAba('config')" id="aba-btn-config">Configurações do site</button>
   </div>
 
   <!-- ABA PRODUTOS -->
@@ -144,6 +145,58 @@ tr:hover td{background:#faf8f2;}
       <tbody id="tabela-pedidos"><tr><td colspan="6">Carregando...</td></tr></tbody>
     </table>
   </div>
+
+  <!-- ABA CONFIGURAÇÕES DO SITE -->
+  <div id="aba-config" class="hidden">
+    <div class="form-produto">
+      <h3>Identidade do site</h3>
+      <div class="linha-2">
+        <div class="campo"><label>Nome do site</label><input type="text" id="cfg-nome-site" placeholder="Vestindo a Verdade"></div>
+        <div class="campo"><label>Frase abaixo do nome (cabeçalho)</label><input type="text" id="cfg-slogan" placeholder="Efésios 6:14 · gravataria"></div>
+      </div>
+      <div class="campo"><label>Versículo/frase do rodapé</label><input type="text" id="cfg-versiculo" placeholder='"Estai, pois, firmes..." — Efésios 6:14'></div>
+
+      <label style="display:block;font-size:12px;text-transform:uppercase;color:var(--slate);font-weight:700;margin:20px 0 10px;">Cores do site</label>
+      <div class="linha-2">
+        <div class="campo">
+          <label>Cor de destaque (botões, preços)</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="color" id="cfg-cor-destaque" value="#f0a83c" style="width:50px;height:40px;padding:2px;">
+            <input type="text" id="cfg-cor-destaque-texto" placeholder="#f0a83c">
+          </div>
+        </div>
+        <div class="campo">
+          <label>Cor de fundo do site</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="color" id="cfg-cor-fundo" value="#0a0f1a" style="width:50px;height:40px;padding:2px;">
+            <input type="text" id="cfg-cor-fundo-texto" placeholder="#0a0f1a">
+          </div>
+        </div>
+      </div>
+
+      <label style="display:block;font-size:12px;text-transform:uppercase;color:var(--slate);font-weight:700;margin:20px 0 10px;">Contato e pagamento</label>
+      <div class="linha-2">
+        <div class="campo"><label>WhatsApp (só números, com DDI+DDD)</label><input type="text" id="cfg-whatsapp" placeholder="5582938730000"></div>
+        <div class="campo"><label>E-mail de contato</label><input type="email" id="cfg-email" placeholder="contato@seusite.com"></div>
+      </div>
+      <div class="linha-2">
+        <div class="campo"><label>Chave PIX (aparece no checkout e na mensagem do WhatsApp)</label><input type="text" id="cfg-chave-pix" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
+        <div class="campo"><label>Desconto PIX exibido (%)</label><input type="number" step="0.1" id="cfg-desconto-pix" placeholder="5"></div>
+      </div>
+      <div class="campo"><label>Texto de frete grátis (barra do topo)</label><input type="text" id="cfg-frete-texto" placeholder="R$ 199,90"></div>
+
+      <label style="display:block;font-size:12px;text-transform:uppercase;color:var(--slate);font-weight:700;margin:20px 0 10px;">Redes sociais</label>
+      <div class="linha-2">
+        <div class="campo"><label>Instagram (link ou @usuario)</label><input type="text" id="cfg-instagram" placeholder="@vestindoaverdade"></div>
+        <div class="campo"><label>YouTube (link do canal)</label><input type="text" id="cfg-youtube" placeholder="https://youtube.com/@seucanal"></div>
+      </div>
+
+      <div style="margin-top:20px;">
+        <button class="btn" onclick="salvarConfiguracoesSite()">Salvar configurações</button>
+      </div>
+      <p style="font-size:11.5px;color:var(--slate);margin-top:10px;">As mudanças aparecem no site assim que a página for atualizada pelo visitante.</p>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -188,9 +241,12 @@ function mostrarToast(msg){
 function mostrarAba(aba){
   document.getElementById('aba-btn-produtos').classList.toggle('ativo', aba==='produtos');
   document.getElementById('aba-btn-pedidos').classList.toggle('ativo', aba==='pedidos');
+  document.getElementById('aba-btn-config').classList.toggle('ativo', aba==='config');
   document.getElementById('aba-produtos').classList.toggle('hidden', aba!=='produtos');
   document.getElementById('aba-pedidos').classList.toggle('hidden', aba!=='pedidos');
+  document.getElementById('aba-config').classList.toggle('hidden', aba!=='config');
   if(aba==='pedidos') carregarPedidosAdmin();
+  if(aba==='config') carregarConfiguracoesSite();
 }
 
 /* ===================== PRODUTOS ===================== */
@@ -398,6 +454,67 @@ async function carregarPedidosAdmin(){
 async function atualizarStatusPedido(id, status){
   await db.collection('pedidos').doc(id).update({status});
   mostrarToast('Status atualizado.');
+}
+
+/* ===================== CONFIGURAÇÕES DO SITE ===================== */
+async function carregarConfiguracoesSite(){
+  try{
+    const doc = await db.collection('configuracoes').doc('site').get();
+    const cfg = doc.exists ? doc.data() : {};
+    document.getElementById('cfg-nome-site').value = cfg.nomeSite || '';
+    document.getElementById('cfg-slogan').value = cfg.slogan || '';
+    document.getElementById('cfg-versiculo').value = cfg.versiculo || '';
+    document.getElementById('cfg-cor-destaque').value = cfg.corDestaque || '#f0a83c';
+    document.getElementById('cfg-cor-destaque-texto').value = cfg.corDestaque || '';
+    document.getElementById('cfg-cor-fundo').value = cfg.corFundo || '#0a0f1a';
+    document.getElementById('cfg-cor-fundo-texto').value = cfg.corFundo || '';
+    document.getElementById('cfg-whatsapp').value = cfg.whatsapp || '';
+    document.getElementById('cfg-email').value = cfg.email || '';
+    document.getElementById('cfg-chave-pix').value = cfg.chavePix || '';
+    document.getElementById('cfg-desconto-pix').value = cfg.descontoPix || '';
+    document.getElementById('cfg-frete-texto').value = cfg.freteGratisTexto || '';
+    document.getElementById('cfg-instagram').value = cfg.instagram || '';
+    document.getElementById('cfg-youtube').value = cfg.youtube || '';
+  }catch(e){
+    console.error(e);
+    mostrarToast('Não foi possível carregar as configurações.');
+  }
+}
+
+// mantém o campo de texto e o seletor de cor sincronizados
+['destaque','fundo'].forEach(qual=>{
+  document.getElementById(`cfg-cor-${qual}`).addEventListener('input', function(){
+    document.getElementById(`cfg-cor-${qual}-texto`).value = this.value;
+  });
+  document.getElementById(`cfg-cor-${qual}-texto`).addEventListener('input', function(){
+    if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){
+      document.getElementById(`cfg-cor-${qual}`).value = this.value;
+    }
+  });
+});
+
+async function salvarConfiguracoesSite(){
+  const dados = {
+    nomeSite: document.getElementById('cfg-nome-site').value.trim(),
+    slogan: document.getElementById('cfg-slogan').value.trim(),
+    versiculo: document.getElementById('cfg-versiculo').value.trim(),
+    corDestaque: document.getElementById('cfg-cor-destaque-texto').value.trim() || document.getElementById('cfg-cor-destaque').value,
+    corFundo: document.getElementById('cfg-cor-fundo-texto').value.trim() || document.getElementById('cfg-cor-fundo').value,
+    whatsapp: document.getElementById('cfg-whatsapp').value.trim(),
+    email: document.getElementById('cfg-email').value.trim(),
+    chavePix: document.getElementById('cfg-chave-pix').value.trim(),
+    descontoPix: Number(document.getElementById('cfg-desconto-pix').value || 0),
+    freteGratisTexto: document.getElementById('cfg-frete-texto').value.trim(),
+    instagram: document.getElementById('cfg-instagram').value.trim(),
+    youtube: document.getElementById('cfg-youtube').value.trim()
+  };
+  try{
+    await db.collection('configuracoes').doc('site').set(dados, {merge:true});
+    mostrarToast('Configurações salvas com sucesso.');
+  }catch(e){
+    console.error(e);
+    mostrarToast('Erro ao salvar configurações.');
+  }
 }
 </script>
 </body>

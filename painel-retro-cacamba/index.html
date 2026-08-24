@@ -269,6 +269,7 @@
       <button id="btnModUsuarios" onclick="mudarModulo('usuarios')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="10" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Usuários</button>
       <button id="btnModManutencao" onclick="mudarModulo('manutencao')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg> Manutenção</button>
       <button id="btnModRetroParceira" onclick="mudarModulo('retroparceira')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><rect x="15" y="10" width="7" height="5" rx="1"></rect></svg> Retro Parceira</button>
+      <button id="btnModPrecos" onclick="mudarModulo('precos')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Tabela de Preços</button>
     </nav>
   </header>
 
@@ -777,6 +778,35 @@
     </main>
   </div>
 
+  <!-- ===================== TABELA DE PREÇOS ===================== -->
+  <div id="painelPrecos" class="modulo-painel">
+    <main class="modulo-content">
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:16px;">Tabela de referência por km rodado, usada nos orçamentos de caçamba.</p>
+
+      <div class="section-title">🧮 Calculadora por KM</div>
+      <div style="background:#F1F5F9; border-radius:10px; padding:14px; margin-bottom:20px;">
+        <label>DIGITE O KM</label>
+        <input type="text" inputmode="decimal" id="pcCalcKm" placeholder="Ex: 5" oninput="pcAtualizarCalculadora()">
+        <div id="pcCalcResultado" style="margin-top:10px; font-size:0.95rem;"></div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; margin-bottom:6px;">
+        <button class="tools-btn" id="pcBtnEditar" onclick="pcToggleEdicao()">✏️ Editar Tabela</button>
+      </div>
+
+      <div class="comparativo-grid" style="align-items:start;">
+        <div>
+          <div class="section-title">🚚 Preço Cliente</div>
+          <div class="table-responsive"><table class="tabela-detalhada"><thead><tr><th>Nº</th><th>De (km)</th><th>Até (km)</th><th style="text-align:right;">Valor</th></tr></thead><tbody id="pcTabelaCliente"></tbody></table></div>
+        </div>
+        <div>
+          <div class="section-title">🤝 Preço Agregados</div>
+          <div class="table-responsive"><table class="tabela-detalhada"><thead><tr><th>Nº</th><th>De (km)</th><th>Até (km)</th><th style="text-align:right;">Valor</th></tr></thead><tbody id="pcTabelaAgregados"></tbody></table></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
 </div>
 
 <div class="toast" id="toast">Registrado com sucesso!</div>
@@ -1055,6 +1085,7 @@ function aposLogin() {
     rtIniciar();
     cbIniciar();
     rpIniciarListener();
+    pcIniciarListener();
     mudarModulo('retro');
   } else if(usuarioAtual.papel === 'operador_retro') {
     navModulos.style.display = 'none';
@@ -1078,6 +1109,7 @@ function mudarModulo(mod) {
   document.getElementById('painelUsuarios').classList.toggle('active', mod === 'usuarios');
   document.getElementById('painelManutencao').classList.toggle('active', mod === 'manutencao');
   document.getElementById('painelRetroParceira').classList.toggle('active', mod === 'retroparceira');
+  document.getElementById('painelPrecos').classList.toggle('active', mod === 'precos');
 
   document.getElementById('btnModRetro').classList.toggle('active', mod === 'retro');
   document.getElementById('btnModCacamba').classList.toggle('active', mod === 'cacamba');
@@ -1086,6 +1118,7 @@ function mudarModulo(mod) {
   document.getElementById('btnModUsuarios').classList.toggle('active', mod === 'usuarios');
   document.getElementById('btnModManutencao').classList.toggle('active', mod === 'manutencao');
   document.getElementById('btnModRetroParceira').classList.toggle('active', mod === 'retroparceira');
+  document.getElementById('btnModPrecos').classList.toggle('active', mod === 'precos');
 
   const titulo = document.getElementById('tituloApp'), sub = document.getElementById('subtituloApp');
   const root = document.documentElement;
@@ -1127,6 +1160,11 @@ function mudarModulo(mod) {
     titulo.textContent = 'Retro Parceira'; sub.textContent = 'Carregamentos feitos pela retro do Luís';
     root.style.setProperty('--modulo-accent', '#FFFFFF');
     root.style.setProperty('--modulo-accent-text', '#1E293B');
+  } else if(mod === 'precos') {
+    titulo.textContent = 'Tabela de Preços'; sub.textContent = 'Preços por km — Agregados e Cliente';
+    root.style.setProperty('--modulo-accent', '#FFFFFF');
+    root.style.setProperty('--modulo-accent-text', '#1E293B');
+    pcRenderTabelas();
   }
   ajustarStickyOffsets();
 }
@@ -2127,11 +2165,86 @@ function cbExcluirMaquinaCustom(event, spanEl, nomeFmt) {
     cbMaquinasDocRef.set({ nomes: firebase.firestore.FieldValue.arrayRemove(nomeFmt) }, { merge: true }).catch(err => console.warn(err));
   }
 }
-const CB_TABELA_PRECOS_KM = [{min:0,max:5,valor:200},{min:5.1,max:10,valor:250},{min:10.1,max:15,valor:300},{min:15.1,max:20,valor:350},{min:20.1,max:25,valor:400},{min:25.1,max:30,valor:450},{min:30.1,max:35,valor:500},{min:35.1,max:40,valor:550},{min:40.1,max:45,valor:600},{min:45.1,max:50,valor:650},{min:50.1,max:55,valor:700},{min:55.1,max:60,valor:750},{min:60.1,max:65,valor:800},{min:65.1,max:70,valor:850},{min:70.1,max:75,valor:900},{min:75.1,max:80,valor:950},{min:80.1,max:85,valor:1000},{min:85.1,max:90,valor:1050},{min:90.1,max:95,valor:1100},{min:95.1,max:100,valor:1150},{min:100.1,max:105,valor:1200},{min:105.1,max:110,valor:1250},{min:110.1,max:115,valor:1300},{min:115.1,max:120,valor:1350},{min:120.1,max:125,valor:1400},{min:125.1,max:130,valor:1450},{min:130.1,max:135,valor:1500},{min:135.1,max:140,valor:1550},{min:140.1,max:145,valor:1600},{min:145.1,max:150,valor:1650},{min:150.1,max:155,valor:1700},{min:155.1,max:160,valor:1750},{min:160.1,max:165,valor:1800},{min:165.1,max:170,valor:1850},{min:170.1,max:175,valor:1900},{min:175.1,max:180,valor:1950},{min:180.1,max:185,valor:2000},{min:185.1,max:190,valor:2050},{min:190.1,max:195,valor:2100},{min:195.1,max:200,valor:2150}];
+const CB_TABELA_PRECOS_KM_PADRAO = [{min:0,max:5,valorAgregado:200},{min:5.1,max:10,valorAgregado:250},{min:10.1,max:15,valorAgregado:300},{min:15.1,max:20,valorAgregado:350},{min:20.1,max:25,valorAgregado:400},{min:25.1,max:30,valorAgregado:450},{min:30.1,max:35,valorAgregado:500},{min:35.1,max:40,valorAgregado:550},{min:40.1,max:45,valorAgregado:600},{min:45.1,max:50,valorAgregado:650},{min:50.1,max:55,valorAgregado:700},{min:55.1,max:60,valorAgregado:750},{min:60.1,max:65,valorAgregado:800},{min:65.1,max:70,valorAgregado:850},{min:70.1,max:75,valorAgregado:900},{min:75.1,max:80,valorAgregado:950},{min:80.1,max:85,valorAgregado:1000},{min:85.1,max:90,valorAgregado:1050},{min:90.1,max:95,valorAgregado:1100},{min:95.1,max:100,valorAgregado:1150},{min:100.1,max:105,valorAgregado:1200},{min:105.1,max:110,valorAgregado:1250},{min:110.1,max:115,valorAgregado:1300},{min:115.1,max:120,valorAgregado:1350},{min:120.1,max:125,valorAgregado:1400},{min:125.1,max:130,valorAgregado:1450},{min:130.1,max:135,valorAgregado:1500},{min:135.1,max:140,valorAgregado:1550},{min:140.1,max:145,valorAgregado:1600},{min:145.1,max:150,valorAgregado:1650},{min:150.1,max:155,valorAgregado:1700},{min:155.1,max:160,valorAgregado:1750},{min:160.1,max:165,valorAgregado:1800},{min:165.1,max:170,valorAgregado:1850},{min:170.1,max:175,valorAgregado:1900},{min:175.1,max:180,valorAgregado:1950},{min:180.1,max:185,valorAgregado:2000},{min:185.1,max:190,valorAgregado:2050},{min:190.1,max:195,valorAgregado:2100},{min:195.1,max:200,valorAgregado:2150}].map(f => ({...f, valorCliente: f.valorAgregado + 50}));
+
+let CB_TABELA_PRECOS_KM = CB_TABELA_PRECOS_KM_PADRAO.map(f => ({...f}));
+let pcModoEdicao = false;
+const pcPrecosDocRef = colConfig.doc('precos_km');
+
+function pcIniciarListener() {
+  pcPrecosDocRef.onSnapshot(doc => {
+    if(doc.exists && Array.isArray(doc.data().faixas) && doc.data().faixas.length > 0) {
+      CB_TABELA_PRECOS_KM = doc.data().faixas;
+    } else {
+      CB_TABELA_PRECOS_KM = CB_TABELA_PRECOS_KM_PADRAO.map(f => ({...f}));
+    }
+    pcRenderTabelas();
+  }, err => console.warn('Listener preços km:', err));
+}
+
+function pcRenderTabelas() {
+  const corpoCliente = document.getElementById('pcTabelaCliente');
+  const corpoAgregados = document.getElementById('pcTabelaAgregados');
+  if(!corpoCliente || !corpoAgregados) return;
+  let htmlCliente = '', htmlAgregados = '';
+  CB_TABELA_PRECOS_KM.forEach((faixa, idx) => {
+    const n = idx + 1;
+    if(pcModoEdicao) {
+      htmlCliente += `<tr><td class="mono">${n}</td><td class="mono"><input type="text" inputmode="decimal" class="mono pc-input" data-idx="${idx}" data-campo="min" value="${faixa.min}" style="width:56px;"></td><td class="mono"><input type="text" inputmode="decimal" class="mono pc-input" data-idx="${idx}" data-campo="max" value="${faixa.max}" style="width:56px;"></td><td style="text-align:right;"><input type="text" inputmode="decimal" class="mono pc-input" data-idx="${idx}" data-campo="valorCliente" value="${faixa.valorCliente}" style="width:70px;text-align:right;"></td><td><button onclick="pcExcluirLinha(${idx})" title="Excluir">🗑️</button></td></tr>`;
+      htmlAgregados += `<tr><td class="mono">${n}</td><td class="mono"><input type="text" inputmode="decimal" class="mono pc-input" data-idx="${idx}" data-campo="min" value="${faixa.min}" style="width:56px;"></td><td class="mono"><input type="text" inputmode="decimal" class="mono pc-input" data-idx="${idx}" data-campo="max" value="${faixa.max}" style="width:56px;"></td><td style="text-align:right;"><input type="text" inputmode="decimal" class="mono pc-input" data-idx="${idx}" data-campo="valorAgregado" value="${faixa.valorAgregado}" style="width:70px;text-align:right;"></td><td><button onclick="pcExcluirLinha(${idx})" title="Excluir">🗑️</button></td></tr>`;
+    } else {
+      const deTxt = faixa.min.toString().replace('.', ',');
+      const ateTxt = faixa.max.toString().replace('.', ',');
+      htmlCliente += `<tr><td class="mono">${n}</td><td class="mono">${deTxt}</td><td class="mono">${ateTxt}</td><td class="mono" style="text-align:right;font-weight:700;">${fmtMoeda(faixa.valorCliente)}</td></tr>`;
+      htmlAgregados += `<tr><td class="mono">${n}</td><td class="mono">${deTxt}</td><td class="mono">${ateTxt}</td><td class="mono" style="text-align:right;font-weight:700;">${fmtMoeda(faixa.valorAgregado)}</td></tr>`;
+    }
+  });
+  corpoCliente.innerHTML = htmlCliente;
+  corpoAgregados.innerHTML = htmlAgregados;
+  document.querySelectorAll('#painelPrecos .tabela-detalhada thead tr').forEach(tr => {
+    const thAcao = tr.querySelector('.pc-th-acao');
+    if(pcModoEdicao && !thAcao) { const th = document.createElement('th'); th.textContent = 'Ação'; th.className = 'pc-th-acao'; tr.appendChild(th); }
+    if(!pcModoEdicao && thAcao) thAcao.remove();
+  });
+  pcAtualizarCalculadora();
+}
+
+function pcToggleEdicao() {
+  if(!souDono()) return alert('Apenas o Dono pode editar a tabela de preços.');
+  if(pcModoEdicao) {
+    document.querySelectorAll('.pc-input').forEach(input => {
+      const idx = parseInt(input.dataset.idx, 10), campo = input.dataset.campo;
+      const valor = parseFloat(input.value.replace(',', '.'));
+      if(!isNaN(valor) && CB_TABELA_PRECOS_KM[idx]) CB_TABELA_PRECOS_KM[idx][campo] = valor;
+    });
+    pcPrecosDocRef.set({ faixas: CB_TABELA_PRECOS_KM }, { merge: true }).then(() => showToast('Tabela de preços salva!')).catch(err => alert('Erro ao salvar: ' + err.message));
+  }
+  pcModoEdicao = !pcModoEdicao;
+  document.getElementById('pcBtnEditar').textContent = pcModoEdicao ? '💾 Salvar Alterações' : '✏️ Editar Tabela';
+  pcRenderTabelas();
+}
+
+function pcExcluirLinha(idx) {
+  if(!confirm('Excluir essa faixa da tabela?')) return;
+  CB_TABELA_PRECOS_KM.splice(idx, 1);
+  pcRenderTabelas();
+}
+
+function pcAtualizarCalculadora() {
+  const input = document.getElementById('pcCalcKm'); if(!input) return;
+  const km = parseFloat(input.value.replace(',', '.')) || 0;
+  const resEl = document.getElementById('pcCalcResultado');
+  if(!km) { resEl.innerHTML = ''; return; }
+  const faixa = CB_TABELA_PRECOS_KM.find(f => km >= f.min && km <= f.max);
+  if(!faixa) { resEl.innerHTML = `<span style="color:var(--text-muted);">Fora das faixas cadastradas (acima de ${CB_TABELA_PRECOS_KM[CB_TABELA_PRECOS_KM.length-1]?.max || 200} km).</span>`; return; }
+  resEl.innerHTML = `${km} km → <b style="color:#16A34A;">Cliente: ${fmtMoeda(faixa.valorCliente)}</b> &nbsp;|&nbsp; <b style="color:#1E293B;">Agregados: ${fmtMoeda(faixa.valorAgregado)}</b>`;
+}
+
 function cbBuscarValorPorKm(km) {
   const faixa = CB_TABELA_PRECOS_KM.find(f => km >= f.min && km <= f.max);
-  if(faixa) return faixa.valor;
-  if(km > 200) return 2150 + Math.ceil((km-200)/5)*50;
+  if(faixa) return faixa.valorAgregado;
+  const ultima = CB_TABELA_PRECOS_KM[CB_TABELA_PRECOS_KM.length - 1];
+  if(ultima && km > ultima.max) return ultima.valorAgregado + Math.ceil((km-ultima.max)/5)*50;
   return 0;
 }
 function cbAtualizarLegendaFaixaKm(km) {

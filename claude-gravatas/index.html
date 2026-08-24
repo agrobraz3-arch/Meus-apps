@@ -398,6 +398,29 @@ footer.site a:hover{color:var(--gold-soft);}
 /* utilitários */
 .hidden{display:none !important;}
 .loading{text-align:center;padding:60px 0;color:var(--text-dim);grid-column:1/-1;}
+/* =====================================================
+   PAINEL DO DONO (admin embutido — acesso por #admin + PIN)
+   ===================================================== */
+#adm-overlay{position:fixed;inset:0;background:var(--bg);z-index:500;overflow-y:auto;}
+.adm-caixa-pin{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.adm-caixa-pin .form-modal{max-width:320px;background:var(--bg-2);border:1px solid var(--line);border-radius:12px;text-align:center;}
+.adm-caixa-pin input{width:100%;padding:14px;font-size:22px;text-align:center;letter-spacing:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg-3);color:#fff;margin:14px 0;}
+.adm-table{width:100%;border-collapse:collapse;background:var(--bg-2);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:10px;}
+.adm-table th,.adm-table td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;color:var(--ink);}
+.adm-table th{background:var(--bg-3);font-weight:700;color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:.3px;}
+.adm-table tr:hover td{background:var(--bg-3);}
+.adm-form-produto{background:var(--bg-2);border:1px solid var(--line);padding:24px;border-radius:10px;margin-bottom:26px;}
+.adm-larguras-estoque{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.adm-linha-largura{display:flex;gap:8px;align-items:center;}
+.adm-linha-largura input{flex:1;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg-3);color:var(--ink);font-family:var(--sans);}
+.adm-linha-largura input.qtd{max-width:100px;}
+.adm-linha-largura button{background:var(--wine);color:#fff;border:none;border-radius:6px;padding:8px 10px;cursor:pointer;}
+.adm-galeria{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.adm-galeria .thumb{position:relative;width:80px;height:100px;}
+.adm-galeria img{width:100%;height:100%;object-fit:cover;border-radius:6px;}
+.adm-galeria .remover-img{position:absolute;top:-6px;right:-6px;background:var(--wine);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;}
+.adm-status-tag{font-size:11px;padding:3px 8px;border-radius:6px;background:var(--bg-3);color:var(--gold-soft);font-weight:700;text-transform:uppercase;}
+.adm-rot{display:block;font-size:11px;text-transform:uppercase;color:var(--text-dim);font-weight:700;margin:14px 0 6px;letter-spacing:.5px;}
 </style>
 </head>
 <body>
@@ -654,6 +677,14 @@ footer.site a:hover{color:var(--gold-soft);}
       </div>
 
       <div id="checkout-conteudo">
+        <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);font-weight:700;margin-bottom:10px;">Seus dados</label>
+        <div class="linha-2">
+          <div class="campo"><label>Nome completo</label><input type="text" id="chk-nome"></div>
+          <div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="chk-telefone" placeholder="(82) 90000-0000"></div>
+        </div>
+        <div class="campo"><label>E-mail</label><input type="email" id="chk-email"></div>
+
+        <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);font-weight:700;margin:18px 0 10px;">Endereço de entrega</label>
         <div class="linha-3">
           <div class="campo"><label>CEP</label><input type="text" id="chk-cep" onblur="buscarCepCheckout()"></div>
           <div class="campo"><label>Número</label><input type="text" id="chk-numero"></div>
@@ -679,6 +710,151 @@ footer.site a:hover{color:var(--gold-soft);}
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- =========================================================
+     PAINEL DO DONO — escondido, só acessível por #admin + PIN
+========================================================= -->
+<div id="adm-overlay" class="hidden">
+  <div class="adm-caixa-pin" id="adm-tela-pin">
+    <div class="form-modal">
+      <h3>Acesso restrito</h3>
+      <p class="sub">Digite o PIN do administrador</p>
+      <input type="password" id="adm-pin-input" maxlength="6" inputmode="numeric">
+      <div class="erro-msg" id="adm-pin-erro">PIN incorreto.</div>
+      <button class="btn btn-gold" style="width:100%;justify-content:center;" onclick="verificarPinAdmin()">Entrar</button>
+      <p class="troca-link"><a onclick="fecharPainelAdmin()">Voltar à loja</a></p>
+    </div>
+  </div>
+
+  <div id="adm-painel-principal" class="hidden container" style="padding:30px 20px 80px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+      <h1 style="color:#fff;font-size:24px;">Painel do dono</h1>
+      <button class="btn btn-outline" onclick="fecharPainelAdmin()">Voltar à loja</button>
+    </div>
+
+    <div class="conta-tabs">
+      <button class="ativo" id="adm-tab-btn-produtos" onclick="mostrarAbaAdmin('produtos')">Produtos</button>
+      <button id="adm-tab-btn-pedidos" onclick="mostrarAbaAdmin('pedidos')">Pedidos</button>
+      <button id="adm-tab-btn-config" onclick="mostrarAbaAdmin('config')">Configurações do site</button>
+    </div>
+
+    <!-- ABA PRODUTOS -->
+    <div id="adm-aba-produtos">
+      <button class="btn btn-gold" onclick="abrirFormNovoProduto()">+ Novo produto</button>
+      <div class="adm-form-produto hidden" id="adm-form-produto" style="margin-top:16px;">
+        <h3 id="adm-form-produto-titulo" style="color:#fff;">Novo produto</h3>
+        <input type="hidden" id="adm-prod-id">
+        <div class="campo"><label>Nome</label><input type="text" id="adm-prod-nome"></div>
+        <div class="campo"><label>Descrição</label><textarea id="adm-prod-descricao" rows="3"></textarea></div>
+        <div class="linha-3">
+          <div class="campo"><label>Preço atual (R$)</label><input type="number" step="0.01" id="adm-prod-preco"></div>
+          <div class="campo"><label>Preço "de" (opcional)</label><input type="number" step="0.01" id="adm-prod-preco-original" placeholder="Deixe vazio se não houver desconto"></div>
+          <div class="campo"><label>Cor</label><input type="text" id="adm-prod-cor" placeholder="Azul-marinho"></div>
+        </div>
+        <div class="linha-2">
+          <div class="campo"><label>Tecido</label><input type="text" id="adm-prod-tecido" placeholder="Seda"></div>
+          <div class="campo"><label>Estampa</label><input type="text" id="adm-prod-estampa" placeholder="Lisa, listrada..."></div>
+        </div>
+        <div class="linha-2">
+          <div class="campo"><label>Ocasião</label><input type="text" id="adm-prod-ocasiao" placeholder="Culto, casamento, trabalho..."></div>
+          <div class="campo">
+            <label>Destaque</label>
+            <label style="display:flex;align-items:center;gap:8px;font-weight:400;text-transform:none;font-size:13px;padding-top:8px;color:var(--ink);">
+              <input type="checkbox" id="adm-prod-mais-vendida" style="width:auto;"> Marcar como "Mais vendida"
+            </label>
+          </div>
+        </div>
+        <div class="linha-2">
+          <div class="campo"><label>Nota de avaliação (opcional, 0 a 5)</label><input type="number" step="0.1" min="0" max="5" id="adm-prod-avaliacao-nota" placeholder="Ex: 4.8 — só use se for real"></div>
+          <div class="campo"><label>Quantidade de avaliações (opcional)</label><input type="number" min="0" id="adm-prod-avaliacao-qtd" placeholder="Ex: 23"></div>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-dim);margin-top:-6px;margin-bottom:14px;">Deixe os campos de avaliação vazios até você ter avaliações reais de clientes.</p>
+
+        <label class="adm-rot">Larguras e estoque</label>
+        <div class="adm-larguras-estoque" id="adm-larguras-estoque"></div>
+        <button class="btn btn-outline" onclick="adicionarLinhaLargura()">+ Adicionar largura</button>
+        <div id="adm-estoque-total-form" style="margin-top:12px;padding:10px 14px;background:var(--bg-3);border:1px solid var(--line);border-radius:8px;font-size:14px;font-weight:700;color:#fff;">
+          Estoque total: 0 unidades
+        </div>
+
+        <label class="adm-rot">Fotos do produto</label>
+        <div class="adm-galeria" id="adm-galeria"></div>
+        <input type="file" id="adm-input-imagem" accept="image/*" multiple>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:6px;">As imagens são enviadas para o ImgBB automaticamente.</p>
+
+        <div style="margin-top:20px;display:flex;gap:10px;">
+          <button class="btn btn-gold" onclick="salvarProdutoAdmin()">Salvar produto</button>
+          <button class="btn btn-outline" onclick="fecharFormProdutoAdmin()">Cancelar</button>
+        </div>
+      </div>
+
+      <table class="adm-table">
+        <thead><tr><th>Foto</th><th>Nome</th><th>Preço</th><th>Estoque total</th><th>Ativo</th><th></th></tr></thead>
+        <tbody id="adm-tabela-produtos"><tr><td colspan="6">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- ABA PEDIDOS -->
+    <div id="adm-aba-pedidos" class="hidden">
+      <table class="adm-table">
+        <thead><tr><th>Data</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <tbody id="adm-tabela-pedidos"><tr><td colspan="6">Carregando...</td></tr></tbody>
+      </table>
+    </div>
+
+    <!-- ABA CONFIGURAÇÕES -->
+    <div id="adm-aba-config" class="hidden">
+      <div class="adm-form-produto">
+        <h3 style="color:#fff;">Identidade do site</h3>
+        <div class="linha-2">
+          <div class="campo"><label>Nome do site</label><input type="text" id="adm-cfg-nome-site" placeholder="Vestindo a Verdade"></div>
+          <div class="campo"><label>Frase abaixo do nome (cabeçalho)</label><input type="text" id="adm-cfg-slogan" placeholder="Efésios 6:14 · gravataria"></div>
+        </div>
+        <div class="campo"><label>Versículo/frase do rodapé</label><input type="text" id="adm-cfg-versiculo" placeholder='"Estai, pois, firmes..." — Efésios 6:14'></div>
+
+        <label class="adm-rot">Cores do site</label>
+        <div class="linha-2">
+          <div class="campo">
+            <label>Cor de destaque (botões, preços)</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="color" id="adm-cfg-cor-destaque" value="#f0a83c" style="width:50px;height:40px;padding:2px;">
+              <input type="text" id="adm-cfg-cor-destaque-texto" placeholder="#f0a83c">
+            </div>
+          </div>
+          <div class="campo">
+            <label>Cor de fundo do site</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <input type="color" id="adm-cfg-cor-fundo" value="#0a0f1a" style="width:50px;height:40px;padding:2px;">
+              <input type="text" id="adm-cfg-cor-fundo-texto" placeholder="#0a0f1a">
+            </div>
+          </div>
+        </div>
+
+        <label class="adm-rot">Contato e pagamento</label>
+        <div class="linha-2">
+          <div class="campo"><label>WhatsApp (só números, com DDI+DDD)</label><input type="text" id="adm-cfg-whatsapp" placeholder="5582999998888"></div>
+          <div class="campo"><label>E-mail de contato</label><input type="email" id="adm-cfg-email" placeholder="contato@seusite.com"></div>
+        </div>
+        <div class="linha-2">
+          <div class="campo"><label>Chave PIX</label><input type="text" id="adm-cfg-chave-pix" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
+          <div class="campo"><label>Desconto PIX exibido (%)</label><input type="number" step="0.1" id="adm-cfg-desconto-pix" placeholder="5"></div>
+        </div>
+        <div class="campo"><label>Texto de frete grátis (barra do topo)</label><input type="text" id="adm-cfg-frete-texto" placeholder="R$ 199,90"></div>
+
+        <label class="adm-rot">Redes sociais</label>
+        <div class="linha-2">
+          <div class="campo"><label>Instagram (link ou @usuario)</label><input type="text" id="adm-cfg-instagram" placeholder="@vestindoaverdade"></div>
+          <div class="campo"><label>YouTube (link do canal)</label><input type="text" id="adm-cfg-youtube" placeholder="https://youtube.com/@seucanal"></div>
+        </div>
+
+        <div style="margin-top:20px;">
+          <button class="btn btn-gold" onclick="salvarConfiguracoesAdmin()">Salvar configurações</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-dim);margin-top:10px;">As mudanças aparecem no site assim que a página for atualizada.</p>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* =====================================================================
@@ -1297,13 +1473,19 @@ async function carregarPedidos(){
   try{
     const snap = await db.collection('pedidos')
       .where('clienteId','==',usuarioAtual.uid)
-      .orderBy('criadoEm','desc').limit(30).get();
+      .limit(30).get();
     if(snap.empty){
       container.innerHTML = '<p class="sub">Você ainda não fez nenhum pedido.</p>';
       return;
     }
-    container.innerHTML = snap.docs.map(d=>{
-      const p = d.data();
+    const pedidosOrdenados = snap.docs
+      .map(d=>({id:d.id, ...d.data()}))
+      .sort((a,b)=>{
+        const ta = a.criadoEm?.toMillis ? a.criadoEm.toMillis() : 0;
+        const tb = b.criadoEm?.toMillis ? b.criadoEm.toMillis() : 0;
+        return tb - ta;
+      });
+    container.innerHTML = pedidosOrdenados.map(p=>{
       const data = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleDateString('pt-BR') : '';
       return `
         <div class="pedido-card">
@@ -1383,6 +1565,9 @@ function irParaCheckout(){
   }else{
     document.getElementById('checkout-precisa-login').classList.add('hidden');
     document.getElementById('checkout-conteudo').classList.remove('hidden');
+    document.getElementById('chk-nome').value = perfilAtual?.nome || '';
+    document.getElementById('chk-telefone').value = perfilAtual?.telefone || '';
+    document.getElementById('chk-email').value = perfilAtual?.email || usuarioAtual?.email || '';
     const e = perfilAtual?.endereco || {};
     document.getElementById('chk-cep').value = e.cep||'';
     document.getElementById('chk-rua').value = e.rua||'';
@@ -1415,6 +1600,10 @@ async function confirmarPedidoEEnviarWhatsapp(){
   const erroEl = document.getElementById('erro-checkout');
   erroEl.style.display='none';
 
+  const nome = document.getElementById('chk-nome').value.trim();
+  const telefone = document.getElementById('chk-telefone').value.trim();
+  const email = document.getElementById('chk-email').value.trim();
+
   const endereco = {
     cep: document.getElementById('chk-cep').value.trim(),
     rua: document.getElementById('chk-rua').value.trim(),
@@ -1426,6 +1615,10 @@ async function confirmarPedidoEEnviarWhatsapp(){
   };
   const obs = document.getElementById('chk-obs').value.trim();
 
+  if(!nome || !telefone){
+    exibirErro('erro-checkout','Preencha seu nome e telefone para contato.');
+    return;
+  }
   if(!endereco.rua || !endereco.numero || !endereco.cidade){
     exibirErro('erro-checkout','Preencha ao menos rua, número e cidade para entrega.');
     return;
@@ -1436,8 +1629,9 @@ async function confirmarPedidoEEnviarWhatsapp(){
   try{
     await db.collection('pedidos').add({
       clienteId: usuarioAtual.uid,
-      clienteNome: perfilAtual?.nome || '',
-      clienteTelefone: perfilAtual?.telefone || '',
+      clienteNome: nome,
+      clienteTelefone: telefone,
+      clienteEmail: email,
       itens: carrinho,
       total,
       endereco,
@@ -1445,7 +1639,9 @@ async function confirmarPedidoEEnviarWhatsapp(){
       status: 'Aguardando pagamento',
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
-    await db.collection('clientes').doc(usuarioAtual.uid).update({endereco});
+    await db.collection('clientes').doc(usuarioAtual.uid).update({nome, telefone, endereco});
+    perfilAtual.nome = nome;
+    perfilAtual.telefone = telefone;
   }catch(e){
     console.error(e);
     exibirErro('erro-checkout','Não foi possível registrar o pedido agora. Tente novamente.');
@@ -1453,9 +1649,10 @@ async function confirmarPedidoEEnviarWhatsapp(){
   }
 
   let msg = `*Novo pedido — Vestindo a Verdade*\n\n`;
-  msg += `*Cliente:* ${perfilAtual?.nome || ''}\n`;
-  msg += `*Telefone:* ${perfilAtual?.telefone || ''}\n\n`;
-  msg += `*Itens:*\n`;
+  msg += `*Cliente:* ${nome}\n`;
+  msg += `*Telefone:* ${telefone}\n`;
+  if(email) msg += `*E-mail:* ${email}\n`;
+  msg += `\n*Itens:*\n`;
   carrinho.forEach(i=>{
     msg += `• ${i.qtd}x ${i.nome} — largura ${i.largura} — ${formatarPreco(i.preco*i.qtd)}\n`;
   });
@@ -1482,6 +1679,322 @@ async function confirmarPedidoEEnviarWhatsapp(){
 ===================================================================== */
 carregarProdutos();
 carregarConfiguracoesSite();
+
+/* =====================================================================
+   PAINEL DO DONO — embutido, protegido por PIN, acessado via #admin
+===================================================================== */
+const PIN_ADMIN = "0211"; // <-- troque para o seu PIN
+
+function abrirPainelAdmin(){
+  document.getElementById('adm-overlay').classList.remove('hidden');
+  document.getElementById('adm-tela-pin').classList.remove('hidden');
+  document.getElementById('adm-painel-principal').classList.add('hidden');
+  document.getElementById('adm-pin-input').value = '';
+  document.body.style.overflow = 'hidden';
+}
+function fecharPainelAdmin(){
+  document.getElementById('adm-overlay').classList.add('hidden');
+  document.body.style.overflow = '';
+  if(location.hash === '#admin') history.replaceState(null, '', location.pathname + location.search);
+}
+function verificarPinAdmin(){
+  const val = document.getElementById('adm-pin-input').value;
+  if(val === PIN_ADMIN){
+    document.getElementById('adm-tela-pin').classList.add('hidden');
+    document.getElementById('adm-painel-principal').classList.remove('hidden');
+    carregarProdutosAdmin();
+  }else{
+    document.getElementById('adm-pin-erro').style.display = 'block';
+  }
+}
+window.addEventListener('hashchange', ()=>{
+  if(location.hash === '#admin') abrirPainelAdmin();
+});
+if(location.hash === '#admin') abrirPainelAdmin();
+
+function mostrarAbaAdmin(aba){
+  document.getElementById('adm-tab-btn-produtos').classList.toggle('ativo', aba==='produtos');
+  document.getElementById('adm-tab-btn-pedidos').classList.toggle('ativo', aba==='pedidos');
+  document.getElementById('adm-tab-btn-config').classList.toggle('ativo', aba==='config');
+  document.getElementById('adm-aba-produtos').classList.toggle('hidden', aba!=='produtos');
+  document.getElementById('adm-aba-pedidos').classList.toggle('hidden', aba!=='pedidos');
+  document.getElementById('adm-aba-config').classList.toggle('hidden', aba!=='config');
+  if(aba==='pedidos') carregarPedidosAdmin();
+  if(aba==='config') carregarConfiguracoesAdmin();
+}
+
+/* ---------- Produtos ---------- */
+let admImagensAtuais = [];
+
+function abrirFormNovoProduto(){
+  document.getElementById('adm-form-produto').classList.remove('hidden');
+  document.getElementById('adm-form-produto-titulo').textContent = 'Novo produto';
+  document.getElementById('adm-prod-id').value = '';
+  ['adm-prod-nome','adm-prod-descricao','adm-prod-preco','adm-prod-preco-original','adm-prod-cor','adm-prod-tecido','adm-prod-estampa','adm-prod-ocasiao','adm-prod-avaliacao-nota','adm-prod-avaliacao-qtd'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('adm-prod-mais-vendida').checked = false;
+  document.getElementById('adm-larguras-estoque').innerHTML = '';
+  admImagensAtuais = [];
+  renderizarGaleriaAdmin();
+  adicionarLinhaLargura();
+}
+function fecharFormProdutoAdmin(){
+  document.getElementById('adm-form-produto').classList.add('hidden');
+}
+function adicionarLinhaLargura(largura='', qtd=0){
+  const div = document.createElement('div');
+  div.className = 'adm-linha-largura';
+  div.innerHTML = `
+    <input type="text" placeholder="Ex: Tradicional (8cm)" class="largura-nome" value="${largura}">
+    <input type="number" placeholder="Estoque" class="qtd" value="${qtd}" oninput="atualizarEstoqueTotalFormAdmin()">
+    <button onclick="this.parentElement.remove();atualizarEstoqueTotalFormAdmin()">✕</button>
+  `;
+  document.getElementById('adm-larguras-estoque').appendChild(div);
+  atualizarEstoqueTotalFormAdmin();
+}
+function atualizarEstoqueTotalFormAdmin(){
+  let total = 0;
+  document.querySelectorAll('#adm-larguras-estoque .adm-linha-largura .qtd').forEach(input=>{
+    total += Number(input.value || 0);
+  });
+  document.getElementById('adm-estoque-total-form').textContent = `Estoque total: ${total} unidade${total===1?'':'s'}`;
+}
+function renderizarGaleriaAdmin(){
+  document.getElementById('adm-galeria').innerHTML = admImagensAtuais.map((url,i)=>`
+    <div class="thumb">
+      <img src="${url}">
+      <button class="remover-img" onclick="removerImagemAdmin(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function removerImagemAdmin(i){
+  admImagensAtuais.splice(i,1);
+  renderizarGaleriaAdmin();
+}
+document.getElementById('adm-input-imagem').addEventListener('change', async (e)=>{
+  const arquivos = [...e.target.files];
+  for(const arquivo of arquivos){
+    mostrarToast('Enviando imagem...');
+    try{
+      const formData = new FormData();
+      formData.append('image', arquivo);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${CONFIG.imgbbKey}`, {method:'POST', body: formData});
+      const data = await res.json();
+      if(data.success){
+        admImagensAtuais.push(data.data.url);
+        renderizarGaleriaAdmin();
+      }else{
+        mostrarToast('Falha ao enviar imagem.');
+      }
+    }catch(err){
+      console.error(err);
+      mostrarToast('Erro ao enviar imagem.');
+    }
+  }
+  e.target.value = '';
+});
+
+async function salvarProdutoAdmin(){
+  const nome = document.getElementById('adm-prod-nome').value.trim();
+  if(!nome){ mostrarToast('Informe o nome do produto.'); return; }
+
+  const larguras = [];
+  const estoque = {};
+  document.querySelectorAll('#adm-larguras-estoque .adm-linha-largura').forEach(linha=>{
+    const l = linha.querySelector('.largura-nome').value.trim();
+    const q = Number(linha.querySelector('.qtd').value || 0);
+    if(l){ larguras.push(l); estoque[l] = q; }
+  });
+
+  const dados = {
+    nome,
+    descricao: document.getElementById('adm-prod-descricao').value.trim(),
+    preco: Number(document.getElementById('adm-prod-preco').value || 0),
+    precoOriginal: Number(document.getElementById('adm-prod-preco-original').value || 0),
+    cor: document.getElementById('adm-prod-cor').value.trim(),
+    tecido: document.getElementById('adm-prod-tecido').value.trim(),
+    estampa: document.getElementById('adm-prod-estampa').value.trim(),
+    ocasiao: document.getElementById('adm-prod-ocasiao').value.trim(),
+    maisVendida: document.getElementById('adm-prod-mais-vendida').checked,
+    avaliacaoNota: Number(document.getElementById('adm-prod-avaliacao-nota').value || 0) || null,
+    avaliacaoQtd: Number(document.getElementById('adm-prod-avaliacao-qtd').value || 0) || null,
+    larguras, estoque,
+    imagens: admImagensAtuais,
+    ativo: true
+  };
+
+  const id = document.getElementById('adm-prod-id').value;
+  try{
+    if(id){
+      await db.collection('produtos').doc(id).update(dados);
+    }else{
+      await db.collection('produtos').add(dados);
+    }
+    mostrarToast('Produto salvo com sucesso.');
+    fecharFormProdutoAdmin();
+    carregarProdutosAdmin();
+    carregarProdutos(); // atualiza o catálogo visível na loja também
+  }catch(e){
+    console.error(e);
+    mostrarToast('Erro ao salvar produto.');
+  }
+}
+
+async function carregarProdutosAdmin(){
+  const tbody = document.getElementById('adm-tabela-produtos');
+  const snap = await db.collection('produtos').get();
+  if(snap.empty){
+    tbody.innerHTML = '<tr><td colspan="6">Nenhum produto cadastrado ainda.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = snap.docs.map(d=>{
+    const p = d.data();
+    const estoqueTot = Object.values(p.estoque||{}).reduce((s,v)=>s+Number(v||0),0);
+    return `
+      <tr>
+        <td><img src="${(p.imagens&&p.imagens[0])||''}" style="width:44px;height:54px;object-fit:cover;border-radius:4px;"></td>
+        <td>${p.nome}</td>
+        <td>R$ ${Number(p.preco||0).toFixed(2)}</td>
+        <td>${estoqueTot}</td>
+        <td><span class="adm-status-tag">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
+        <td>
+          <button class="btn btn-outline" style="padding:8px 12px;font-size:12px;" onclick='editarProdutoAdmin("${d.id}")'>Editar</button>
+          <button class="btn btn-wine" style="padding:8px 12px;font-size:12px;" onclick='alternarAtivoAdmin("${d.id}", ${!p.ativo})'>${p.ativo?'Desativar':'Ativar'}</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+async function editarProdutoAdmin(id){
+  const doc = await db.collection('produtos').doc(id).get();
+  const p = doc.data();
+  document.getElementById('adm-form-produto').classList.remove('hidden');
+  document.getElementById('adm-form-produto-titulo').textContent = 'Editar produto';
+  document.getElementById('adm-prod-id').value = id;
+  document.getElementById('adm-prod-nome').value = p.nome||'';
+  document.getElementById('adm-prod-descricao').value = p.descricao||'';
+  document.getElementById('adm-prod-preco').value = p.preco||0;
+  document.getElementById('adm-prod-preco-original').value = p.precoOriginal||'';
+  document.getElementById('adm-prod-cor').value = p.cor||'';
+  document.getElementById('adm-prod-tecido').value = p.tecido||'';
+  document.getElementById('adm-prod-estampa').value = p.estampa||'';
+  document.getElementById('adm-prod-ocasiao').value = p.ocasiao||'';
+  document.getElementById('adm-prod-mais-vendida').checked = !!p.maisVendida;
+  document.getElementById('adm-prod-avaliacao-nota').value = p.avaliacaoNota||'';
+  document.getElementById('adm-prod-avaliacao-qtd').value = p.avaliacaoQtd||'';
+  document.getElementById('adm-larguras-estoque').innerHTML = '';
+  (p.larguras||[]).forEach(l=>adicionarLinhaLargura(l, (p.estoque||{})[l] || 0));
+  admImagensAtuais = p.imagens || [];
+  renderizarGaleriaAdmin();
+  document.getElementById('adm-painel-principal').scrollTo({top:0, behavior:'smooth'});
+}
+
+async function alternarAtivoAdmin(id, novoValor){
+  await db.collection('produtos').doc(id).update({ativo: novoValor});
+  carregarProdutosAdmin();
+  carregarProdutos();
+}
+
+/* ---------- Pedidos ---------- */
+async function carregarPedidosAdmin(){
+  const tbody = document.getElementById('adm-tabela-pedidos');
+  const snap = await db.collection('pedidos').orderBy('criadoEm','desc').limit(100).get();
+  if(snap.empty){
+    tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido registrado ainda.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = snap.docs.map(d=>{
+    const p = d.data();
+    const data = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleString('pt-BR') : '';
+    const itensTxt = (p.itens||[]).map(i=>`${i.qtd}x ${i.nome} (${i.largura})`).join(', ');
+    const jaConfirmado = p.status === 'Pagamento confirmado' || p.status === 'Em separação' || p.status === 'Enviado' || p.status === 'Entregue';
+    return `
+      <tr>
+        <td>${data}</td>
+        <td>${p.clienteNome||''}<br><small>${p.clienteTelefone||''}${p.clienteEmail?' · '+p.clienteEmail:''}</small></td>
+        <td>${itensTxt}</td>
+        <td>${formatarPreco(p.total||0)}</td>
+        <td>
+          <select onchange='atualizarStatusPedidoAdmin("${d.id}", this.value)'>
+            ${['Aguardando pagamento','Pagamento confirmado','Em separação','Enviado','Entregue','Cancelado'].map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td>
+          ${jaConfirmado
+            ? '<span class="adm-status-tag" style="color:#7fe0a0;">Pago</span>'
+            : `<button class="btn btn-gold" style="padding:8px 12px;font-size:12px;" onclick='confirmarPagamentoAdmin("${d.id}")'>Confirmar pagamento</button>`}
+        </td>
+      </tr>`;
+  }).join('');
+}
+async function confirmarPagamentoAdmin(id){
+  await db.collection('pedidos').doc(id).update({status:'Pagamento confirmado'});
+  mostrarToast('Pagamento confirmado.');
+  carregarPedidosAdmin();
+}
+async function atualizarStatusPedidoAdmin(id, status){
+  await db.collection('pedidos').doc(id).update({status});
+  mostrarToast('Status atualizado.');
+  carregarPedidosAdmin();
+}
+
+/* ---------- Configurações do site ---------- */
+async function carregarConfiguracoesAdmin(){
+  try{
+    const doc = await db.collection('configuracoes').doc('site').get();
+    const cfg = doc.exists ? doc.data() : {};
+    document.getElementById('adm-cfg-nome-site').value = cfg.nomeSite || '';
+    document.getElementById('adm-cfg-slogan').value = cfg.slogan || '';
+    document.getElementById('adm-cfg-versiculo').value = cfg.versiculo || '';
+    document.getElementById('adm-cfg-cor-destaque').value = cfg.corDestaque || '#f0a83c';
+    document.getElementById('adm-cfg-cor-destaque-texto').value = cfg.corDestaque || '';
+    document.getElementById('adm-cfg-cor-fundo').value = cfg.corFundo || '#0a0f1a';
+    document.getElementById('adm-cfg-cor-fundo-texto').value = cfg.corFundo || '';
+    document.getElementById('adm-cfg-whatsapp').value = cfg.whatsapp || '';
+    document.getElementById('adm-cfg-email').value = cfg.email || '';
+    document.getElementById('adm-cfg-chave-pix').value = cfg.chavePix || '';
+    document.getElementById('adm-cfg-desconto-pix').value = cfg.descontoPix || '';
+    document.getElementById('adm-cfg-frete-texto').value = cfg.freteGratisTexto || '';
+    document.getElementById('adm-cfg-instagram').value = cfg.instagram || '';
+    document.getElementById('adm-cfg-youtube').value = cfg.youtube || '';
+  }catch(e){
+    console.error(e);
+    mostrarToast('Não foi possível carregar as configurações.');
+  }
+}
+['destaque','fundo'].forEach(qual=>{
+  document.getElementById(`adm-cfg-cor-${qual}`).addEventListener('input', function(){
+    document.getElementById(`adm-cfg-cor-${qual}-texto`).value = this.value;
+  });
+  document.getElementById(`adm-cfg-cor-${qual}-texto`).addEventListener('input', function(){
+    if(/^#[0-9A-Fa-f]{6}$/.test(this.value)){
+      document.getElementById(`adm-cfg-cor-${qual}`).value = this.value;
+    }
+  });
+});
+async function salvarConfiguracoesAdmin(){
+  const dados = {
+    nomeSite: document.getElementById('adm-cfg-nome-site').value.trim(),
+    slogan: document.getElementById('adm-cfg-slogan').value.trim(),
+    versiculo: document.getElementById('adm-cfg-versiculo').value.trim(),
+    corDestaque: document.getElementById('adm-cfg-cor-destaque-texto').value.trim() || document.getElementById('adm-cfg-cor-destaque').value,
+    corFundo: document.getElementById('adm-cfg-cor-fundo-texto').value.trim() || document.getElementById('adm-cfg-cor-fundo').value,
+    whatsapp: document.getElementById('adm-cfg-whatsapp').value.trim(),
+    email: document.getElementById('adm-cfg-email').value.trim(),
+    chavePix: document.getElementById('adm-cfg-chave-pix').value.trim(),
+    descontoPix: Number(document.getElementById('adm-cfg-desconto-pix').value || 0),
+    freteGratisTexto: document.getElementById('adm-cfg-frete-texto').value.trim(),
+    instagram: document.getElementById('adm-cfg-instagram').value.trim(),
+    youtube: document.getElementById('adm-cfg-youtube').value.trim()
+  };
+  try{
+    await db.collection('configuracoes').doc('site').set(dados, {merge:true});
+    mostrarToast('Configurações salvas com sucesso.');
+    carregarConfiguracoesSite(); // já aplica as mudanças na loja, sem precisar recarregar
+  }catch(e){
+    console.error(e);
+    mostrarToast('Erro ao salvar configurações.');
+  }
+}
 </script>
 </body>
 </html>

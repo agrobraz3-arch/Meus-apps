@@ -1,13 +1,11 @@
 {
   "projectId": "errrf-b4439",
-  "appId": "1:341087990615:web:7da7f1f146c04fa4770412",
+  "appId": "1:341087990615:web:a2e975e6c66be986770412",
   "apiKey": "AIzaSyDnjiIrX_rloTmRuyBzs5TWGK2QaFep9J4",
   "authDomain": "errrf-b4439.firebaseapp.com",
-  "databaseURL": "https://errrf-b4439-default-rtdb.firebaseio.com",
   "firestoreDatabaseId": "(default)",
   "storageBucket": "errrf-b4439.firebasestorage.app",
   "messagingSenderId": "341087990615",
-  "measurementId": "G-QPVJPC9FWH",
-  "oAuthClientId": "",
+  "measurementId": "",
   "recaptchaSiteKey": ""
 }

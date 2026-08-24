@@ -187,9 +187,8 @@
   .hero-btn.primario:hover { background:var(--accent-dark); }
   .hero-btn.secundario { background:#fff; color:var(--text-dark); border:1.5px solid var(--text-dark); }
 
-  .hero-image-wrap { position:relative; border-radius:6px; overflow:hidden; aspect-ratio: 4/5; }
-  .hero-image { width:100%; height:100%; aspect-ratio: 4/5; object-fit:cover; display:block; }
-  @media (max-width:800px){ .hero-image-wrap { aspect-ratio: 16/10; } .hero-image { aspect-ratio: 16/10; } }
+  .hero-image-wrap { position:relative; border-radius:6px; overflow:hidden; aspect-ratio: 9/16; }
+  .hero-image { width:100%; height:100%; aspect-ratio: 9/16; object-fit:cover; display:block; }
   .hero-image-wrap.carrossel .hero-image { position:absolute; inset:0; opacity:0; transition:opacity 1s ease; }
   .hero-image-wrap.carrossel .hero-image.ativa { opacity:1; }
   .hero-dots { position:absolute; top:14px; right:14px; display:flex; gap:6px; z-index:2; }
@@ -218,13 +217,12 @@
   .step-titulo { font-family:'Oswald',sans-serif; font-weight:600; font-size:1.1rem; color:#1E3A8A; margin-bottom:6px; }
   .step-texto { font-size:0.85rem; color:var(--text-muted); line-height:1.45; }
 
-  .banner-section { position:relative; border-radius:6px; overflow:hidden; margin-bottom:50px; min-height:320px; display:flex; align-items:center; background-size:cover; background-position:center; }
-  .banner-section::before { content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(0,0,0,0.72) 10%, rgba(0,0,0,0.15) 70%); }
-  .banner-content { position:relative; padding:36px 40px; max-width:600px; }
-  .banner-titulo { color:#fff; font-size:2rem; text-transform:uppercase; line-height:1.15; margin:0 0 22px; }
-  @media (max-width:600px){ .banner-titulo { font-size:1.5rem; } .banner-content{ padding:26px 20px; } }
-  .banner-cta { background:transparent; border:1.5px solid #fff; color:#fff; padding:13px 20px; border-radius:8px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
-  .banner-cta:hover { background:#fff; color:var(--text-dark); }
+  .banner-section { position:relative; border-radius:6px; overflow:hidden; margin-bottom:0; aspect-ratio: 16/9; background-size:cover; background-position:center; }
+  .banner-content { padding:26px 4px 0; max-width:600px; }
+  .banner-titulo { color:var(--text-dark); font-size:2rem; text-transform:uppercase; line-height:1.15; margin:0 0 22px; }
+  @media (max-width:600px){ .banner-titulo { font-size:1.5rem; } .banner-content{ padding:0 0 20px; } }
+  .banner-cta { background:var(--accent); border:1.5px solid var(--accent); color:#fff; padding:13px 20px; border-radius:8px; font-weight:700; font-size:0.85rem; cursor:pointer; display:inline-flex; align-items:center; gap:8px; }
+  .banner-cta:hover { background:var(--accent-dark); border-color:var(--accent-dark); }
 </style>
 </head>
 <body>
@@ -377,12 +375,11 @@
         </div>
       </div>
 
-      <div class="banner-section" id="bannerSecao" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/5/5d/Exploited_BelAZ_trucks.jpg')">
-        <div class="banner-content">
-          <div class="banner-titulo display">Materiais prontos pra sua obra. <span class="accent">Entrega</span> rápida.</div>
-          <button class="banner-cta" onclick="ljSwitchTab('catalogo')">Fazer Meu Pedido →</button>
-        </div>
+      <div class="banner-content">
+        <div class="banner-titulo display">Materiais prontos pra sua obra. <span class="accent">Entrega</span> rápida.</div>
+        <button class="banner-cta" onclick="ljSwitchTab('catalogo')">Fazer Meu Pedido →</button>
       </div>
+      <div class="banner-section" id="bannerSecao" style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/5/5d/Exploited_BelAZ_trucks.jpg'); margin-bottom:50px;"></div>
     </section>
 
     <!-- ===================== CATÁLOGO ===================== -->
@@ -497,7 +494,8 @@
         </div>
         <div class="campo-msg" style="margin-top:-8px;">Preencha ao menos um dos dois. Se preencher os dois, o cliente escolhe a unidade no catálogo.</div>
         <label>FOTOS (opcional)</label>
-        <div class="campo-msg" style="margin-top:-6px;margin-bottom:8px;">Adicione uma ou mais fotos reais desse material (ex: a areia fina de verdade, não uma foto genérica).</div>
+        <div class="campo-msg" style="margin-top:-6px;margin-bottom:2px;">Adicione uma ou mais fotos reais desse material (ex: a areia fina de verdade, não uma foto genérica).</div>
+        <div class="campo-msg" style="margin-top:0;margin-bottom:8px;">📐 Tamanho ideal: <b>1200 x 900px</b> (paisagem, proporção 4:3).</div>
         <div id="admMatFotosLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
         <input type="file" id="admMatFotoNovoFile" accept="image/*" style="display:none;">
         <button type="button" class="btn-upload-foto" id="admMatFotoNovoBtn" onclick="document.getElementById('admMatFotoNovoFile').click()">📷 Adicionar Foto</button>
@@ -511,6 +509,7 @@
         <label style="margin-top:0;">NOME DA LOJA</label>
         <input type="text" id="admNomeLoja" placeholder="Ex: Agrobraz Materiais">
         <label>URL DA LOGO (opcional)</label>
+        <div class="campo-msg" style="margin-top:-6px;margin-bottom:2px;">📐 Tamanho ideal: <b>600 x 200px</b> (retangular, fundo transparente/PNG).</div>
         <div class="campo-foto-upload">
           <input type="text" id="admLogoUrl" placeholder="https://... (deixe vazio pra usar só o nome em texto)">
           <input type="file" id="admLogoUrlFile" accept="image/*" style="display:none;">
@@ -518,17 +517,20 @@
         </div>
         <label>ÍCONE QUADRADO (favicon da aba + ícone do app no celular)</label>
         <div class="campo-msg" style="margin-top:-6px;margin-bottom:0;">Use uma versão quadrada da logo. Se deixar vazio, usa a Logo acima mesmo (pode ficar cortada, por não ser quadrada).</div>
+        <div class="campo-msg" style="margin-top:2px;margin-bottom:0;">📐 Tamanho ideal: <b>512 x 512px</b> (quadrada).</div>
         <div class="campo-foto-upload">
           <input type="text" id="admIconeQuadradoUrl" placeholder="https://... (opcional)">
           <input type="file" id="admIconeQuadradoUrlFile" accept="image/*" style="display:none;">
           <button type="button" class="btn-upload-foto" id="admIconeQuadradoUrlBtn" onclick="document.getElementById('admIconeQuadradoUrlFile').click()">📷 Enviar</button>
         </div>
         <label>FOTOS DA PÁGINA INICIAL (CARROSSEL)</label>
-        <div class="campo-msg" style="margin-top:-6px;margin-bottom:8px;">Adicione uma ou mais fotos (do caminhão, caçamba, areia, sua área etc). Com 2 ou mais, elas trocam sozinhas na página inicial.</div>
+        <div class="campo-msg" style="margin-top:-6px;margin-bottom:2px;">Adicione uma ou mais fotos (do caminhão, caçamba, areia, sua área etc). Com 2 ou mais, elas trocam sozinhas na página inicial.</div>
+        <div class="campo-msg" style="margin-top:0;margin-bottom:8px;">📐 Tamanho ideal: <b>1080 x 1920px</b> (retrato/vertical 9:16 — o formato exato de tela do celular).</div>
         <div id="admFotosHeroLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
         <input type="file" id="admFotoHeroNovoFile" accept="image/*" style="display:none;">
         <button type="button" class="btn-upload-foto" id="admFotoHeroNovoBtn" onclick="document.getElementById('admFotoHeroNovoFile').click()">📷 Adicionar Foto</button>
         <label>FOTO DO BANNER (FINAL DA PÁGINA INICIAL)</label>
+        <div class="campo-msg" style="margin-top:-6px;margin-bottom:2px;">📐 Tamanho ideal: <b>1600 x 900px</b> (paisagem larga, proporção 16:9). Evite logo/texto importante nas bordas, porque pode cortar.</div>
         <div class="campo-foto-upload">
           <input type="text" id="admFotoBanner" placeholder="https://... (deixe vazio pra manter a foto padrão)">
           <input type="file" id="admFotoBannerFile" accept="image/*" style="display:none;">

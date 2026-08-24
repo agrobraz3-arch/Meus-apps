@@ -6,6 +6,7 @@
 <title>Loja de Materiais</title>
 
 <link id="manifestLink" rel="manifest" href='data:application/manifest+json,{"name": "Loja de Materiais", "short_name": "Loja", "start_url": ".", "display": "standalone", "background_color": "#FAFAF8", "theme_color": "#1A1A1A", "icons": [{"src": "https://cdn-icons-png.flaticon.com/512/2954/2954848.png", "sizes": "512x512", "type": "image/png"}]}'>
+<link id="faviconLink" rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/2954/2954848.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -26,8 +27,8 @@
     --text-dark: #1A1A1A;
     --text-muted: #64748B;
     --border-color: #E5E1DA;
-    --accent: #D2540E;
-    --accent-dark: #B8460B;
+    --accent: #2CAF49;
+    --accent-dark: #1513A4;
   }
   * { box-sizing: border-box; }
   body {
@@ -90,7 +91,13 @@
   .catalogo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; margin-bottom: 20px; }
   .material-card { border: 1px solid var(--border-color); border-radius: 4px; background: #fff; overflow: hidden; }
   .material-card.inativo { opacity: 0.5; }
-  .material-foto { position: relative; width: 100%; aspect-ratio: 4/3; background-size: cover; background-position: center; }
+  .material-foto { position: relative; width: 100%; aspect-ratio: 4/3; background-size: cover; background-position: center; cursor:pointer; }
+  .material-foto-contador { position:absolute; left:8px; bottom:8px; background:rgba(0,0,0,0.6); color:#fff; font-size:0.68rem; font-weight:700; padding:3px 8px; border-radius:20px; }
+  .lightbox-content { position:relative; max-width:600px; width:100%; }
+  .lightbox-content img { width:100%; max-height:75vh; object-fit:contain; border-radius:8px; background:#111; display:block; }
+  .lightbox-nav { display:flex; align-items:center; justify-content:center; gap:20px; margin-top:12px; }
+  .lightbox-nav button { background:#fff; border:1.5px solid var(--border-color); width:42px; height:42px; border-radius:50%; font-size:1.3rem; cursor:pointer; }
+  .lightbox-contador { color:#fff; font-weight:700; font-size:0.85rem; min-width:50px; text-align:center; }
   .material-badge { position: absolute; top: 10px; right: 10px; background: #fff; border: 1.5px solid var(--text-dark); font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.03em; }
   .material-body { padding: 14px; }
   .material-nome { font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
@@ -269,6 +276,18 @@
     <h2 id="adminEditTitulo">Editar</h2>
     <div id="adminEditCampos"></div>
     <button class="btn-submit laranja" onclick="ljSalvarAdminEdit()">Salvar</button>
+  </div>
+</div>
+
+<div id="fotoLightbox" class="overlay-modal">
+  <div class="lightbox-content">
+    <button class="login-close" onclick="ljFecharLightbox()">✕</button>
+    <img id="lightboxImg" src="" alt="Foto do material">
+    <div class="lightbox-nav" id="lightboxNav">
+      <button type="button" onclick="ljLightboxAnterior()">‹</button>
+      <div id="lightboxContador" class="lightbox-contador"></div>
+      <button type="button" onclick="ljLightboxProxima()">›</button>
+    </div>
   </div>
 </div>
 
@@ -477,12 +496,11 @@
           <div><label>PREÇO POR M³ (R$)</label><input type="text" inputmode="decimal" id="admMatPrecoM3" class="mono" placeholder="Deixe vazio se não vende assim"></div>
         </div>
         <div class="campo-msg" style="margin-top:-8px;">Preencha ao menos um dos dois. Se preencher os dois, o cliente escolhe a unidade no catálogo.</div>
-        <label>FOTO (opcional)</label>
-        <div class="campo-foto-upload">
-          <input type="text" id="admMatFoto" placeholder="https://...">
-          <input type="file" id="admMatFotoFile" accept="image/*" style="display:none;">
-          <button type="button" class="btn-upload-foto" id="admMatFotoBtn" onclick="document.getElementById('admMatFotoFile').click()">📷 Enviar Foto</button>
-        </div>
+        <label>FOTOS (opcional)</label>
+        <div class="campo-msg" style="margin-top:-6px;margin-bottom:8px;">Adicione uma ou mais fotos reais desse material (ex: a areia fina de verdade, não uma foto genérica).</div>
+        <div id="admMatFotosLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
+        <input type="file" id="admMatFotoNovoFile" accept="image/*" style="display:none;">
+        <button type="button" class="btn-upload-foto" id="admMatFotoNovoBtn" onclick="document.getElementById('admMatFotoNovoFile').click()">📷 Adicionar Foto</button>
         <button class="btn-submit laranja" onclick="ljAdminSalvarMaterial()">Adicionar Material</button>
         <div class="section-title">Materiais Cadastrados</div>
         <div id="admMateriaisLista"><div class="carrinho-vazio">Carregando...</div></div>
@@ -497,6 +515,13 @@
           <input type="text" id="admLogoUrl" placeholder="https://... (deixe vazio pra usar só o nome em texto)">
           <input type="file" id="admLogoUrlFile" accept="image/*" style="display:none;">
           <button type="button" class="btn-upload-foto" id="admLogoUrlBtn" onclick="document.getElementById('admLogoUrlFile').click()">📷 Enviar</button>
+        </div>
+        <label>ÍCONE QUADRADO (favicon da aba + ícone do app no celular)</label>
+        <div class="campo-msg" style="margin-top:-6px;margin-bottom:0;">Use uma versão quadrada da logo. Se deixar vazio, usa a Logo acima mesmo (pode ficar cortada, por não ser quadrada).</div>
+        <div class="campo-foto-upload">
+          <input type="text" id="admIconeQuadradoUrl" placeholder="https://... (opcional)">
+          <input type="file" id="admIconeQuadradoUrlFile" accept="image/*" style="display:none;">
+          <button type="button" class="btn-upload-foto" id="admIconeQuadradoUrlBtn" onclick="document.getElementById('admIconeQuadradoUrlFile').click()">📷 Enviar</button>
         </div>
         <label>FOTOS DA PÁGINA INICIAL (CARROSSEL)</label>
         <div class="campo-msg" style="margin-top:-6px;margin-bottom:8px;">Adicione uma ou mais fotos (do caminhão, caçamba, areia, sua área etc). Com 2 ou mais, elas trocam sozinhas na página inicial.</div>
@@ -640,13 +665,13 @@ function ljConectarUploadFoto(inputFileEl, inputUrlEl, botaoEl) {
   });
 }
 
-// Conecta os botões "📷 Enviar" fixos do painel (Novo Material e Identidade da Loja).
+// Conecta os botões "📷 Enviar" fixos do painel (Identidade da Loja).
 // Os campos do modal "Editar Foto" (material já cadastrado) são conectados à parte,
-// em ljAdminEditarFoto, porque o modal é recriado dinamicamente.
+// em ljAdminEditarFotosMaterial, porque o modal é recriado dinamicamente.
 document.addEventListener('DOMContentLoaded', () => {
   [
-    ['admMatFoto', 'admMatFotoFile', 'admMatFotoBtn'],
     ['admLogoUrl', 'admLogoUrlFile', 'admLogoUrlBtn'],
+    ['admIconeQuadradoUrl', 'admIconeQuadradoUrlFile', 'admIconeQuadradoUrlBtn'],
     ['admFotoBanner', 'admFotoBannerFile', 'admFotoBannerBtn']
   ].forEach(([urlId, fileId, btnId]) => {
     const urlEl = document.getElementById(urlId);
@@ -654,57 +679,81 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnEl = document.getElementById(btnId);
     if (urlEl && fileEl && btnEl) ljConectarUploadFoto(fileEl, urlEl, btnEl);
   });
-  const fotoHeroNovoFile = document.getElementById('admFotoHeroNovoFile');
-  const fotoHeroNovoBtn = document.getElementById('admFotoHeroNovoBtn');
-  if (fotoHeroNovoFile && fotoHeroNovoBtn) {
-    fotoHeroNovoFile.addEventListener('change', async () => {
-      const file = fotoHeroNovoFile.files[0];
-      if (!file) return;
-      const textoOriginal = fotoHeroNovoBtn.textContent;
-      fotoHeroNovoBtn.textContent = '⏳ Enviando...';
-      fotoHeroNovoBtn.disabled = true;
-      try {
-        const url = await ljUploadImgBB(file);
-        ljAdminFotosHeroTemp.push(url);
-        ljAdminRenderFotosHeroLista();
-        mostrarToast('Foto adicionada. Não esqueça de clicar em "Salvar Identidade".');
-      } catch (err) {
-        console.error('Erro no upload ImgBB:', err);
-        mostrarToast('Erro ao enviar foto: ' + err.message);
-      } finally {
-        fotoHeroNovoBtn.textContent = textoOriginal;
-        fotoHeroNovoBtn.disabled = false;
-        fotoHeroNovoFile.value = '';
-      }
-    });
-  }
+  ljConfigurarUploadMultiplo('admFotoHeroNovoFile', 'admFotoHeroNovoBtn', ljAdminFotosHeroTemp, ljAdminRenderFotosHeroLista, 'Foto adicionada. Não esqueça de clicar em "Salvar Identidade".');
+  ljConfigurarUploadMultiplo('admMatFotoNovoFile', 'admMatFotoNovoBtn', ljAdminFotosNovoMaterialTemp, ljAdminRenderFotosNovoMaterialLista, 'Foto adicionada. Não esqueça de clicar em "Adicionar Material".');
 });
+
+// Conecta um <input type="file"> a uma lista de fotos em memória: cada foto escolhida
+// sobe pro ImgBB e entra no array, redesenhando a lista de miniaturas. Usado tanto
+// pro carrossel da página inicial quanto pras fotos de um material.
+function ljConfigurarUploadMultiplo(fileInputId, btnId, arr, renderFn, msgSucesso) {
+  const fileEl = document.getElementById(fileInputId);
+  const btnEl = document.getElementById(btnId);
+  if (!fileEl || !btnEl) return;
+  fileEl.addEventListener('change', async () => {
+    const file = fileEl.files[0];
+    if (!file) return;
+    const textoOriginal = btnEl.textContent;
+    btnEl.textContent = '⏳ Enviando...';
+    btnEl.disabled = true;
+    try {
+      const url = await ljUploadImgBB(file);
+      arr.push(url);
+      renderFn();
+      if (msgSucesso) mostrarToast(msgSucesso);
+    } catch (err) {
+      console.error('Erro no upload ImgBB:', err);
+      mostrarToast('Erro ao enviar foto: ' + err.message);
+    } finally {
+      btnEl.textContent = textoOriginal;
+      btnEl.disabled = false;
+      fileEl.value = '';
+    }
+  });
+}
 
 // Lista de fotos do carrossel sendo editada no momento no painel Admin (só é
 // gravada no Firestore quando o usuário clica em "Salvar Identidade").
 let ljAdminFotosHeroTemp = [];
 
-// Redesenha as miniaturas das fotos do carrossel no painel Admin, cada uma com
-// um botão "✕" pra remover.
-function ljAdminRenderFotosHeroLista() {
-  const el = document.getElementById('admFotosHeroLista');
+// Redesenha uma lista de miniaturas de fotos com botão "✕" pra remover cada uma.
+// Reutilizada tanto pro carrossel da página inicial quanto pras fotos de material.
+function ljRenderListaFotosComRemover(containerId, arr, onRemover, msgVazio) {
+  const el = document.getElementById(containerId);
   if (!el) return;
-  if (ljAdminFotosHeroTemp.length === 0) {
-    el.innerHTML = '<div class="campo-msg" style="margin:0;">Nenhuma foto ainda — usando a foto padrão.</div>';
+  if (arr.length === 0) {
+    el.innerHTML = `<div class="campo-msg" style="margin:0;">${msgVazio}</div>`;
     return;
   }
-  el.innerHTML = ljAdminFotosHeroTemp.map((url, i) => `
+  el.innerHTML = arr.map((url, i) => `
     <div style="position:relative;width:72px;height:72px;">
       <img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:6px;border:1.5px solid var(--border-color);">
-      <button type="button" onclick="ljAdminRemoverFotoHero(${i})" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#B91C1C;color:#fff;border:2px solid #fff;font-size:0.7rem;line-height:1;cursor:pointer;">✕</button>
+      <button type="button" onclick="${onRemover}(${i})" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:#B91C1C;color:#fff;border:2px solid #fff;font-size:0.7rem;line-height:1;cursor:pointer;">✕</button>
     </div>
   `).join('');
+}
+
+function ljAdminRenderFotosHeroLista() {
+  ljRenderListaFotosComRemover('admFotosHeroLista', ljAdminFotosHeroTemp, 'ljAdminRemoverFotoHero', 'Nenhuma foto ainda — usando a foto padrão.');
 }
 
 function ljAdminRemoverFotoHero(indice) {
   ljAdminFotosHeroTemp.splice(indice, 1);
   ljAdminRenderFotosHeroLista();
 }
+
+// Fotos do material sendo cadastrado agora em "Novo Material" (zeradas depois de salvar).
+let ljAdminFotosNovoMaterialTemp = [];
+
+function ljAdminRenderFotosNovoMaterialLista() {
+  ljRenderListaFotosComRemover('admMatFotosLista', ljAdminFotosNovoMaterialTemp, 'ljAdminRemoverFotoNovoMaterial', 'Nenhuma foto ainda.');
+}
+
+function ljAdminRemoverFotoNovoMaterial(indice) {
+  ljAdminFotosNovoMaterialTemp.splice(indice, 1);
+  ljAdminRenderFotosNovoMaterialLista();
+}
+
 
 const MATERIAIS_PADRAO = [
   { nome: "AREIA FINA", descricao: "Areia fina peneirada, ideal para reboco e acabamento.", precoCacamba: 320, precoM3: 0, fotoUrl: "https://upload.wikimedia.org/wikipedia/commons/e/e1/Silica_Sand.jpg" },
@@ -730,7 +779,7 @@ let ljEhDono = false;
 let ljMateriaisCache = [];
 let ljDestinosCache = [];
 let ljCarrinho = []; // [{materialId, nome, preco, unidade, qtd}]
-let ljConfigLoja = { whatsappNumero:"", nomeLoja:"", logoUrl:"", fotoHeroUrl:"", fotosHero:[], fotoBannerUrl:"", bannerPosicao:"center" };
+let ljConfigLoja = { whatsappNumero:"", nomeLoja:"", logoUrl:"", iconeQuadradoUrl:"", fotoHeroUrl:"", fotosHero:[], fotoBannerUrl:"", bannerPosicao:"center" };
 let ljFreteAtual = { destinoId: null, destinoNome: "", valor: 0 };
 let ljUnsubPedidosCliente = null;
 let ljUnsubPedidosAdmin = null;
@@ -887,6 +936,7 @@ function ljSwitchTab(nome) {
     ljAdminCarregarDestinos();
     ljAdminCarregarConfig();
     ljObservarPedidosAdmin();
+    ljAdminRenderFotosNovoMaterialLista();
   }
   if (nome === 'perfil' && ljUsuarioAtual) {
     ljCarregarPerfilForm();
@@ -940,6 +990,10 @@ function ljAtualizarIdentidadeLoja() {
   }
   const bannerEl = document.getElementById('bannerSecao');
   if (bannerEl) bannerEl.style.backgroundPosition = ljConfigLoja.bannerPosicao || 'center';
+  if (ljConfigLoja.logoUrl || ljConfigLoja.iconeQuadradoUrl) {
+    const faviconLink = document.getElementById('faviconLink');
+    if (faviconLink) faviconLink.setAttribute('href', ljConfigLoja.iconeQuadradoUrl || ljConfigLoja.logoUrl);
+  }
   if (ljConfigLoja.nomeLoja) {
     document.title = ljConfigLoja.nomeLoja;
     const appleTitle = document.getElementById('appleTitleMeta');
@@ -953,7 +1007,7 @@ function ljAtualizarIdentidadeLoja() {
         display: "standalone",
         background_color: "#FAFAF8",
         theme_color: "#1A1A1A",
-        icons: [{ src: ljConfigLoja.logoUrl || "https://cdn-icons-png.flaticon.com/512/2954/2954848.png", sizes: "512x512", type: "image/png" }]
+        icons: [{ src: ljConfigLoja.iconeQuadradoUrl || ljConfigLoja.logoUrl || "https://cdn-icons-png.flaticon.com/512/2954/2954848.png", sizes: "512x512", type: "image/png" }]
       };
       manifestLink.setAttribute('href', 'data:application/manifest+json,' + encodeURIComponent(JSON.stringify(manifest)));
     }
@@ -1067,8 +1121,9 @@ function ljRenderCatalogo() {
     const escolhida = opts[idx] || opts[0];
     return `
     <div class="material-card">
-      <div class="material-foto" style="${m.fotoUrl ? `background-image:url('${m.fotoUrl}')` : `background:${ljCorPlaceholder(m.nome)}`}">
+      <div class="material-foto" style="${m.fotoUrl ? `background-image:url('${m.fotoUrl}')` : `background:${ljCorPlaceholder(m.nome)}`}" onclick="ljAbrirLightbox('${m.id}')">
         <span class="material-badge" id="badge_${m.id}">${escolhida.unidade}</span>
+        ${(m.fotos && m.fotos.length > 1) ? `<span class="material-foto-contador">📷 ${m.fotos.length} fotos</span>` : ''}
       </div>
       <div class="material-body">
         <div class="material-nome">${m.nome}</div>
@@ -1090,6 +1145,43 @@ function ljRenderCatalogo() {
     </div>
   `;
   }).join('');
+}
+
+// ===================================================================
+// LIGHTBOX — visualizador de fotos do material (pro cliente ver as
+// fotos reais do produto, tipo areia fina, brita etc, ampliadas)
+// ===================================================================
+let ljLightboxFotos = [];
+let ljLightboxIndex = 0;
+
+function ljAbrirLightbox(materialId) {
+  const m = ljMateriaisCache.find(x => x.id === materialId);
+  if (!m) return;
+  ljLightboxFotos = (m.fotos && m.fotos.length > 0) ? m.fotos : (m.fotoUrl ? [m.fotoUrl] : []);
+  if (ljLightboxFotos.length === 0) return;
+  ljLightboxIndex = 0;
+  ljAtualizarLightbox();
+  document.getElementById('fotoLightbox').classList.add('aberto');
+}
+
+function ljAtualizarLightbox() {
+  document.getElementById('lightboxImg').src = ljLightboxFotos[ljLightboxIndex];
+  document.getElementById('lightboxContador').textContent = `${ljLightboxIndex + 1} / ${ljLightboxFotos.length}`;
+  document.getElementById('lightboxNav').style.display = ljLightboxFotos.length > 1 ? 'flex' : 'none';
+}
+
+function ljLightboxAnterior() {
+  ljLightboxIndex = (ljLightboxIndex - 1 + ljLightboxFotos.length) % ljLightboxFotos.length;
+  ljAtualizarLightbox();
+}
+
+function ljLightboxProxima() {
+  ljLightboxIndex = (ljLightboxIndex + 1) % ljLightboxFotos.length;
+  ljAtualizarLightbox();
+}
+
+function ljFecharLightbox() {
+  document.getElementById('fotoLightbox').classList.remove('aberto');
 }
 
 function ljEscolherUnidade(materialId, idx) {
@@ -1493,8 +1585,9 @@ async function ljAdminCarregarMateriais() {
         <div class="pedido-acoes">
           <button onclick="ljAdminEditarPreco('${d.id}', ${Number(m.precoCacamba) || 0}, ${Number(m.precoM3) || 0})">✏️ Preço Padrão</button>
           <button onclick="ljAdminEditarPrecosDestino('${d.id}')">📍 Preços por Destino${qtdDestinosComPreco > 0 ? ` (${qtdDestinosComPreco})` : ''}</button>
-          <button onclick='ljAdminEditarFoto(${JSON.stringify(d.id)}, ${JSON.stringify(m.fotoUrl || "")})'>🖼️ Editar Foto</button>
+          <button onclick='ljAdminEditarFotosMaterial(${JSON.stringify(d.id)}, ${JSON.stringify((m.fotos && m.fotos.length > 0) ? m.fotos : (m.fotoUrl ? [m.fotoUrl] : []))})'>🖼️ Editar Fotos</button>
           <button onclick="ljAdminToggleAtivo('${d.id}', ${m.ativo !== false})">${m.ativo !== false ? '🚫 Desativar' : '✅ Ativar'}</button>
+          <button onclick='ljAdminExcluirMaterial(${JSON.stringify(d.id)}, ${JSON.stringify(m.nome)})' style="color:#B91C1C;border-color:#B91C1C;">🗑️ Excluir</button>
         </div>
       </div>`;
     }).join('');
@@ -1509,15 +1602,17 @@ async function ljAdminSalvarMaterial() {
   const descricao = document.getElementById('admMatDesc').value.trim();
   const precoCacamba = paraNumero(document.getElementById('admMatPrecoCacamba').value);
   const precoM3 = paraNumero(document.getElementById('admMatPrecoM3').value);
-  const fotoUrl = document.getElementById('admMatFoto').value.trim();
+  const fotos = [...ljAdminFotosNovoMaterialTemp];
+  const fotoUrl = fotos[0] || '';
   if (!nome) { mostrarToast("Digite o nome do material."); return; }
   if (!precoCacamba && !precoM3) { mostrarToast("Informe o preço por caçamba, por m³, ou os dois."); return; }
-  await db.collection('materiaisLoja').add({ nome, descricao, precoCacamba, precoM3, fotoUrl, ativo: true });
+  await db.collection('materiaisLoja').add({ nome, descricao, precoCacamba, precoM3, fotoUrl, fotos, ativo: true });
   document.getElementById('admMatNome').value = '';
   document.getElementById('admMatDesc').value = '';
   document.getElementById('admMatPrecoCacamba').value = '';
   document.getElementById('admMatPrecoM3').value = '';
-  document.getElementById('admMatFoto').value = '';
+  ljAdminFotosNovoMaterialTemp = [];
+  ljAdminRenderFotosNovoMaterialLista();
   mostrarToast("Material adicionado.");
 }
 
@@ -1582,13 +1677,41 @@ function ljAdminEditarPreco(id, precoCacambaAtual, precoM3Atual) {
   });
 }
 
-function ljAdminEditarFoto(id, fotoAtual) {
-  ljAbrirAdminEdit('Editar Foto', [
-    { id: 'url', label: 'FOTO', valor: fotoAtual || '', placeholder: 'https://...', foto: true }
-  ], (v) => {
-    db.collection('materiaisLoja').doc(id).update({ fotoUrl: v.url });
-    mostrarToast("Foto atualizada.");
-  });
+// Fotos de um material já cadastrado, sendo editadas no momento nesse modal
+// (a lista some quando fecha ou salva).
+let ljAdminFotosEditTemp = [];
+let ljAdminFotosEditMaterialId = null;
+
+function ljAdminEditarFotosMaterial(id, fotosAtuais) {
+  ljAdminFotosEditMaterialId = id;
+  ljAdminFotosEditTemp = [...(fotosAtuais || [])];
+  document.getElementById('adminEditTitulo').textContent = 'Editar Fotos';
+  document.getElementById('adminEditCampos').innerHTML = `
+    <div class="campo-msg" style="margin:0 0 8px;">Adicione, remova ou complemente as fotos reais desse material.</div>
+    <div id="admMatFotosEditLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
+    <input type="file" id="admMatFotoEditNovoFile" accept="image/*" style="display:none;">
+    <button type="button" class="btn-upload-foto" id="admMatFotoEditNovoBtn" onclick="document.getElementById('admMatFotoEditNovoFile').click()">📷 Adicionar Foto</button>
+  `;
+  ljAdminRenderFotosEditLista();
+  ljConfigurarUploadMultiplo('admMatFotoEditNovoFile', 'admMatFotoEditNovoBtn', ljAdminFotosEditTemp, ljAdminRenderFotosEditLista, null);
+  // A "Salvar" do modal genérico chama esse callback ignorando os inputs de texto
+  // (não tem nenhum aqui) — ele usa o array ljAdminFotosEditTemp em vez disso.
+  ljAdminEditCallback = () => {
+    const fotos = [...ljAdminFotosEditTemp];
+    const fotoUrl = fotos[0] || '';
+    db.collection('materiaisLoja').doc(ljAdminFotosEditMaterialId).update({ fotos, fotoUrl });
+    mostrarToast("Fotos atualizadas.");
+  };
+  document.getElementById('adminEditOverlay').classList.add('aberto');
+}
+
+function ljAdminRenderFotosEditLista() {
+  ljRenderListaFotosComRemover('admMatFotosEditLista', ljAdminFotosEditTemp, 'ljAdminRemoverFotoEdit', 'Nenhuma foto cadastrada ainda.');
+}
+
+function ljAdminRemoverFotoEdit(indice) {
+  ljAdminFotosEditTemp.splice(indice, 1);
+  ljAdminRenderFotosEditLista();
 }
 
 // Preço específico por destino: quando preenchido, esse valor substitui o preço padrão
@@ -1620,6 +1743,18 @@ function ljAdminEditarPrecosDestino(materialId) {
 
 function ljAdminToggleAtivo(id, ativoAtual) {
   db.collection('materiaisLoja').doc(id).update({ ativo: !ativoAtual });
+}
+
+// Apaga o material de vez do catálogo (diferente de "Desativar", que só esconde).
+// Pede confirmação porque não tem como desfazer depois.
+async function ljAdminExcluirMaterial(id, nome) {
+  if (!confirm(`Excluir "${nome}" definitivamente? Essa ação não pode ser desfeita.`)) return;
+  try {
+    await db.collection('materiaisLoja').doc(id).delete();
+    mostrarToast(`"${nome}" excluído.`);
+  } catch (err) {
+    mostrarToast("Erro ao excluir: " + err.message);
+  }
 }
 
 // ===================================================================
@@ -1687,6 +1822,7 @@ async function ljAdminCarregarConfig() {
   document.getElementById('admWhatsapp').value = ljConfigLoja.whatsappNumero || '';
   document.getElementById('admNomeLoja').value = ljConfigLoja.nomeLoja || '';
   document.getElementById('admLogoUrl').value = ljConfigLoja.logoUrl || '';
+  document.getElementById('admIconeQuadradoUrl').value = ljConfigLoja.iconeQuadradoUrl || '';
   ljAdminFotosHeroTemp = (ljConfigLoja.fotosHero && ljConfigLoja.fotosHero.length > 0)
     ? [...ljConfigLoja.fotosHero]
     : (ljConfigLoja.fotoHeroUrl ? [ljConfigLoja.fotoHeroUrl] : []);
@@ -1698,16 +1834,18 @@ async function ljAdminCarregarConfig() {
 async function ljAdminSalvarIdentidade() {
   const nomeLoja = document.getElementById('admNomeLoja').value.trim();
   const logoUrl = document.getElementById('admLogoUrl').value.trim();
+  const iconeQuadradoUrl = document.getElementById('admIconeQuadradoUrl').value.trim();
   const fotosHero = [...ljAdminFotosHeroTemp];
   const fotoBannerUrl = document.getElementById('admFotoBanner').value.trim();
   const bannerPosicao = document.getElementById('admFotoBannerPosicao').value;
   ljConfigLoja.nomeLoja = nomeLoja;
   ljConfigLoja.logoUrl = logoUrl;
+  ljConfigLoja.iconeQuadradoUrl = iconeQuadradoUrl;
   ljConfigLoja.fotosHero = fotosHero;
   ljConfigLoja.fotoBannerUrl = fotoBannerUrl;
   ljConfigLoja.bannerPosicao = bannerPosicao;
   try {
-    await db.collection('configLoja').doc('geral').set({ nomeLoja, logoUrl, fotosHero, fotoBannerUrl, bannerPosicao }, { merge: true });
+    await db.collection('configLoja').doc('geral').set({ nomeLoja, logoUrl, iconeQuadradoUrl, fotosHero, fotoBannerUrl, bannerPosicao }, { merge: true });
     document.getElementById('admIdentidadeStatus').textContent = "Identidade da loja salva com sucesso.";
     mostrarToast("Identidade da loja salva.");
     ljAtualizarIdentidadeLoja();

@@ -1,0 +1,6 @@
+{
+  "name": "JC Gravatas - Loja Oficial de Gravatas & Acessórios",
+  "description": "E-commerce oficial da JC Gravatas com catálogo inteligente, sincronização em nuvem via Firebase, gravatas Slim e Clássicas, kits para casamentos e checkout automatizado.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1184,6 +1184,32 @@ function ljFecharLightbox() {
   document.getElementById('fotoLightbox').classList.remove('aberto');
 }
 
+// Suporte a arrastar o dedo (swipe) na foto ampliada, pra passar entre as fotos
+// sem precisar tocar nas setinhas — funciona junto com elas, não substitui.
+(function ljConfigurarSwipeLightbox() {
+  const imgEl = document.getElementById('lightboxImg');
+  if (!imgEl) return;
+  let inicioX = 0;
+  let inicioY = 0;
+  imgEl.addEventListener('touchstart', (e) => {
+    inicioX = e.touches[0].clientX;
+    inicioY = e.touches[0].clientY;
+  }, { passive: true });
+  imgEl.addEventListener('touchend', (e) => {
+    if (ljLightboxFotos.length <= 1) return;
+    const fimX = e.changedTouches[0].clientX;
+    const fimY = e.changedTouches[0].clientY;
+    const deltaX = fimX - inicioX;
+    const deltaY = fimY - inicioY;
+    // Só conta como swipe se o movimento for bem mais horizontal que vertical
+    // (evita confundir com rolagem da página) e passar de um limiar mínimo.
+    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+      if (deltaX < 0) ljLightboxProxima();
+      else ljLightboxAnterior();
+    }
+  }, { passive: true });
+})();
+
 function ljEscolherUnidade(materialId, idx) {
   ljUnidadeSelecionada[materialId] = idx;
   const material = ljMateriaisCache.find(m => m.id === materialId);
@@ -1611,7 +1637,7 @@ async function ljAdminSalvarMaterial() {
   document.getElementById('admMatDesc').value = '';
   document.getElementById('admMatPrecoCacamba').value = '';
   document.getElementById('admMatPrecoM3').value = '';
-  ljAdminFotosNovoMaterialTemp = [];
+  ljAdminFotosNovoMaterialTemp.length = 0;
   ljAdminRenderFotosNovoMaterialLista();
   mostrarToast("Material adicionado.");
 }
@@ -1823,9 +1849,11 @@ async function ljAdminCarregarConfig() {
   document.getElementById('admNomeLoja').value = ljConfigLoja.nomeLoja || '';
   document.getElementById('admLogoUrl').value = ljConfigLoja.logoUrl || '';
   document.getElementById('admIconeQuadradoUrl').value = ljConfigLoja.iconeQuadradoUrl || '';
-  ljAdminFotosHeroTemp = (ljConfigLoja.fotosHero && ljConfigLoja.fotosHero.length > 0)
+  const novasFotosHero = (ljConfigLoja.fotosHero && ljConfigLoja.fotosHero.length > 0)
     ? [...ljConfigLoja.fotosHero]
     : (ljConfigLoja.fotoHeroUrl ? [ljConfigLoja.fotoHeroUrl] : []);
+  ljAdminFotosHeroTemp.length = 0;
+  ljAdminFotosHeroTemp.push(...novasFotosHero);
   ljAdminRenderFotosHeroLista();
   document.getElementById('admFotoBanner').value = ljConfigLoja.fotoBannerUrl || '';
   document.getElementById('admFotoBannerPosicao').value = ljConfigLoja.bannerPosicao || 'center';

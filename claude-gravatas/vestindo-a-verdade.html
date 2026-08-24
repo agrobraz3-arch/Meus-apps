@@ -424,8 +424,8 @@ footer.site a:hover{color:var(--gold-soft);}
 <header class="site">
   <div class="topbar">
     <a href="#" class="brand" onclick="fecharTudo()">
-      <span class="mark">Vestindo a Verdade</span>
-      <span class="verse">Efésios 6:14 · gravataria</span>
+      <span class="mark" id="header-nome-site">Vestindo a Verdade</span>
+      <span class="verse" id="header-slogan">Efésios 6:14 · gravataria</span>
     </a>
     <div class="busca-header">
       <span class="lupa">🔍</span>
@@ -520,18 +520,21 @@ footer.site a:hover{color:var(--gold-soft);}
 <footer class="site" id="contato">
   <div class="container footer-grid">
     <div>
-      <h4>Vestindo a Verdade</h4>
-      <p class="versiculo">"Estai, pois, firmes, tendo cingidos os vossos lombos com a verdade..." — Efésios 6:14</p>
+      <h4 id="footer-nome-site">Vestindo a Verdade</h4>
+      <p class="versiculo" id="footer-slogan">"Estai, pois, firmes, tendo cingidos os vossos lombos com a verdade..." — Efésios 6:14</p>
     </div>
     <div>
       <h4>Atendimento</h4>
       <p><a href="#" id="link-wa-footer" target="_blank">WhatsApp</a></p>
+      <p id="footer-email" class="hidden"><a href="#" id="link-email-footer">E-mail</a></p>
       <p>Seg a Sáb · 8h às 19h</p>
     </div>
     <div>
       <h4>Institucional</h4>
       <p><a href="#" onclick="abrirConta()">Minha conta</a></p>
       <p><a href="#catalogo">Catálogo completo</a></p>
+      <p id="footer-instagram" class="hidden"><a href="#" id="link-instagram-footer" target="_blank">Instagram</a></p>
+      <p id="footer-youtube" class="hidden"><a href="#" id="link-youtube-footer" target="_blank">YouTube</a></p>
     </div>
   </div>
   <div class="footer-bottom container">© <span id="ano"></span> Vestindo a Verdade. Todos os direitos reservados.</div>
@@ -651,6 +654,14 @@ footer.site a:hover{color:var(--gold-soft);}
       </div>
 
       <div id="checkout-conteudo">
+        <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);font-weight:700;margin-bottom:10px;">Seus dados</label>
+        <div class="linha-2">
+          <div class="campo"><label>Nome completo</label><input type="text" id="chk-nome"></div>
+          <div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="chk-telefone" placeholder="(82) 90000-0000"></div>
+        </div>
+        <div class="campo"><label>E-mail</label><input type="email" id="chk-email"></div>
+
+        <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);font-weight:700;margin:18px 0 10px;">Endereço de entrega</label>
         <div class="linha-3">
           <div class="campo"><label>CEP</label><input type="text" id="chk-cep" onblur="buscarCepCheckout()"></div>
           <div class="campo"><label>Número</label><input type="text" id="chk-numero"></div>
@@ -665,6 +676,9 @@ footer.site a:hover{color:var(--gold-soft);}
         <div class="campo"><label>Observações (opcional)</label><textarea id="chk-obs" rows="2"></textarea></div>
         <div class="linha-total" style="border-top:1px solid var(--line);padding-top:14px;">
           <span>Total do pedido</span><span id="chk-total">R$ 0,00</span>
+        </div>
+        <div class="ok-msg hidden" id="chk-pix-info" style="display:none;justify-content:space-between;align-items:center;">
+          <span>Chave PIX para pagamento: <strong id="chk-pix-chave"></strong></span>
         </div>
         <button class="btn btn-wine" onclick="confirmarPedidoEEnviarWhatsapp()">Enviar pedido pelo WhatsApp</button>
       </div>
@@ -701,6 +715,71 @@ document.getElementById('wa-flutuante').href = `https://wa.me/${CONFIG.whatsapp}
 document.getElementById('link-wa-footer').href = `https://wa.me/${CONFIG.whatsapp}`;
 document.getElementById('topbar-frete-valor').textContent = CONFIG.freteGratisTexto;
 document.getElementById('topbar-pix').textContent = `${Math.round(CONFIG.descontoPix*100)}% de desconto no PIX`;
+
+/* =====================================================================
+   CONFIGURAÇÕES DO SITE (editáveis pelo painel admin, sem mexer em código)
+===================================================================== */
+async function carregarConfiguracoesSite(){
+  try{
+    const doc = await db.collection('configuracoes').doc('site').get();
+    if(!doc.exists) return;
+    const cfg = doc.data();
+
+    if(cfg.nomeSite){
+      document.getElementById('header-nome-site').textContent = cfg.nomeSite;
+      document.getElementById('footer-nome-site').textContent = cfg.nomeSite;
+      document.title = cfg.nomeSite + ' — Gravataria';
+    }
+    if(cfg.slogan){
+      document.getElementById('header-slogan').textContent = cfg.slogan;
+    }
+    if(cfg.versiculo){
+      document.getElementById('footer-slogan').textContent = cfg.versiculo;
+    }
+    if(cfg.whatsapp){
+      CONFIG.whatsapp = cfg.whatsapp;
+      document.getElementById('wa-flutuante').href = `https://wa.me/${CONFIG.whatsapp}`;
+      document.getElementById('link-wa-footer').href = `https://wa.me/${CONFIG.whatsapp}`;
+    }
+    if(cfg.email){
+      document.getElementById('footer-email').classList.remove('hidden');
+      document.getElementById('link-email-footer').href = `mailto:${cfg.email}`;
+      document.getElementById('link-email-footer').textContent = cfg.email;
+    }
+    if(cfg.instagram){
+      document.getElementById('footer-instagram').classList.remove('hidden');
+      document.getElementById('link-instagram-footer').href = cfg.instagram.startsWith('http') ? cfg.instagram : `https://instagram.com/${cfg.instagram.replace('@','')}`;
+    }
+    if(cfg.youtube){
+      document.getElementById('footer-youtube').classList.remove('hidden');
+      document.getElementById('link-youtube-footer').href = cfg.youtube;
+    }
+    if(cfg.chavePix){
+      CONFIG.chavePix = cfg.chavePix;
+      document.getElementById('chk-pix-chave').textContent = cfg.chavePix;
+      const pixInfo = document.getElementById('chk-pix-info');
+      pixInfo.classList.remove('hidden');
+      pixInfo.style.display = 'flex';
+    }
+    if(cfg.descontoPix !== undefined && cfg.descontoPix !== null && cfg.descontoPix !== ''){
+      CONFIG.descontoPix = Number(cfg.descontoPix)/100;
+      document.getElementById('topbar-pix').textContent = `${Math.round(CONFIG.descontoPix*100)}% de desconto no PIX`;
+    }
+    if(cfg.freteGratisTexto){
+      CONFIG.freteGratisTexto = cfg.freteGratisTexto;
+      document.getElementById('topbar-frete-valor').textContent = cfg.freteGratisTexto;
+    }
+    if(cfg.corDestaque){
+      document.documentElement.style.setProperty('--gold', cfg.corDestaque);
+      document.documentElement.style.setProperty('--gold-dark', cfg.corDestaque);
+    }
+    if(cfg.corFundo){
+      document.documentElement.style.setProperty('--bg', cfg.corFundo);
+    }
+  }catch(e){
+    console.error('Não foi possível carregar configurações do site:', e);
+  }
+}
 
 /* =====================================================================
    FIREBASE INIT
@@ -1239,11 +1318,61 @@ async function carregarPedidos(){
           <div class="topo"><span>Pedido de ${data}</span><span class="status">${p.status||'Aguardando pagamento'}</span></div>
           <div style="color:var(--text-dim);font-size:13px;">${(p.itens||[]).map(i=>`${i.qtd}x ${i.nome} (${i.largura})`).join(', ')}</div>
           <div style="margin-top:8px;font-weight:800;color:#fff;">${formatarPreco(p.total||0)}</div>
+          <button class="btn btn-outline" style="margin-top:10px;padding:8px 14px;font-size:12px;" onclick='repetirPedido(${JSON.stringify(p.itens||[]).replace(/'/g,"&#39;")})'>Repetir pedido</button>
         </div>`;
     }).join('');
   }catch(e){
     console.error(e);
     container.innerHTML = '<p class="sub">Não foi possível carregar seus pedidos agora.</p>';
+  }
+}
+
+function repetirPedido(itensAntigos){
+  let adicionados = 0;
+  let indisponiveis = [];
+
+  itensAntigos.forEach(itemAntigo=>{
+    const produtoAtual = produtos.find(p=>p.id===itemAntigo.produtoId);
+    if(!produtoAtual){
+      indisponiveis.push(itemAntigo.nome);
+      return;
+    }
+    const estoqueDisp = Number((produtoAtual.estoque||{})[itemAntigo.largura] || 0);
+    const existenteNaSacola = carrinho.find(i=>i.produtoId===itemAntigo.produtoId && i.largura===itemAntigo.largura);
+    const qtdJaNaSacola = existenteNaSacola ? existenteNaSacola.qtd : 0;
+
+    if(estoqueDisp <= qtdJaNaSacola){
+      indisponiveis.push(itemAntigo.nome);
+      return;
+    }
+    const qtdAdicionar = Math.min(itemAntigo.qtd, estoqueDisp - qtdJaNaSacola);
+
+    if(existenteNaSacola){
+      existenteNaSacola.qtd += qtdAdicionar;
+    }else{
+      carrinho.push({
+        produtoId: produtoAtual.id,
+        nome: produtoAtual.nome,
+        preco: Number(produtoAtual.preco||0),
+        largura: itemAntigo.largura,
+        qtd: qtdAdicionar,
+        imagem: (produtoAtual.imagens && produtoAtual.imagens[0]) || ''
+      });
+    }
+    adicionados++;
+  });
+
+  salvarCarrinhoLocal();
+
+  if(adicionados > 0){
+    mostrarToast(indisponiveis.length ? 'Alguns itens foram adicionados à sacola.' : 'Itens adicionados à sacola.');
+  }
+  if(indisponiveis.length > 0){
+    setTimeout(()=>mostrarToast(`Sem estoque suficiente: ${indisponiveis.join(', ')}`), 2800);
+  }
+  if(adicionados > 0){
+    fecharOverlay('overlay-conta');
+    abrirCarrinho();
   }
 }
 
@@ -1262,6 +1391,9 @@ function irParaCheckout(){
   }else{
     document.getElementById('checkout-precisa-login').classList.add('hidden');
     document.getElementById('checkout-conteudo').classList.remove('hidden');
+    document.getElementById('chk-nome').value = perfilAtual?.nome || '';
+    document.getElementById('chk-telefone').value = perfilAtual?.telefone || '';
+    document.getElementById('chk-email').value = perfilAtual?.email || usuarioAtual?.email || '';
     const e = perfilAtual?.endereco || {};
     document.getElementById('chk-cep').value = e.cep||'';
     document.getElementById('chk-rua').value = e.rua||'';
@@ -1294,6 +1426,10 @@ async function confirmarPedidoEEnviarWhatsapp(){
   const erroEl = document.getElementById('erro-checkout');
   erroEl.style.display='none';
 
+  const nome = document.getElementById('chk-nome').value.trim();
+  const telefone = document.getElementById('chk-telefone').value.trim();
+  const email = document.getElementById('chk-email').value.trim();
+
   const endereco = {
     cep: document.getElementById('chk-cep').value.trim(),
     rua: document.getElementById('chk-rua').value.trim(),
@@ -1305,6 +1441,10 @@ async function confirmarPedidoEEnviarWhatsapp(){
   };
   const obs = document.getElementById('chk-obs').value.trim();
 
+  if(!nome || !telefone){
+    exibirErro('erro-checkout','Preencha seu nome e telefone para contato.');
+    return;
+  }
   if(!endereco.rua || !endereco.numero || !endereco.cidade){
     exibirErro('erro-checkout','Preencha ao menos rua, número e cidade para entrega.');
     return;
@@ -1315,8 +1455,9 @@ async function confirmarPedidoEEnviarWhatsapp(){
   try{
     await db.collection('pedidos').add({
       clienteId: usuarioAtual.uid,
-      clienteNome: perfilAtual?.nome || '',
-      clienteTelefone: perfilAtual?.telefone || '',
+      clienteNome: nome,
+      clienteTelefone: telefone,
+      clienteEmail: email,
       itens: carrinho,
       total,
       endereco,
@@ -1324,7 +1465,9 @@ async function confirmarPedidoEEnviarWhatsapp(){
       status: 'Aguardando pagamento',
       criadoEm: firebase.firestore.FieldValue.serverTimestamp()
     });
-    await db.collection('clientes').doc(usuarioAtual.uid).update({endereco});
+    await db.collection('clientes').doc(usuarioAtual.uid).update({nome, telefone, endereco});
+    perfilAtual.nome = nome;
+    perfilAtual.telefone = telefone;
   }catch(e){
     console.error(e);
     exibirErro('erro-checkout','Não foi possível registrar o pedido agora. Tente novamente.');
@@ -1332,9 +1475,10 @@ async function confirmarPedidoEEnviarWhatsapp(){
   }
 
   let msg = `*Novo pedido — Vestindo a Verdade*\n\n`;
-  msg += `*Cliente:* ${perfilAtual?.nome || ''}\n`;
-  msg += `*Telefone:* ${perfilAtual?.telefone || ''}\n\n`;
-  msg += `*Itens:*\n`;
+  msg += `*Cliente:* ${nome}\n`;
+  msg += `*Telefone:* ${telefone}\n`;
+  if(email) msg += `*E-mail:* ${email}\n`;
+  msg += `\n*Itens:*\n`;
   carrinho.forEach(i=>{
     msg += `• ${i.qtd}x ${i.nome} — largura ${i.largura} — ${formatarPreco(i.preco*i.qtd)}\n`;
   });
@@ -1344,6 +1488,7 @@ async function confirmarPedidoEEnviarWhatsapp(){
   msg += `${endereco.bairro} — ${endereco.cidade}/${endereco.estado}\n`;
   msg += `CEP: ${endereco.cep}\n`;
   if(obs) msg += `\n*Observações:* ${obs}\n`;
+  if(CONFIG.chavePix) msg += `\n*Chave PIX da loja:* ${CONFIG.chavePix}\n`;
   msg += `\n_Vou enviar o comprovante do pagamento (PIX/transferência) em seguida._`;
 
   const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
@@ -1359,6 +1504,7 @@ async function confirmarPedidoEEnviarWhatsapp(){
    INICIALIZAÇÃO
 ===================================================================== */
 carregarProdutos();
+carregarConfiguracoesSite();
 </script>
 </body>
 </html>

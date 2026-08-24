@@ -438,7 +438,7 @@ async function carregarPedidosAdmin(){
     return `
       <tr>
         <td>${data}</td>
-        <td>${p.clienteNome||''}<br><small>${p.clienteTelefone||''}</small></td>
+        <td>${p.clienteNome||''}<br><small>${p.clienteTelefone||''}${p.clienteEmail?' · '+p.clienteEmail:''}</small></td>
         <td>${itensTxt}</td>
         <td>R$ ${Number(p.total||0).toFixed(2)}</td>
         <td>

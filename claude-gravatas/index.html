@@ -428,7 +428,7 @@ footer.site a:hover{color:var(--gold-soft);}
 <!-- =========================================================
      TOPBAR DE PROMOÇÕES
 ========================================================= -->
-<div class="topbar-promo">
+<div class="topbar-promo" id="topbar-promo-bar">
   <div class="container">
     <div class="esq">
       <span>🚚 Frete grátis para todo o Brasil acima de <span id="topbar-frete-valor">R$ 199,90</span></span>
@@ -796,8 +796,11 @@ footer.site a:hover{color:var(--gold-soft);}
 
     <!-- ABA PEDIDOS -->
     <div id="adm-aba-pedidos" class="hidden">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px;">
+        <button class="btn btn-wine" style="padding:9px 16px;font-size:12.5px;" onclick="limparTodosPedidos()">Limpar tudo (apagar todos os pedidos)</button>
+      </div>
       <table class="adm-table">
-        <thead><tr><th>Data</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <thead><tr><th>Data</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th></th><th></th></tr></thead>
         <tbody id="adm-tabela-pedidos"><tr><td colspan="6">Carregando...</td></tr></tbody>
       </table>
     </div>
@@ -839,6 +842,11 @@ footer.site a:hover{color:var(--gold-soft);}
           <div class="campo"><label>Chave PIX</label><input type="text" id="adm-cfg-chave-pix" placeholder="CPF, e-mail, telefone ou chave aleatória"></div>
           <div class="campo"><label>Desconto PIX exibido (%)</label><input type="number" step="0.1" id="adm-cfg-desconto-pix" placeholder="5"></div>
         </div>
+
+        <label class="adm-rot">Barra de promoção (topo do site)</label>
+        <label style="display:flex;align-items:center;gap:8px;font-weight:400;text-transform:none;font-size:13px;color:var(--ink);margin-bottom:12px;">
+          <input type="checkbox" id="adm-cfg-mostrar-topbar" style="width:auto;" checked> Mostrar a barra de frete grátis / desconto PIX no topo do site
+        </label>
         <div class="campo"><label>Texto de frete grátis (barra do topo)</label><input type="text" id="adm-cfg-frete-texto" placeholder="R$ 199,90"></div>
 
         <label class="adm-rot">Redes sociais</label>
@@ -931,12 +939,19 @@ async function carregarConfiguracoesSite(){
     }
     if(cfg.descontoPix !== undefined && cfg.descontoPix !== null && cfg.descontoPix !== ''){
       CONFIG.descontoPix = Number(cfg.descontoPix)/100;
-      document.getElementById('topbar-pix').textContent = `${Math.round(CONFIG.descontoPix*100)}% de desconto no PIX`;
+      const pixEl = document.getElementById('topbar-pix');
+      if(Number(cfg.descontoPix) > 0){
+        pixEl.textContent = `${Math.round(CONFIG.descontoPix*100)}% de desconto no PIX`;
+        pixEl.style.display = '';
+      }else{
+        pixEl.style.display = 'none';
+      }
     }
     if(cfg.freteGratisTexto){
       CONFIG.freteGratisTexto = cfg.freteGratisTexto;
       document.getElementById('topbar-frete-valor').textContent = cfg.freteGratisTexto;
     }
+    document.getElementById('topbar-promo-bar').style.display = (cfg.mostrarTopbarPromo === false) ? 'none' : '';
     if(cfg.corDestaque){
       document.documentElement.style.setProperty('--gold', cfg.corDestaque);
       document.documentElement.style.setProperty('--gold-dark', cfg.corDestaque);
@@ -1899,7 +1914,7 @@ async function carregarPedidosAdmin(){
   const tbody = document.getElementById('adm-tabela-pedidos');
   const snap = await db.collection('pedidos').orderBy('criadoEm','desc').limit(100).get();
   if(snap.empty){
-    tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido registrado ainda.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7">Nenhum pedido registrado ainda.</td></tr>';
     return;
   }
   tbody.innerHTML = snap.docs.map(d=>{
@@ -1907,10 +1922,20 @@ async function carregarPedidosAdmin(){
     const data = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleString('pt-BR') : '';
     const itensTxt = (p.itens||[]).map(i=>`${i.qtd}x ${i.nome} (${i.largura})`).join(', ');
     const jaConfirmado = p.status === 'Pagamento confirmado' || p.status === 'Em separação' || p.status === 'Enviado' || p.status === 'Entregue';
+
+    const digitosTel = (p.clienteTelefone||'').replace(/\D/g,'');
+    const numeroWa = digitosTel ? (digitosTel.length <= 11 ? '55'+digitosTel : digitosTel) : '';
+    const linkWa = numeroWa ? `<a href="https://wa.me/${numeroWa}" target="_blank" style="color:#25D366;font-weight:700;">💬 ${p.clienteTelefone}</a>` : '';
+
     return `
       <tr>
         <td>${data}</td>
-        <td>${p.clienteNome||''}<br><small>${p.clienteTelefone||''}${p.clienteEmail?' · '+p.clienteEmail:''}</small></td>
+        <td>
+          <strong>${p.clienteNome||'(sem nome)'}</strong><br>
+          ${linkWa || `<small>${p.clienteTelefone||'sem telefone'}</small>`}
+          ${p.clienteEmail?`<br><small>${p.clienteEmail}</small>`:''}
+          ${p.endereco?`<br><small style="color:var(--text-dim);">${p.endereco.cidade||''}${p.endereco.estado?'/'+p.endereco.estado:''}</small>`:''}
+        </td>
         <td>${itensTxt}</td>
         <td>${formatarPreco(p.total||0)}</td>
         <td>
@@ -1922,6 +1947,9 @@ async function carregarPedidosAdmin(){
           ${jaConfirmado
             ? '<span class="adm-status-tag" style="color:#7fe0a0;">Pago</span>'
             : `<button class="btn btn-gold" style="padding:8px 12px;font-size:12px;" onclick='confirmarPagamentoAdmin("${d.id}")'>Confirmar pagamento</button>`}
+        </td>
+        <td>
+          <button class="btn btn-wine" style="padding:8px 12px;font-size:12px;" onclick='excluirPedidoAdmin("${d.id}")'>Excluir</button>
         </td>
       </tr>`;
   }).join('');
@@ -1935,6 +1963,34 @@ async function atualizarStatusPedidoAdmin(id, status){
   await db.collection('pedidos').doc(id).update({status});
   mostrarToast('Status atualizado.');
   carregarPedidosAdmin();
+}
+
+async function excluirPedidoAdmin(id){
+  if(!confirm('Excluir este pedido? Essa ação não pode ser desfeita.')) return;
+  try{
+    await db.collection('pedidos').doc(id).delete();
+    mostrarToast('Pedido excluído.');
+    carregarPedidosAdmin();
+  }catch(e){
+    console.error(e);
+    mostrarToast('Erro ao excluir pedido.');
+  }
+}
+
+async function limparTodosPedidos(){
+  if(!confirm('Isso vai apagar TODOS os pedidos cadastrados. Tem certeza?')) return;
+  if(!confirm('Confirma de novo: apagar todos os pedidos, sem volta?')) return;
+  try{
+    const snap = await db.collection('pedidos').get();
+    const lote = db.batch();
+    snap.docs.forEach(d=>lote.delete(d.ref));
+    await lote.commit();
+    mostrarToast(`${snap.size} pedido(s) excluído(s).`);
+    carregarPedidosAdmin();
+  }catch(e){
+    console.error(e);
+    mostrarToast('Erro ao limpar os pedidos.');
+  }
 }
 
 /* ---------- Configurações do site ---------- */
@@ -1954,6 +2010,7 @@ async function carregarConfiguracoesAdmin(){
     document.getElementById('adm-cfg-chave-pix').value = cfg.chavePix || '';
     document.getElementById('adm-cfg-desconto-pix').value = cfg.descontoPix || '';
     document.getElementById('adm-cfg-frete-texto').value = cfg.freteGratisTexto || '';
+    document.getElementById('adm-cfg-mostrar-topbar').checked = cfg.mostrarTopbarPromo !== false;
     document.getElementById('adm-cfg-instagram').value = cfg.instagram || '';
     document.getElementById('adm-cfg-youtube').value = cfg.youtube || '';
   }catch(e){
@@ -1983,6 +2040,7 @@ async function salvarConfiguracoesAdmin(){
     chavePix: document.getElementById('adm-cfg-chave-pix').value.trim(),
     descontoPix: Number(document.getElementById('adm-cfg-desconto-pix').value || 0),
     freteGratisTexto: document.getElementById('adm-cfg-frete-texto').value.trim(),
+    mostrarTopbarPromo: document.getElementById('adm-cfg-mostrar-topbar').checked,
     instagram: document.getElementById('adm-cfg-instagram').value.trim(),
     youtube: document.getElementById('adm-cfg-youtube').value.trim()
   };

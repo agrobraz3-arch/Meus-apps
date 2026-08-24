@@ -187,8 +187,9 @@
   .hero-btn.primario:hover { background:var(--accent-dark); }
   .hero-btn.secundario { background:#fff; color:var(--text-dark); border:1.5px solid var(--text-dark); }
 
-  .hero-image-wrap { position:relative; border-radius:6px; overflow:hidden; aspect-ratio: 9/16; }
-  .hero-image { width:100%; height:100%; aspect-ratio: 9/16; object-fit:cover; display:block; }
+  .hero-image-wrap { position:relative; border-radius:6px; overflow:hidden; aspect-ratio: 4/5; max-width:320px; margin:0 auto; }
+  .hero-image { width:100%; height:100%; aspect-ratio: 4/5; object-fit:cover; display:block; }
+  @media (min-width:801px){ .hero-image-wrap { max-height:360px; max-width:288px; margin:0 auto; } }
   .hero-image-wrap.carrossel .hero-image { position:absolute; inset:0; opacity:0; transition:opacity 1s ease; }
   .hero-image-wrap.carrossel .hero-image.ativa { opacity:1; }
   .hero-dots { position:absolute; top:14px; right:14px; display:flex; gap:6px; z-index:2; }
@@ -525,7 +526,7 @@
         </div>
         <label>FOTOS DA PÁGINA INICIAL (CARROSSEL)</label>
         <div class="campo-msg" style="margin-top:-6px;margin-bottom:2px;">Adicione uma ou mais fotos (do caminhão, caçamba, areia, sua área etc). Com 2 ou mais, elas trocam sozinhas na página inicial.</div>
-        <div class="campo-msg" style="margin-top:0;margin-bottom:8px;">📐 Tamanho ideal: <b>1080 x 1920px</b> (retrato/vertical 9:16 — o formato exato de tela do celular).</div>
+        <div class="campo-msg" style="margin-top:0;margin-bottom:8px;">📐 Tamanho ideal: <b>1080 x 1350px</b> (retrato 4:5 — o formato padrão de foto usado por sites e redes sociais, fica bem em qualquer tela).</div>
         <div id="admFotosHeroLista" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;"></div>
         <input type="file" id="admFotoHeroNovoFile" accept="image/*" style="display:none;">
         <button type="button" class="btn-upload-foto" id="admFotoHeroNovoBtn" onclick="document.getElementById('admFotoHeroNovoFile').click()">📷 Adicionar Foto</button>

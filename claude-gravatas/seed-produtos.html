@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastrar produtos de exemplo — Vestindo a Verdade</title>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<style>
+  body{font-family:sans-serif;max-width:640px;margin:60px auto;padding:0 20px;color:#1b1b1b;}
+  h1{font-size:22px;}
+  button{padding:14px 22px;background:#101c2f;color:#fff;border:none;border-radius:4px;font-size:15px;cursor:pointer;margin-top:16px;}
+  button:disabled{opacity:.5;cursor:not-allowed;}
+  #log{margin-top:20px;font-size:13px;line-height:1.9;background:#f7f3ea;padding:16px;border-radius:4px;white-space:pre-wrap;}
+  .aviso{background:#fbeaea;color:#6e1a2a;padding:12px;border-radius:4px;font-size:13px;}
+</style>
+</head>
+<body>
+  <h1>Cadastrar 10 gravatas de exemplo</h1>
+  <p>Esta página escreve 10 produtos de demonstração diretamente na coleção <code>produtos</code> do seu Firestore. Use apenas uma vez, antes de cadastrar seus produtos reais pelo <code>admin.html</code>. Depois pode apagar este arquivo.</p>
+  <div class="aviso">Antes de clicar, confira se preencheu o <code>CONFIG.firebase</code> abaixo com as credenciais do <strong>mesmo projeto Firebase</strong> usado no site e no admin.</div>
+  <button id="btn" onclick="cadastrarTudo()">Cadastrar 10 gravatas de exemplo</button>
+  <div id="log"></div>
+
+<script>
+/* Use exatamente as mesmas credenciais do vestindo-a-verdade.html / admin.html */
+const CONFIG = {
+  firebase: {
+    apiKey: "AIzaSyDnjiIrX_rloTmRuyBzs5TWGK2QaFep9J4",
+    authDomain: "errrf-b4439.firebaseapp.com",
+    databaseURL: "https://errrf-b4439-default-rtdb.firebaseio.com",
+    projectId: "errrf-b4439",
+    storageBucket: "errrf-b4439.firebasestorage.app",
+    messagingSenderId: "341087990615",
+    appId: "1:341087990615:web:7da7f1f146c04fa4770412",
+    measurementId: "G-QPVJPC9FWH"
+  }
+};
+firebase.initializeApp(CONFIG.firebase);
+const db = firebase.firestore();
+
+function log(msg){
+  document.getElementById('log').textContent += msg + '\n';
+}
+
+// imagens placeholder geradas localmente (SVG embutido) — nunca falham, não dependem de internet
+// troque pelas fotos reais depois, pelo admin.html
+function imgPlaceholder(texto, cor){
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="500" height="600">
+    <rect width="100%" height="100%" fill="#${cor}"/>
+    <text x="50%" y="50%" font-family="Georgia, serif" font-size="30" fill="#f7f3ea"
+      text-anchor="middle" dominant-baseline="middle">${texto}</text>
+  </svg>`;
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+
+const produtosExemplo = [
+  {
+    nome: "Gravata Clássica Azul-Marinho",
+    descricao: "Lisa, em seda pura, ideal para cultos, pregações e ambientes de trabalho. Combina com qualquer paletó.",
+    preco: 89.90, cor: "Azul-marinho", tecido: "Seda", estampa: "Lisa", ocasiao: "Culto e trabalho",
+    larguras: ["Tradicional (8cm)", "Slim (6cm)"],
+    estoque: {"Tradicional (8cm)": 12, "Slim (6cm)": 8},
+    imagens: [imgPlaceholder("Azul-Marinho Lisa","0f1e33"), imgPlaceholder("Detalhe do tecido","1c2f4d")]
+  },
+  {
+    nome: "Gravata Vinho Jacquard Diagonal",
+    descricao: "Textura diagonal discreta em tom vinho profundo, perfeita para casamentos e cerimônias.",
+    preco: 99.90, cor: "Vinho", tecido: "Seda jacquard", estampa: "Listrada diagonal", ocasiao: "Casamento",
+    larguras: ["Tradicional (8cm)", "Slim (6cm)"],
+    estoque: {"Tradicional (8cm)": 10, "Slim (6cm)": 6},
+    imagens: [imgPlaceholder("Vinho Diagonal","6e1a2a")]
+  },
+  {
+    nome: "Gravata Cinza Chumbo Lisa",
+    descricao: "Sobriedade absoluta em cinza chumbo, tecido premium com caimento perfeito para o dia a dia.",
+    preco: 69.90, cor: "Cinza", tecido: "Poliéster premium", estampa: "Lisa", ocasiao: "Trabalho",
+    larguras: ["Tradicional (8cm)", "Slim (6cm)", "Skinny (4cm)"],
+    estoque: {"Tradicional (8cm)": 15, "Slim (6cm)": 9, "Skinny (4cm)": 5},
+    imagens: [imgPlaceholder("Cinza Chumbo","5b6572")]
+  },
+  {
+    nome: "Gravata Dourada Micro-poá",
+    descricao: "Discreta e elegante, com micro-poá dourado sobre fundo escuro. Para ocasiões especiais no culto.",
+    preco: 109.90, cor: "Dourado", tecido: "Seda", estampa: "Micro-poá", ocasiao: "Culto especial",
+    larguras: ["Tradicional (8cm)"],
+    estoque: {"Tradicional (8cm)": 7},
+    imagens: [imgPlaceholder("Dourada Micro-poa","b3924f")]
+  },
+  {
+    nome: "Gravata Preta Slim Cetim",
+    descricao: "Acetinada, lisa e versátil — indicada para eventos formais, funerais e cerimônias solenes.",
+    preco: 79.90, cor: "Preto", tecido: "Cetim", estampa: "Lisa", ocasiao: "Formal",
+    larguras: ["Slim (6cm)", "Skinny (4cm)"],
+    estoque: {"Slim (6cm)": 11, "Skinny (4cm)": 4},
+    imagens: [imgPlaceholder("Preta Slim","1b1b1b")]
+  },
+  {
+    nome: "Gravata Azul Royal Listrada",
+    descricao: "Listras clássicas em tom de azul royal, uma escolha tradicional e confiante para casamentos.",
+    preco: 94.90, cor: "Azul royal", tecido: "Seda", estampa: "Listrada clássica", ocasiao: "Casamento",
+    larguras: ["Tradicional (8cm)", "Slim (6cm)"],
+    estoque: {"Tradicional (8cm)": 9, "Slim (6cm)": 7},
+    imagens: [imgPlaceholder("Azul Royal","1c3f6e")]
+  },
+  {
+    nome: "Gravata Verde Musgo Texturizada",
+    descricao: "Em lã fria texturizada, traz aconchego e sofisticação para os dias mais frios do ano.",
+    preco: 99.90, cor: "Verde musgo", tecido: "Lã fria", estampa: "Texturizada", ocasiao: "Outono e inverno",
+    larguras: ["Tradicional (8cm)"],
+    estoque: {"Tradicional (8cm)": 6},
+    imagens: [imgPlaceholder("Verde Musgo","3c4a32")]
+  },
+  {
+    nome: "Gravata Bordô Príncipe de Gales",
+    descricao: "Xadrez príncipe de Gales discreto em tom bordô, uma opção sofisticada para o ambiente corporativo.",
+    preco: 84.90, cor: "Bordô", tecido: "Algodão e seda", estampa: "Xadrez discreto", ocasiao: "Trabalho",
+    larguras: ["Tradicional (8cm)", "Slim (6cm)"],
+    estoque: {"Tradicional (8cm)": 8, "Slim (6cm)": 5},
+    imagens: [imgPlaceholder("Bordo Principe de Gales","5c1f2e")]
+  },
+  {
+    nome: "Gravata Marrom Terra Matte",
+    descricao: "Lisa em acabamento fosco, tom terra que combina com paletós em tweed e ambientes mais informais do culto.",
+    preco: 74.90, cor: "Marrom", tecido: "Seda matte", estampa: "Lisa", ocasiao: "Culto informal",
+    larguras: ["Tradicional (8cm)", "Skinny (4cm)"],
+    estoque: {"Tradicional (8cm)": 10, "Skinny (4cm)": 3},
+    imagens: [imgPlaceholder("Marrom Terra","4a3728")]
+  },
+  {
+    nome: "Gravata Prata Perolado Cerimônia",
+    descricao: "Acetinada com leve brilho perolado, criada para casamentos, formaturas e grandes celebrações.",
+    preco: 119.90, cor: "Prata", tecido: "Seda acetinada", estampa: "Lisa", ocasiao: "Casamento e formatura",
+    larguras: ["Tradicional (8cm)", "Slim (6cm)"],
+    estoque: {"Tradicional (8cm)": 6, "Slim (6cm)": 4},
+    imagens: [imgPlaceholder("Prata Perolado","8a8f96")]
+  }
+];
+
+async function cadastrarTudo(){
+  const btn = document.getElementById('btn');
+  btn.disabled = true;
+  log('Iniciando cadastro de ' + produtosExemplo.length + ' gravatas...\n');
+  let sucesso = 0;
+  for(const produto of produtosExemplo){
+    try{
+      await db.collection('produtos').add({...produto, ativo: true});
+      sucesso++;
+      log('✔ Cadastrada: ' + produto.nome);
+    }catch(e){
+      log('✘ Erro ao cadastrar ' + produto.nome + ': ' + e.message);
+    }
+  }
+  log('\nConcluído! ' + sucesso + ' de ' + produtosExemplo.length + ' gravatas cadastradas.');
+  log('Abra o site (vestindo-a-verdade.html) e atualize a página para ver o catálogo.');
+  btn.textContent = 'Cadastro concluído';
+}
+</script>
+</body>
+</html>

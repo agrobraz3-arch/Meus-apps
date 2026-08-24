@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Administrativo — Vestindo a Verdade</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --navy:#101c2f;--parchment:#f7f3ea;--gold:#b3924f;--wine:#6e1a2a;--ink:#1b1b1b;--slate:#5b6572;--line:#e2d8c0;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:'Inter',sans-serif;background:var(--parchment);color:var(--ink);}
+h1,h2,h3{font-family:'Playfair Display',serif;color:var(--navy);margin:0;}
+.container{max-width:1100px;margin:0 auto;padding:30px 20px 80px;}
+.pin-tela{display:flex;align-items:center;justify-content:center;height:100vh;}
+.pin-box{background:#fff;padding:36px;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,.1);text-align:center;width:300px;}
+.pin-box input{width:100%;padding:12px;font-size:22px;text-align:center;letter-spacing:8px;border:1px solid var(--line);border-radius:4px;margin:16px 0;}
+.pin-box button{width:100%;padding:12px;background:var(--navy);color:#fff;border:none;border-radius:4px;font-weight:600;cursor:pointer;}
+.erro{color:var(--wine);font-size:13px;margin-top:8px;display:none;}
+
+.topo-admin{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px;}
+.abas{display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--line);}
+.abas button{background:none;border:none;padding:12px 6px;font-size:14px;font-weight:600;color:var(--slate);border-bottom:2px solid transparent;cursor:pointer;}
+.abas button.ativo{color:var(--navy);border-color:var(--gold);}
+
+.btn{display:inline-block;padding:10px 18px;background:var(--navy);color:#fff;border:none;border-radius:4px;font-weight:600;cursor:pointer;font-size:13px;}
+.btn.wine{background:var(--wine);}
+.btn.outline{background:none;border:1px solid var(--line);color:var(--navy);}
+
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;}
+th{background:var(--parchment);font-weight:700;color:var(--navy);}
+tr:hover td{background:#faf8f2;}
+
+.form-produto{background:#fff;border:1px solid var(--line);padding:24px;border-radius:4px;margin-bottom:26px;}
+.linha-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.linha-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;}
+@media(max-width:700px){.linha-2,.linha-3{grid-template-columns:1fr;}}
+.campo{margin-bottom:12px;}
+.campo label{display:block;font-size:12px;text-transform:uppercase;color:var(--slate);font-weight:700;margin-bottom:4px;}
+.campo input,.campo select,.campo textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:4px;font-family:'Inter',sans-serif;}
+.larguras-estoque{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.linha-largura{display:flex;gap:8px;align-items:center;}
+.linha-largura input{flex:1;}
+.linha-largura input.qtd{max-width:100px;}
+.linha-largura button{background:var(--wine);color:#fff;border:none;border-radius:4px;padding:8px 10px;cursor:pointer;}
+.galeria-admin{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.galeria-admin .thumb{position:relative;width:80px;height:100px;}
+.galeria-admin img{width:100%;height:100%;object-fit:cover;border-radius:4px;}
+.galeria-admin .remover-img{position:absolute;top:-6px;right:-6px;background:var(--wine);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;}
+.status-tag{font-size:11px;padding:3px 8px;border-radius:3px;background:var(--parchment);font-weight:700;text-transform:uppercase;}
+.hidden{display:none !important;}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 20px;border-radius:4px;opacity:0;transition:.3s;pointer-events:none;}
+.toast.mostrar{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="pin-tela" id="tela-pin">
+  <div class="pin-box">
+    <h2>Acesso restrito</h2>
+    <p style="font-size:13px;color:var(--slate);">Digite o PIN do administrador</p>
+    <input type="password" id="pin-input" maxlength="4" inputmode="numeric">
+    <div class="erro" id="pin-erro">PIN incorreto.</div>
+    <button onclick="verificarPin()">Entrar</button>
+  </div>
+</div>
+
+<div class="container hidden" id="painel-principal">
+  <div class="topo-admin">
+    <h1>Painel — Vestindo a Verdade</h1>
+    <button class="btn outline" onclick="location.reload()">Sair</button>
+  </div>
+
+  <div class="abas">
+    <button class="ativo" onclick="mostrarAba('produtos')" id="aba-btn-produtos">Produtos</button>
+    <button onclick="mostrarAba('pedidos')" id="aba-btn-pedidos">Pedidos</button>
+  </div>
+
+  <!-- ABA PRODUTOS -->
+  <div id="aba-produtos">
+    <button class="btn" onclick="abrirFormNovoProduto()">+ Novo produto</button>
+    <div class="form-produto hidden" id="form-produto">
+      <h3 id="form-produto-titulo">Novo produto</h3>
+      <input type="hidden" id="prod-id">
+      <div class="campo"><label>Nome</label><input type="text" id="prod-nome"></div>
+      <div class="campo"><label>Descrição</label><textarea id="prod-descricao" rows="3"></textarea></div>
+      <div class="linha-3">
+        <div class="campo"><label>Preço atual (R$)</label><input type="number" step="0.01" id="prod-preco"></div>
+        <div class="campo"><label>Preço "de" (opcional)</label><input type="number" step="0.01" id="prod-preco-original" placeholder="Deixe vazio se não houver desconto"></div>
+        <div class="campo"><label>Cor</label><input type="text" id="prod-cor" placeholder="Azul-marinho"></div>
+      </div>
+      <div class="linha-2">
+        <div class="campo"><label>Tecido</label><input type="text" id="prod-tecido" placeholder="Seda"></div>
+        <div class="campo"><label>Estampa</label><input type="text" id="prod-estampa" placeholder="Lisa, listrada..."></div>
+      </div>
+      <div class="linha-2">
+        <div class="campo"><label>Ocasião</label><input type="text" id="prod-ocasiao" placeholder="Culto, casamento, trabalho..."></div>
+        <div class="campo">
+          <label>Destaque</label>
+          <label style="display:flex;align-items:center;gap:8px;font-weight:400;text-transform:none;font-size:13px;padding-top:8px;">
+            <input type="checkbox" id="prod-mais-vendida" style="width:auto;"> Marcar como "Mais vendida"
+          </label>
+        </div>
+      </div>
+      <div class="linha-2">
+        <div class="campo"><label>Nota de avaliação (opcional, 0 a 5)</label><input type="number" step="0.1" min="0" max="5" id="prod-avaliacao-nota" placeholder="Ex: 4.8 — só use se for real"></div>
+        <div class="campo"><label>Quantidade de avaliações (opcional)</label><input type="number" min="0" id="prod-avaliacao-qtd" placeholder="Ex: 23"></div>
+      </div>
+      <p style="font-size:11.5px;color:var(--slate);margin-top:-6px;margin-bottom:14px;">Deixe os campos de avaliação vazios até você ter avaliações reais de clientes — eles só aparecem no site quando preenchidos.</p>
+
+      <label style="display:block;font-size:12px;text-transform:uppercase;color:var(--slate);font-weight:700;margin:14px 0 6px;">Larguras e estoque</label>
+      <div class="larguras-estoque" id="larguras-estoque"></div>
+      <button class="btn outline" onclick="adicionarLinhaLargura()">+ Adicionar largura</button>
+      <div id="estoque-total-form" style="margin-top:12px;padding:10px 14px;background:var(--parchment);border:1px solid var(--line);border-radius:4px;font-size:14px;font-weight:700;color:var(--navy);">
+        Estoque total: 0 unidades
+      </div>
+
+      <label style="display:block;font-size:12px;text-transform:uppercase;color:var(--slate);font-weight:700;margin:18px 0 6px;">Fotos do produto</label>
+      <div class="galeria-admin" id="galeria-admin"></div>
+      <input type="file" id="input-imagem" accept="image/*" multiple>
+      <p style="font-size:12px;color:var(--slate);margin-top:6px;">As imagens são enviadas para o ImgBB automaticamente.</p>
+
+      <div style="margin-top:20px;display:flex;gap:10px;">
+        <button class="btn" onclick="salvarProduto()">Salvar produto</button>
+        <button class="btn outline" onclick="fecharFormProduto()">Cancelar</button>
+      </div>
+    </div>
+
+    <table>
+      <thead><tr><th>Foto</th><th>Nome</th><th>Preço</th><th>Estoque total</th><th>Ativo</th><th></th></tr></thead>
+      <tbody id="tabela-produtos"><tr><td colspan="6">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- ABA PEDIDOS -->
+  <div id="aba-pedidos" class="hidden">
+    <table>
+      <thead><tr><th>Data</th><th>Cliente</th><th>Itens</th><th>Total</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tabela-pedidos"><tr><td colspan="6">Carregando...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===================== CONFIGURAÇÃO ===================== */
+const PIN_ADMIN = "0211"; // <-- troque para o seu PIN
+const CONFIG = {
+  firebase: {
+    apiKey: "AIzaSyDnjiIrX_rloTmRuyBzs5TWGK2QaFep9J4",
+    authDomain: "errrf-b4439.firebaseapp.com",
+    databaseURL: "https://errrf-b4439-default-rtdb.firebaseio.com",
+    projectId: "errrf-b4439",
+    storageBucket: "errrf-b4439.firebasestorage.app",
+    messagingSenderId: "341087990615",
+    appId: "1:341087990615:web:7da7f1f146c04fa4770412",
+    measurementId: "G-QPVJPC9FWH"
+  },
+  imgbbKey: "1477d776c8b0fc794ae30233682ff146" // https://api.imgbb.com/
+};
+
+firebase.initializeApp(CONFIG.firebase);
+const db = firebase.firestore();
+
+function verificarPin(){
+  const val = document.getElementById('pin-input').value;
+  if(val === PIN_ADMIN){
+    document.getElementById('tela-pin').classList.add('hidden');
+    document.getElementById('painel-principal').classList.remove('hidden');
+    carregarProdutosAdmin();
+  }else{
+    document.getElementById('pin-erro').style.display='block';
+  }
+}
+
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('mostrar');
+  setTimeout(()=>t.classList.remove('mostrar'), 2500);
+}
+
+function mostrarAba(aba){
+  document.getElementById('aba-btn-produtos').classList.toggle('ativo', aba==='produtos');
+  document.getElementById('aba-btn-pedidos').classList.toggle('ativo', aba==='pedidos');
+  document.getElementById('aba-produtos').classList.toggle('hidden', aba!=='produtos');
+  document.getElementById('aba-pedidos').classList.toggle('hidden', aba!=='pedidos');
+  if(aba==='pedidos') carregarPedidosAdmin();
+}
+
+/* ===================== PRODUTOS ===================== */
+let imagensAtuais = [];
+
+function abrirFormNovoProduto(){
+  document.getElementById('form-produto').classList.remove('hidden');
+  document.getElementById('form-produto-titulo').textContent = 'Novo produto';
+  document.getElementById('prod-id').value = '';
+  ['prod-nome','prod-descricao','prod-preco','prod-preco-original','prod-cor','prod-tecido','prod-estampa','prod-ocasiao','prod-avaliacao-nota','prod-avaliacao-qtd'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prod-mais-vendida').checked = false;
+  document.getElementById('larguras-estoque').innerHTML = '';
+  imagensAtuais = [];
+  renderizarGaleriaAdmin();
+  adicionarLinhaLargura();
+}
+
+function fecharFormProduto(){
+  document.getElementById('form-produto').classList.add('hidden');
+}
+
+function adicionarLinhaLargura(largura='', qtd=0){
+  const div = document.createElement('div');
+  div.className = 'linha-largura';
+  div.innerHTML = `
+    <input type="text" placeholder="Ex: Tradicional (8cm)" class="largura-nome" value="${largura}">
+    <input type="number" placeholder="Estoque" class="qtd" value="${qtd}" oninput="atualizarEstoqueTotalForm()">
+    <button onclick="this.parentElement.remove();atualizarEstoqueTotalForm()">✕</button>
+  `;
+  document.getElementById('larguras-estoque').appendChild(div);
+  atualizarEstoqueTotalForm();
+}
+
+function atualizarEstoqueTotalForm(){
+  let total = 0;
+  document.querySelectorAll('#larguras-estoque .linha-largura .qtd').forEach(input=>{
+    total += Number(input.value || 0);
+  });
+  document.getElementById('estoque-total-form').textContent = `Estoque total: ${total} unidade${total===1?'':'s'}`;
+}
+
+function renderizarGaleriaAdmin(){
+  document.getElementById('galeria-admin').innerHTML = imagensAtuais.map((url,i)=>`
+    <div class="thumb">
+      <img src="${url}">
+      <button class="remover-img" onclick="removerImagemAdmin(${i})">✕</button>
+    </div>
+  `).join('');
+}
+function removerImagemAdmin(i){
+  imagensAtuais.splice(i,1);
+  renderizarGaleriaAdmin();
+}
+
+document.getElementById('input-imagem').addEventListener('change', async (e)=>{
+  const arquivos = [...e.target.files];
+  for(const arquivo of arquivos){
+    mostrarToast('Enviando imagem...');
+    try{
+      const formData = new FormData();
+      formData.append('image', arquivo);
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${CONFIG.imgbbKey}`, {method:'POST', body: formData});
+      const data = await res.json();
+      if(data.success){
+        imagensAtuais.push(data.data.url);
+        renderizarGaleriaAdmin();
+      }else{
+        mostrarToast('Falha ao enviar imagem.');
+      }
+    }catch(err){
+      console.error(err);
+      mostrarToast('Erro ao enviar imagem.');
+    }
+  }
+  e.target.value = '';
+});
+
+async function salvarProduto(){
+  const nome = document.getElementById('prod-nome').value.trim();
+  if(!nome){ mostrarToast('Informe o nome do produto.'); return; }
+
+  const larguras = [];
+  const estoque = {};
+  document.querySelectorAll('#larguras-estoque .linha-largura').forEach(linha=>{
+    const l = linha.querySelector('.largura-nome').value.trim();
+    const q = Number(linha.querySelector('.qtd').value || 0);
+    if(l){ larguras.push(l); estoque[l] = q; }
+  });
+
+  const dados = {
+    nome,
+    descricao: document.getElementById('prod-descricao').value.trim(),
+    preco: Number(document.getElementById('prod-preco').value || 0),
+    precoOriginal: Number(document.getElementById('prod-preco-original').value || 0),
+    cor: document.getElementById('prod-cor').value.trim(),
+    tecido: document.getElementById('prod-tecido').value.trim(),
+    estampa: document.getElementById('prod-estampa').value.trim(),
+    ocasiao: document.getElementById('prod-ocasiao').value.trim(),
+    maisVendida: document.getElementById('prod-mais-vendida').checked,
+    avaliacaoNota: Number(document.getElementById('prod-avaliacao-nota').value || 0) || null,
+    avaliacaoQtd: Number(document.getElementById('prod-avaliacao-qtd').value || 0) || null,
+    larguras, estoque,
+    imagens: imagensAtuais,
+    ativo: true
+  };
+
+  const id = document.getElementById('prod-id').value;
+  try{
+    if(id){
+      await db.collection('produtos').doc(id).update(dados);
+    }else{
+      await db.collection('produtos').add(dados);
+    }
+    mostrarToast('Produto salvo com sucesso.');
+    fecharFormProduto();
+    carregarProdutosAdmin();
+  }catch(e){
+    console.error(e);
+    mostrarToast('Erro ao salvar produto.');
+  }
+}
+
+async function carregarProdutosAdmin(){
+  const tbody = document.getElementById('tabela-produtos');
+  const snap = await db.collection('produtos').get();
+  if(snap.empty){
+    tbody.innerHTML = '<tr><td colspan="6">Nenhum produto cadastrado ainda.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = snap.docs.map(d=>{
+    const p = d.data();
+    const estoqueTotal = Object.values(p.estoque||{}).reduce((s,v)=>s+Number(v||0),0);
+    return `
+      <tr>
+        <td><img src="${(p.imagens&&p.imagens[0])||''}" style="width:44px;height:54px;object-fit:cover;border-radius:3px;"></td>
+        <td>${p.nome}</td>
+        <td>R$ ${Number(p.preco||0).toFixed(2)}</td>
+        <td>${estoqueTotal}</td>
+        <td><span class="status-tag">${p.ativo ? 'Ativo' : 'Inativo'}</span></td>
+        <td>
+          <button class="btn outline" onclick='editarProduto("${d.id}")'>Editar</button>
+          <button class="btn wine" onclick='alternarAtivo("${d.id}", ${!p.ativo})'>${p.ativo?'Desativar':'Ativar'}</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+async function editarProduto(id){
+  const doc = await db.collection('produtos').doc(id).get();
+  const p = doc.data();
+  document.getElementById('form-produto').classList.remove('hidden');
+  document.getElementById('form-produto-titulo').textContent = 'Editar produto';
+  document.getElementById('prod-id').value = id;
+  document.getElementById('prod-nome').value = p.nome||'';
+  document.getElementById('prod-descricao').value = p.descricao||'';
+  document.getElementById('prod-preco').value = p.preco||0;
+  document.getElementById('prod-preco-original').value = p.precoOriginal||'';
+  document.getElementById('prod-cor').value = p.cor||'';
+  document.getElementById('prod-tecido').value = p.tecido||'';
+  document.getElementById('prod-estampa').value = p.estampa||'';
+  document.getElementById('prod-ocasiao').value = p.ocasiao||'';
+  document.getElementById('prod-mais-vendida').checked = !!p.maisVendida;
+  document.getElementById('prod-avaliacao-nota').value = p.avaliacaoNota||'';
+  document.getElementById('prod-avaliacao-qtd').value = p.avaliacaoQtd||'';
+  document.getElementById('larguras-estoque').innerHTML = '';
+  (p.larguras||[]).forEach(l=>adicionarLinhaLargura(l, (p.estoque||{})[l] || 0));
+  imagensAtuais = p.imagens || [];
+  renderizarGaleriaAdmin();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+async function alternarAtivo(id, novoValor){
+  await db.collection('produtos').doc(id).update({ativo: novoValor});
+  carregarProdutosAdmin();
+}
+
+/* ===================== PEDIDOS ===================== */
+async function carregarPedidosAdmin(){
+  const tbody = document.getElementById('tabela-pedidos');
+  const snap = await db.collection('pedidos').orderBy('criadoEm','desc').limit(100).get();
+  if(snap.empty){
+    tbody.innerHTML = '<tr><td colspan="6">Nenhum pedido registrado ainda.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = snap.docs.map(d=>{
+    const p = d.data();
+    const data = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleString('pt-BR') : '';
+    const itensTxt = (p.itens||[]).map(i=>`${i.qtd}x ${i.nome}`).join(', ');
+    return `
+      <tr>
+        <td>${data}</td>
+        <td>${p.clienteNome||''}<br><small>${p.clienteTelefone||''}</small></td>
+        <td>${itensTxt}</td>
+        <td>R$ ${Number(p.total||0).toFixed(2)}</td>
+        <td>
+          <select onchange='atualizarStatusPedido("${d.id}", this.value)'>
+            ${['Aguardando pagamento','Pagamento confirmado','Em separação','Enviado','Entregue','Cancelado'].map(s=>`<option ${p.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td></td>
+      </tr>`;
+  }).join('');
+}
+
+async function atualizarStatusPedido(id, status){
+  await db.collection('pedidos').doc(id).update({status});
+  mostrarToast('Status atualizado.');
+}
+</script>
+</body>
+</html>

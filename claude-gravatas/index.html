@@ -1,1 +1,1361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Vestindo a Verdade — Gravataria</title>
+<meta name="description" content="Gravatas elegantes e sóbrias para cada ocasião e culto.">
 
+<!-- Fontes -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- Firebase (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+
+<style>
+/* =====================================================
+   TOKENS — tema escuro / laranja-dourado
+   ===================================================== */
+:root{
+  --bg:#0a0f1a;
+  --bg-2:#0e1626;
+  --bg-3:#121d31;
+  --card:#111b2c;
+  --line:#22314a;
+  --line-soft:rgba(240,168,60,.25);
+  --gold:#f0a83c;
+  --gold-dark:#d68a1f;
+  --gold-soft:#f6c877;
+  --wine:#e0455a;
+  --green:#2ecc71;
+  --ink:#eef1f6;
+  --text-dim:#9aa7ba;
+  --text-dim2:#6c7893;
+  --radius:6px;
+  --shadow:0 14px 34px rgba(0,0,0,.4);
+  --serif:'Playfair Display',serif;
+  --sans:'Inter',sans-serif;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  font-family:var(--sans);
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:600;margin:0;color:#fff;}
+a{color:inherit;text-decoration:none;}
+button{font-family:var(--sans);cursor:pointer;}
+img{max-width:100%;display:block;}
+.container{max-width:1240px;margin:0 auto;padding:0 20px;}
+::selection{background:var(--gold-soft);color:#1a1200;}
+
+/* faixa diagonal — assinatura visual (tecido de gravata) */
+.faixa{
+  height:8px;
+  background:repeating-linear-gradient(
+    45deg,
+    var(--gold) 0px, var(--gold) 8px,
+    transparent 8px, transparent 16px
+  );
+  opacity:.6;
+}
+
+/* =====================================================
+   TOPBAR DE PROMOÇÕES
+   ===================================================== */
+.topbar-promo{
+  background:linear-gradient(90deg,#1a1206,#150f05);
+  border-bottom:1px solid var(--line-soft);
+  font-size:12.5px;
+}
+.topbar-promo .container{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 20px;gap:12px;flex-wrap:wrap;
+}
+.topbar-promo .esq{display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+.topbar-promo .esq span{color:var(--gold-soft);font-weight:600;}
+.topbar-promo .dir{display:flex;gap:16px;align-items:center;color:var(--text-dim);}
+.topbar-promo .vip{display:flex;align-items:center;gap:6px;color:#7fe0a0;font-weight:600;}
+.dot-verde{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;}
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+header.site{
+  position:sticky;top:0;z-index:40;
+  background:var(--bg-2);
+  border-bottom:1px solid var(--line);
+}
+.topbar{
+  display:flex;align-items:center;gap:24px;
+  padding:16px 20px;max-width:1240px;margin:0 auto;
+}
+.brand{display:flex;flex-direction:column;line-height:1;white-space:nowrap;}
+.brand .mark{font-family:var(--serif);font-size:23px;color:#fff;letter-spacing:.2px;}
+.brand .verse{font-size:9.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--gold);margin-top:4px;font-weight:700;}
+
+.busca-header{
+  flex:1;max-width:560px;position:relative;
+}
+.busca-header input{
+  width:100%;padding:11px 16px 11px 40px;border-radius:24px;border:1px solid var(--line);
+  background:var(--bg-3);color:var(--ink);font-size:13.5px;font-family:var(--sans);
+}
+.busca-header input::placeholder{color:var(--text-dim2);}
+.busca-header .lupa{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-dim2);font-size:14px;}
+
+.icon-actions{display:flex;gap:10px;align-items:center;}
+.pill-btn{
+  display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:20px;
+  font-size:12.5px;font-weight:700;border:1px solid var(--line);color:var(--ink);background:var(--bg-3);
+  white-space:nowrap;
+}
+.pill-btn.ouro{border-color:var(--line-soft);color:var(--gold-soft);}
+.pill-btn.laranja{
+  background:linear-gradient(180deg,var(--gold),var(--gold-dark));color:#1a1200;border:none;position:relative;
+}
+.pill-btn.laranja .badge{
+  position:absolute;top:-7px;right:-7px;background:var(--wine);color:#fff;font-size:10px;border-radius:50%;
+  width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-weight:800;
+}
+.menu-toggle{display:none;background:none;border:none;font-size:20px;color:var(--ink);}
+
+@media(max-width:900px){
+  .busca-header{order:3;flex-basis:100%;max-width:none;margin-top:10px;}
+  .topbar{flex-wrap:wrap;}
+}
+
+/* =====================================================
+   NAV DE CATEGORIAS (pills)
+   ===================================================== */
+.nav-categorias{
+  background:var(--bg-2);border-bottom:1px solid var(--line);
+  overflow-x:auto;white-space:nowrap;scrollbar-width:none;
+}
+.nav-categorias::-webkit-scrollbar{display:none;}
+.nav-categorias .container{display:flex;gap:6px;padding:12px 20px;}
+.cat-pill{
+  display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:18px;
+  font-size:13px;font-weight:600;color:var(--text-dim);background:transparent;border:1px solid transparent;
+  flex-shrink:0;
+}
+.cat-pill:hover{color:#fff;}
+.cat-pill.ativo{background:var(--gold);color:#1a1200;font-weight:800;}
+.cat-pill .em-alta{
+  background:var(--wine);color:#fff;font-size:9px;padding:2px 6px;border-radius:8px;font-weight:800;letter-spacing:.4px;
+}
+
+/* =====================================================
+   HERO
+   ===================================================== */
+.hero{
+  background:radial-gradient(ellipse at top,#141f33 0%, var(--bg) 60%);
+  padding:56px 20px 44px;text-align:center;
+}
+.hero .eyebrow{font-size:11.5px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:16px;font-weight:700;}
+.hero h1{font-size:clamp(28px,4.2vw,44px);max-width:760px;margin:0 auto;line-height:1.2;font-style:italic;font-weight:500;color:#fff;}
+.hero p.lead{max-width:540px;margin:18px auto 0;color:var(--text-dim);font-size:15px;line-height:1.7;}
+.hero .cta-row{margin-top:26px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:22px;
+  font-size:13.5px;font-weight:700;letter-spacing:.2px;border:1px solid transparent;
+  transition:transform .15s ease, box-shadow .15s ease;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn-gold{background:linear-gradient(180deg,var(--gold),var(--gold-dark));color:#1a1200;}
+.btn-gold:hover{box-shadow:0 10px 24px rgba(240,168,60,.3);}
+.btn-outline{border-color:var(--line);color:#fff;background:var(--bg-3);}
+.btn-navy{background:var(--bg-3);color:#fff;border-color:var(--line);}
+.btn-wine{background:var(--wine);color:#fff;}
+.btn-ghost{background:none;border:1px solid var(--line);color:var(--ink);}
+
+/* =====================================================
+   SELOS DE CONFIANÇA
+   ===================================================== */
+.selos{
+  background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:22px 0;
+}
+.selos .container{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
+@media(max-width:700px){.selos .container{grid-template-columns:1fr;}}
+.selo{display:flex;align-items:center;gap:12px;}
+.selo .ic{font-size:22px;}
+.selo .txt strong{display:block;font-size:13.5px;color:#fff;}
+.selo .txt span{display:block;font-size:12px;color:var(--text-dim);margin-top:2px;}
+
+/* =====================================================
+   FILTROS + CATÁLOGO
+   ===================================================== */
+section.catalogo{padding:48px 0 70px;}
+.section-head{text-align:center;margin-bottom:30px;}
+.section-head .eyebrow{font-size:11.5px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);font-weight:700;}
+.section-head h2{font-size:28px;margin-top:8px;color:#fff;}
+
+.chips-cor{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
+.chip-cor{
+  display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:18px;border:1px solid var(--line);
+  background:var(--bg-3);color:var(--text-dim);font-size:12.5px;font-weight:600;
+}
+.chip-cor .dotcor{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.3);}
+.chip-cor.ativo{border-color:var(--gold);color:#fff;background:rgba(240,168,60,.12);}
+
+.filtros{
+  display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:32px;
+}
+.filtros select{
+  padding:10px 12px;border:1px solid var(--line);border-radius:8px;
+  font-family:var(--sans);font-size:12.5px;background:var(--bg-3);color:var(--ink);
+  min-width:140px;
+}
+.filtros button{
+  padding:10px 16px;background:var(--bg-3);color:var(--text-dim);border:1px solid var(--line);border-radius:8px;font-size:12.5px;font-weight:600;
+}
+
+.grid-produtos{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:22px;
+}
+.card-produto{display:flex;flex-direction:column;cursor:pointer;}
+.card-produto .thumb{
+  aspect-ratio:4/5;overflow:hidden;background:var(--card);position:relative;border-radius:var(--radius);border:1px solid var(--line);
+}
+.card-produto .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .3s ease;}
+.card-produto:hover .thumb img{transform:scale(1.04);}
+.tag-mais-vendida{
+  position:absolute;top:10px;left:10px;background:var(--gold);color:#1a1200;font-size:9.5px;
+  letter-spacing:.5px;text-transform:uppercase;padding:4px 9px;border-radius:4px;font-weight:800;
+}
+.tag-esgotado{
+  position:absolute;top:10px;left:10px;background:var(--wine);color:#fff;font-size:9.5px;
+  letter-spacing:.5px;text-transform:uppercase;padding:4px 9px;border-radius:4px;font-weight:800;
+}
+.tag-largura{
+  position:absolute;bottom:10px;left:10px;background:rgba(10,15,26,.75);color:#fff;font-size:10.5px;
+  padding:4px 9px;border-radius:4px;font-weight:600;backdrop-filter:blur(4px);
+}
+.card-info{padding:12px 2px 0;display:flex;flex-direction:column;gap:4px;}
+.card-info .linha-meta{display:flex;justify-content:space-between;align-items:center;}
+.card-info .tecido{font-size:11px;color:var(--gold-soft);text-transform:uppercase;letter-spacing:.4px;font-weight:700;}
+.card-info .estrelas{font-size:11px;color:var(--text-dim);display:flex;align-items:center;gap:3px;}
+.card-info .estrelas .num{color:#fff;font-weight:700;}
+.card-info .nome{font-family:var(--serif);font-size:16px;color:#fff;margin-top:1px;}
+.card-info .cor-sub{font-size:11.5px;color:var(--text-dim);}
+.card-info .preco-linha{display:flex;align-items:baseline;gap:8px;margin-top:4px;}
+.card-info .preco-original{font-size:12px;color:var(--text-dim2);text-decoration:line-through;}
+.card-info .preco-atual{font-size:18px;font-weight:800;color:#fff;}
+.card-info .preco-pix{font-size:11.5px;color:var(--green);font-weight:600;}
+.card-info .btn{margin-top:10px;width:100%;justify-content:center;font-size:12.5px;padding:11px;}
+
+.vazio{text-align:center;padding:60px 0;color:var(--text-dim);font-style:italic;grid-column:1/-1;}
+
+/* =====================================================
+   MODAL GENÉRICO
+   ===================================================== */
+.overlay{
+  position:fixed;inset:0;background:rgba(4,7,12,.7);z-index:100;
+  display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:40px 16px;
+}
+.overlay.aberto{display:flex;}
+.modal{
+  background:var(--bg-2);max-width:920px;width:100%;border-radius:var(--radius);border:1px solid var(--line);
+  box-shadow:var(--shadow);position:relative;animation:subir .25s ease;
+}
+@keyframes subir{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.modal-fechar{
+  position:absolute;top:14px;right:16px;background:none;border:none;font-size:22px;color:var(--text-dim);z-index:5;
+}
+.modal-small{max-width:440px;}
+
+/* Produto detalhe */
+.produto-detalhe{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+@media(max-width:700px){.produto-detalhe{grid-template-columns:1fr;}}
+.galeria{background:var(--card);}
+.galeria .principal{aspect-ratio:4/5;overflow:hidden;}
+.galeria .principal img{width:100%;height:100%;object-fit:cover;}
+.galeria .mini-row{display:flex;gap:8px;padding:10px;overflow-x:auto;}
+.galeria .mini-row img{width:56px;height:56px;object-fit:cover;border-radius:4px;border:2px solid transparent;cursor:pointer;}
+.galeria .mini-row img.ativo{border-color:var(--gold);}
+.detalhe-info{padding:30px;display:flex;flex-direction:column;gap:14px;}
+.detalhe-info h3{font-size:22px;color:#fff;}
+.detalhe-info .preco-grande{font-size:24px;color:#fff;font-weight:800;}
+.detalhe-info .preco-grande .original{font-size:14px;color:var(--text-dim2);text-decoration:line-through;font-weight:500;margin-right:8px;}
+.detalhe-info .pix-txt{font-size:12.5px;color:var(--green);font-weight:600;}
+.detalhe-info .descricao{font-size:13.5px;line-height:1.7;color:var(--text-dim);}
+.detalhe-info label.rot{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);font-weight:700;margin-top:6px;}
+.larguras{display:flex;gap:8px;flex-wrap:wrap;}
+.larguras button{
+  padding:9px 14px;border:1px solid var(--line);background:var(--bg-3);color:var(--ink);border-radius:8px;font-size:13px;
+}
+.larguras button.selecionado{background:var(--gold);color:#1a1200;border-color:var(--gold);font-weight:700;}
+.larguras button:disabled{opacity:.35;text-decoration:line-through;cursor:not-allowed;}
+.qtd-row{display:flex;align-items:center;gap:10px;}
+.qtd-row button{width:32px;height:32px;border:1px solid var(--line);background:var(--bg-3);color:#fff;font-size:16px;border-radius:8px;}
+.qtd-row span{font-weight:700;min-width:20px;text-align:center;color:#fff;}
+.estoque-info{font-size:12px;color:var(--text-dim);}
+
+/* =====================================================
+   SACOLA (drawer)
+   ===================================================== */
+.drawer-overlay{
+  position:fixed;inset:0;background:rgba(4,7,12,.65);z-index:110;display:none;
+}
+.drawer-overlay.aberto{display:block;}
+.drawer{
+  position:fixed;top:0;right:-420px;width:400px;max-width:92vw;height:100%;background:var(--bg-2);
+  z-index:120;transition:right .3s ease;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.4);
+  border-left:1px solid var(--line);
+}
+.drawer.aberto{right:0;}
+.drawer-head{
+  padding:20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;
+}
+.drawer-head h3{font-size:19px;color:#fff;}
+.drawer-itens{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:16px;}
+.item-carrinho{display:flex;gap:12px;border-bottom:1px solid var(--line);padding-bottom:14px;}
+.item-carrinho img{width:64px;height:80px;object-fit:cover;border-radius:4px;}
+.item-carrinho .info{flex:1;display:flex;flex-direction:column;gap:3px;}
+.item-carrinho .info .nome{font-size:13.5px;font-weight:700;color:#fff;}
+.item-carrinho .info .meta{font-size:11px;color:var(--text-dim);}
+.item-carrinho .info .linha-baixo{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+.item-carrinho .qtd-mini{display:flex;align-items:center;gap:6px;}
+.item-carrinho .qtd-mini button{width:22px;height:22px;border:1px solid var(--line);background:var(--bg-3);color:#fff;border-radius:4px;font-size:13px;}
+.item-carrinho .remover{background:none;border:none;color:var(--wine);font-size:11.5px;text-decoration:underline;}
+.drawer-footer{padding:20px;border-top:1px solid var(--line);}
+.linha-total{display:flex;justify-content:space-between;font-size:16px;font-weight:800;margin-bottom:14px;color:#fff;}
+.drawer-footer .btn{width:100%;justify-content:center;padding:14px;}
+.carrinho-vazio{padding:40px 20px;text-align:center;color:var(--text-dim);font-style:italic;}
+
+/* =====================================================
+   FORMULÁRIOS
+   ===================================================== */
+.form-modal{padding:32px;}
+.form-modal h3{font-size:21px;margin-bottom:6px;color:#fff;}
+.form-modal .sub{font-size:12.5px;color:var(--text-dim);margin-bottom:20px;}
+.campo{margin-bottom:14px;}
+.campo label{display:block;font-size:11.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-dim);font-weight:700;margin-bottom:5px;}
+.campo input, .campo select, .campo textarea{
+  width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--sans);font-size:13.5px;background:var(--bg-3);color:var(--ink);
+}
+.linha-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.linha-3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px;}
+@media(max-width:480px){.linha-2,.linha-3{grid-template-columns:1fr;}}
+.form-modal .btn{width:100%;justify-content:center;padding:13px;margin-top:8px;}
+.troca-link{text-align:center;font-size:12.5px;margin-top:16px;color:var(--text-dim);}
+.troca-link a{color:var(--gold-soft);font-weight:700;text-decoration:underline;}
+.erro-msg{background:rgba(224,69,90,.12);border:1px solid rgba(224,69,90,.3);color:#ff8a97;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;display:none;}
+.ok-msg{background:rgba(46,204,113,.12);border:1px solid rgba(46,204,113,.3);color:#7fe0a0;padding:10px 12px;border-radius:8px;font-size:12.5px;margin-bottom:14px;display:none;}
+
+/* =====================================================
+   CONTA / PEDIDOS
+   ===================================================== */
+.conta-tabs{display:flex;gap:8px;border-bottom:1px solid var(--line);margin-bottom:24px;}
+.conta-tabs button{
+  background:none;border:none;padding:12px 6px;font-size:13.5px;color:var(--text-dim);font-weight:600;
+  border-bottom:2px solid transparent;
+}
+.conta-tabs button.ativo{color:#fff;border-color:var(--gold);}
+.pedido-card{border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:14px;background:var(--bg-3);}
+.pedido-card .topo{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-dim);margin-bottom:8px;}
+.pedido-card .status{
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;padding:3px 8px;border-radius:6px;
+  background:rgba(240,168,60,.15);color:var(--gold-soft);
+}
+
+/* =====================================================
+   FOOTER
+   ===================================================== */
+footer.site{background:#060a12;color:var(--text-dim);padding:44px 0 30px;margin-top:50px;border-top:1px solid var(--line);}
+.footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;}
+@media(max-width:700px){.footer-grid{grid-template-columns:1fr;}}
+footer.site h4{color:#fff;font-size:14px;margin-bottom:14px;}
+footer.site p, footer.site a{font-size:12.5px;color:var(--text-dim);line-height:1.9;}
+footer.site a:hover{color:var(--gold-soft);}
+.footer-bottom{text-align:center;font-size:11.5px;color:var(--text-dim2);margin-top:32px;}
+.versiculo{font-family:var(--serif);font-style:italic;color:var(--gold-soft);font-size:14.5px;line-height:1.6;max-width:340px;}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--bg-2);border:1px solid var(--line);color:#fff;padding:14px 22px;border-radius:10px;font-size:13.5px;
+  opacity:0;pointer-events:none;transition:all .3s ease;z-index:200;box-shadow:var(--shadow);
+}
+.toast.mostrar{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* WhatsApp flutuante */
+.wa-flutuante{
+  position:fixed;bottom:22px;right:22px;background:#25D366;color:#fff;width:56px;height:56px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;
+  box-shadow:0 6px 18px rgba(0,0,0,.4);z-index:60;
+}
+
+/* utilitários */
+.hidden{display:none !important;}
+.loading{text-align:center;padding:60px 0;color:var(--text-dim);grid-column:1/-1;}
+</style>
+</head>
+<body>
+
+<!-- =========================================================
+     TOPBAR DE PROMOÇÕES
+========================================================= -->
+<div class="topbar-promo">
+  <div class="container">
+    <div class="esq">
+      <span>🚚 Frete grátis para todo o Brasil acima de <span id="topbar-frete-valor">R$ 199,90</span></span>
+      <span id="topbar-pix">5% de desconto no PIX</span>
+    </div>
+    <div class="dir">
+      <span id="topbar-saudacao">Bem-vindo(a)</span>
+      <span class="vip"><span class="dot-verde"></span>Atendimento direto no WhatsApp</span>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+<header class="site">
+  <div class="topbar">
+    <a href="#" class="brand" onclick="fecharTudo()">
+      <span class="mark">Vestindo a Verdade</span>
+      <span class="verse">Efésios 6:14 · gravataria</span>
+    </a>
+    <div class="busca-header">
+      <span class="lupa">🔍</span>
+      <input type="text" id="f-busca" placeholder="Buscar gravata, cor, tecido ou ocasião...">
+    </div>
+    <div class="icon-actions">
+      <button class="pill-btn ouro" onclick="abrirConta()">👤 <span id="label-conta">Entrar</span></button>
+      <button class="pill-btn laranja" onclick="abrirCarrinho()">
+        🛍️ SACOLA <span class="badge" id="badge-carrinho">0</span>
+      </button>
+      <button class="menu-toggle">☰</button>
+    </div>
+  </div>
+</header>
+
+<!-- =========================================================
+     NAV DE CATEGORIAS (dinâmico a partir das ocasiões cadastradas)
+========================================================= -->
+<nav class="nav-categorias">
+  <div class="container" id="nav-categorias-container">
+    <button class="cat-pill ativo" data-ocasiao="" onclick="selecionarCategoria('')">Coleção completa</button>
+  </div>
+</nav>
+
+<!-- =========================================================
+     HERO
+========================================================= -->
+<section class="hero">
+  <div class="eyebrow">Coleção atual</div>
+  <h1>“Estando vestidos com a couraça da justiça...”</h1>
+  <p class="lead">Gravatas sóbrias e elegantes, pensadas para o púlpito, o culto, a reunião de negócios e cada ocasião especial da sua vida. Discrição e bom gosto vestidos de propósito.</p>
+  <div class="cta-row">
+    <a href="#catalogo" class="btn btn-gold">Ver coleção</a>
+    <a href="#sobre" class="btn btn-outline">Nossa história</a>
+  </div>
+</section>
+<div class="faixa"></div>
+
+<!-- =========================================================
+     SELOS DE CONFIANÇA
+========================================================= -->
+<section class="selos">
+  <div class="container">
+    <div class="selo"><span class="ic">🪡</span><div class="txt"><strong>Acabamento cuidadoso</strong><span>Tecidos selecionados com atenção ao detalhe</span></div></div>
+    <div class="selo"><span class="ic">💳</span><div class="txt"><strong>Pagamento fácil</strong><span>PIX ou transferência, direto pelo WhatsApp</span></div></div>
+    <div class="selo"><span class="ic">📦</span><div class="txt"><strong>Entrega para todo o Brasil</strong><span>Combinada diretamente com você no atendimento</span></div></div>
+  </div>
+</section>
+
+<!-- =========================================================
+     CATÁLOGO
+========================================================= -->
+<section class="catalogo" id="catalogo">
+  <div class="container">
+    <div class="section-head">
+      <div class="eyebrow">Nossa coleção</div>
+      <h2>Gravatas para cada ocasião</h2>
+    </div>
+
+    <div class="chips-cor" id="chips-cor"></div>
+
+    <div class="filtros">
+      <select id="f-tecido"><option value="">Tecido</option></select>
+      <select id="f-estampa"><option value="">Estampa</option></select>
+      <button onclick="limparFiltros()">Limpar filtros</button>
+    </div>
+
+    <div id="grid-produtos" class="grid-produtos">
+      <div class="loading">Carregando gravatas...</div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     SOBRE
+========================================================= -->
+<section id="sobre" style="padding:64px 0;background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);">
+  <div class="container" style="max-width:720px;text-align:center;">
+    <div class="eyebrow" style="color:var(--gold);font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:700;">Nossa história</div>
+    <h2 style="margin-top:10px;font-size:28px;color:#fff;">Elegância que honra</h2>
+    <p style="margin-top:18px;font-size:14.5px;line-height:1.8;color:var(--text-dim);">
+      Acreditamos que a forma como nos apresentamos também é um testemunho. Cada gravata da nossa coleção é escolhida
+      com cuidado — tecidos nobres, cores sóbrias e estampas discretas — para vestir com dignidade quem sobe ao púlpito,
+      lidera um pequeno grupo, vai ao trabalho ou celebra um momento especial em família. Retidão também se veste.
+    </p>
+  </div>
+</section>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="site" id="contato">
+  <div class="container footer-grid">
+    <div>
+      <h4>Vestindo a Verdade</h4>
+      <p class="versiculo">"Estai, pois, firmes, tendo cingidos os vossos lombos com a verdade..." — Efésios 6:14</p>
+    </div>
+    <div>
+      <h4>Atendimento</h4>
+      <p><a href="#" id="link-wa-footer" target="_blank">WhatsApp</a></p>
+      <p>Seg a Sáb · 8h às 19h</p>
+    </div>
+    <div>
+      <h4>Institucional</h4>
+      <p><a href="#" onclick="abrirConta()">Minha conta</a></p>
+      <p><a href="#catalogo">Catálogo completo</a></p>
+    </div>
+  </div>
+  <div class="footer-bottom container">© <span id="ano"></span> Vestindo a Verdade. Todos os direitos reservados.</div>
+</footer>
+
+<a class="wa-flutuante" id="wa-flutuante" target="_blank" title="Fale conosco no WhatsApp">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><path d="M12.04 2c-5.46 0-9.9 4.44-9.9 9.9 0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.9-4.44 9.9-9.9 0-2.64-1.03-5.13-2.9-7-1.87-1.87-4.35-2.94-6.99-2.94zm5.83 14.2c-.24.68-1.4 1.3-1.94 1.38-.5.08-1.12.11-1.8-.11-.42-.13-.96-.31-1.65-.61-2.9-1.25-4.8-4.16-4.94-4.35-.14-.19-1.18-1.57-1.18-3 0-1.42.75-2.12 1.02-2.41.26-.28.57-.36.76-.36l.55.01c.18 0 .41-.07.64.49.24.57.81 1.98.88 2.13.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.37-.43.5-.14.14-.29.29-.13.57.17.28.75 1.24 1.61 2.01 1.11 1 2.05 1.31 2.33 1.46.28.14.44.12.6-.07.17-.19.71-.83.9-1.11.19-.28.38-.24.64-.14.26.09 1.66.78 1.94.93.28.14.47.21.54.33.07.12.07.68-.17 1.36z"/></svg>
+</a>
+
+<!-- =========================================================
+     OVERLAY: DETALHE DO PRODUTO
+========================================================= -->
+<div class="overlay" id="overlay-produto">
+  <div class="modal">
+    <button class="modal-fechar" onclick="fecharOverlay('overlay-produto')">✕</button>
+    <div class="produto-detalhe" id="corpo-produto-detalhe"></div>
+  </div>
+</div>
+
+<!-- =========================================================
+     DRAWER: SACOLA
+========================================================= -->
+<div class="drawer-overlay" id="carrinho-overlay" onclick="fecharCarrinho()"></div>
+<aside class="drawer" id="carrinho-drawer">
+  <div class="drawer-head">
+    <h3>Minha sacola</h3>
+    <button class="modal-fechar" style="position:static;font-size:20px;" onclick="fecharCarrinho()">✕</button>
+  </div>
+  <div class="drawer-itens" id="lista-carrinho"></div>
+  <div class="drawer-footer">
+    <div class="linha-total"><span>Total</span><span id="total-carrinho">R$ 0,00</span></div>
+    <button class="btn btn-gold" onclick="irParaCheckout()">Finalizar compra</button>
+  </div>
+</aside>
+
+<!-- =========================================================
+     OVERLAY: LOGIN / CADASTRO
+========================================================= -->
+<div class="overlay" id="overlay-login">
+  <div class="modal modal-small">
+    <button class="modal-fechar" onclick="fecharOverlay('overlay-login')">✕</button>
+    <div class="form-modal" id="painel-login">
+      <h3>Entrar</h3>
+      <p class="sub">Acesse sua conta para finalizar a compra mais rápido.</p>
+      <div class="erro-msg" id="erro-login"></div>
+      <div class="campo"><label>E-mail</label><input type="email" id="login-email"></div>
+      <div class="campo"><label>Senha</label><input type="password" id="login-senha"></div>
+      <button class="btn btn-gold" onclick="fazerLogin()">Entrar</button>
+      <p class="troca-link">Ainda não tem conta? <a onclick="mostrarCadastro()">Cadastre-se</a></p>
+    </div>
+
+    <div class="form-modal hidden" id="painel-cadastro">
+      <h3>Criar conta</h3>
+      <p class="sub">Leva menos de um minuto.</p>
+      <div class="erro-msg" id="erro-cadastro"></div>
+      <div class="campo"><label>Nome completo</label><input type="text" id="cad-nome"></div>
+      <div class="campo"><label>E-mail</label><input type="email" id="cad-email"></div>
+      <div class="campo"><label>Telefone / WhatsApp</label><input type="text" id="cad-telefone" placeholder="(82) 90000-0000"></div>
+      <div class="campo"><label>Senha</label><input type="password" id="cad-senha"></div>
+      <button class="btn btn-gold" onclick="fazerCadastro()">Criar conta</button>
+      <p class="troca-link">Já tem conta? <a onclick="mostrarLogin()">Entrar</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     OVERLAY: MINHA CONTA (endereço + pedidos)
+========================================================= -->
+<div class="overlay" id="overlay-conta">
+  <div class="modal" style="max-width:640px;">
+    <button class="modal-fechar" onclick="fecharOverlay('overlay-conta')">✕</button>
+    <div class="form-modal">
+      <h3 id="conta-saudacao">Minha conta</h3>
+      <div class="conta-tabs">
+        <button class="ativo" id="tab-endereco" onclick="mostrarAbaConta('endereco')">Endereço de entrega</button>
+        <button id="tab-pedidos" onclick="mostrarAbaConta('pedidos')">Meus pedidos</button>
+      </div>
+
+      <div id="aba-endereco">
+        <div class="ok-msg" id="ok-endereco">Endereço salvo com sucesso.</div>
+        <div class="linha-3">
+          <div class="campo"><label>CEP</label><input type="text" id="end-cep" placeholder="00000-000" onblur="buscarCep()"></div>
+          <div class="campo"><label>Número</label><input type="text" id="end-numero"></div>
+          <div class="campo"><label>Complemento</label><input type="text" id="end-complemento"></div>
+        </div>
+        <div class="campo"><label>Rua</label><input type="text" id="end-rua"></div>
+        <div class="linha-2">
+          <div class="campo"><label>Bairro</label><input type="text" id="end-bairro"></div>
+          <div class="campo"><label>Cidade</label><input type="text" id="end-cidade"></div>
+        </div>
+        <div class="campo" style="max-width:140px;"><label>Estado</label><input type="text" id="end-estado" maxlength="2"></div>
+        <button class="btn btn-gold" onclick="salvarEndereco()">Salvar endereço</button>
+        <button class="btn btn-ghost" style="margin-top:8px;" onclick="fazerLogout()">Sair da conta</button>
+      </div>
+
+      <div id="aba-pedidos" class="hidden">
+        <div id="lista-pedidos"><p class="sub">Carregando pedidos...</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     OVERLAY: CHECKOUT
+========================================================= -->
+<div class="overlay" id="overlay-checkout">
+  <div class="modal" style="max-width:600px;">
+    <button class="modal-fechar" onclick="fecharOverlay('overlay-checkout')">✕</button>
+    <div class="form-modal">
+      <h3>Finalizar compra</h3>
+      <p class="sub">Confirme os dados de entrega. Você enviará o pedido e o comprovante pelo WhatsApp.</p>
+      <div class="erro-msg" id="erro-checkout"></div>
+
+      <div id="checkout-precisa-login" class="hidden" style="text-align:center;padding:20px 0;">
+        <p style="margin-bottom:14px;color:var(--text-dim);">Entre ou crie sua conta para continuar.</p>
+        <button class="btn btn-gold" onclick="fecharOverlay('overlay-checkout');abrirLogin();">Entrar / Cadastrar</button>
+      </div>
+
+      <div id="checkout-conteudo">
+        <div class="linha-3">
+          <div class="campo"><label>CEP</label><input type="text" id="chk-cep" onblur="buscarCepCheckout()"></div>
+          <div class="campo"><label>Número</label><input type="text" id="chk-numero"></div>
+          <div class="campo"><label>Complemento</label><input type="text" id="chk-complemento"></div>
+        </div>
+        <div class="campo"><label>Rua</label><input type="text" id="chk-rua"></div>
+        <div class="linha-2">
+          <div class="campo"><label>Bairro</label><input type="text" id="chk-bairro"></div>
+          <div class="campo"><label>Cidade</label><input type="text" id="chk-cidade"></div>
+        </div>
+        <div class="campo" style="max-width:140px;"><label>Estado</label><input type="text" id="chk-estado" maxlength="2"></div>
+        <div class="campo"><label>Observações (opcional)</label><textarea id="chk-obs" rows="2"></textarea></div>
+        <div class="linha-total" style="border-top:1px solid var(--line);padding-top:14px;">
+          <span>Total do pedido</span><span id="chk-total">R$ 0,00</span>
+        </div>
+        <button class="btn btn-wine" onclick="confirmarPedidoEEnviarWhatsapp()">Enviar pedido pelo WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   CONFIGURAÇÃO — edite estes valores para o seu negócio
+===================================================================== */
+const CONFIG = {
+  whatsapp: "5582938730000", // <-- TROQUE pelo número real da loja
+  descontoPix: 0.05,         // 5% — usado só para exibir o "preço no PIX" (não processa pagamento)
+  freteGratisTexto: "R$ 199,90",
+
+  firebase: {
+    apiKey: "AIzaSyDnjiIrX_rloTmRuyBzs5TWGK2QaFep9J4",
+    authDomain: "errrf-b4439.firebaseapp.com",
+    databaseURL: "https://errrf-b4439-default-rtdb.firebaseio.com",
+    projectId: "errrf-b4439",
+    storageBucket: "errrf-b4439.firebasestorage.app",
+    messagingSenderId: "341087990615",
+    appId: "1:341087990615:web:7da7f1f146c04fa4770412",
+    measurementId: "G-QPVJPC9FWH"
+  },
+  imgbbKey: "1477d776c8b0fc794ae30233682ff146"
+};
+
+document.getElementById('ano').textContent = new Date().getFullYear();
+document.getElementById('wa-flutuante').href = `https://wa.me/${CONFIG.whatsapp}`;
+document.getElementById('link-wa-footer').href = `https://wa.me/${CONFIG.whatsapp}`;
+document.getElementById('topbar-frete-valor').textContent = CONFIG.freteGratisTexto;
+document.getElementById('topbar-pix').textContent = `${Math.round(CONFIG.descontoPix*100)}% de desconto no PIX`;
+
+/* =====================================================================
+   FIREBASE INIT
+===================================================================== */
+firebase.initializeApp(CONFIG.firebase);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+let usuarioAtual = null;
+let perfilAtual = null;
+let produtos = [];
+let carrinho = JSON.parse(localStorage.getItem('vv_carrinho') || '[]');
+let produtoAberto = null;
+let indiceGaleria = 0;
+let corSelecionada = '';
+let ocasiaoSelecionada = '';
+
+/* =====================================================================
+   UTILITÁRIOS
+===================================================================== */
+function formatarPreco(v){
+  return v.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+function precoPix(v){
+  return formatarPreco(v * (1 - CONFIG.descontoPix));
+}
+function mostrarToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('mostrar');
+  setTimeout(()=>t.classList.remove('mostrar'), 2600);
+}
+function abrirOverlay(id){ document.getElementById(id).classList.add('aberto'); }
+function fecharOverlay(id){ document.getElementById(id).classList.remove('aberto'); }
+function fecharTudo(){
+  document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('aberto'));
+  fecharCarrinho();
+}
+function salvarCarrinhoLocal(){
+  localStorage.setItem('vv_carrinho', JSON.stringify(carrinho));
+  atualizarBadgeCarrinho();
+}
+function atualizarBadgeCarrinho(){
+  const total = carrinho.reduce((s,i)=>s+i.qtd,0);
+  document.getElementById('badge-carrinho').textContent = total;
+}
+atualizarBadgeCarrinho();
+
+// cores aproximadas para os pontinhos dos chips de filtro
+const MAPA_CORES = {
+  'azul-marinho':'#16213e','azul marinho':'#16213e','azul royal':'#1c3f6e','azul':'#1c3f6e',
+  'vinho':'#6e1a2a','bordô':'#5c1f2e','bordo':'#5c1f2e','preto':'#111','cinza':'#5b6572',
+  'dourado':'#b3924f','prata':'#8a8f96','verde':'#3c4a32','verde musgo':'#3c4a32',
+  'marrom':'#4a3728','branco':'#eee'
+};
+function corParaHex(nome){
+  const chave = (nome||'').toLowerCase().trim();
+  return MAPA_CORES[chave] || '#999';
+}
+
+/* =====================================================================
+   CARREGAR PRODUTOS DO FIRESTORE
+===================================================================== */
+async function carregarProdutos(){
+  const grid = document.getElementById('grid-produtos');
+  try{
+    const snap = await db.collection('produtos').where('ativo','==',true).get();
+    produtos = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    montarFiltros();
+    renderizarProdutos();
+  }catch(e){
+    console.error(e);
+    grid.innerHTML = `<div class="vazio">Não foi possível carregar o catálogo agora. Verifique sua conexão.</div>`;
+  }
+}
+
+function montarFiltros(){
+  // chips de cor
+  const cores = [...new Set(produtos.map(p=>p.cor).filter(Boolean))].sort();
+  const chipsCor = document.getElementById('chips-cor');
+  chipsCor.innerHTML = `<button class="chip-cor ativo" onclick="selecionarCor('')">Todas as cores</button>` +
+    cores.map(c=>`
+      <button class="chip-cor" onclick="selecionarCor('${c.replace(/'/g,"\\'")}')">
+        <span class="dotcor" style="background:${corParaHex(c)}"></span>${c}
+      </button>`).join('');
+
+  // nav de categorias (ocasião)
+  const ocasioes = [...new Set(produtos.map(p=>p.ocasiao).filter(Boolean))].sort();
+  const nav = document.getElementById('nav-categorias-container');
+  nav.innerHTML = `<button class="cat-pill ativo" data-ocasiao="" onclick="selecionarCategoria('')">Coleção completa</button>` +
+    ocasioes.map(o=>`<button class="cat-pill" data-ocasiao="${o.replace(/'/g,"\\'")}" onclick="selecionarCategoria('${o.replace(/'/g,"\\'")}')">${o}</button>`).join('');
+
+  // selects de tecido / estampa
+  ['tecido','estampa'].forEach(campo=>{
+    const select = document.getElementById('f-'+campo);
+    const valores = [...new Set(produtos.map(p=>p[campo]).filter(Boolean))].sort();
+    valores.forEach(v=>{
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      select.appendChild(opt);
+    });
+    select.addEventListener('change', renderizarProdutos);
+  });
+  document.getElementById('f-busca').addEventListener('input', renderizarProdutos);
+}
+
+function selecionarCor(cor){
+  corSelecionada = cor;
+  document.querySelectorAll('.chip-cor').forEach(b=>b.classList.remove('ativo'));
+  event.currentTarget.classList.add('ativo');
+  renderizarProdutos();
+}
+
+function selecionarCategoria(ocasiao){
+  ocasiaoSelecionada = ocasiao;
+  document.querySelectorAll('.cat-pill').forEach(b=>b.classList.toggle('ativo', b.dataset.ocasiao===ocasiao));
+  renderizarProdutos();
+  document.getElementById('catalogo').scrollIntoView({behavior:'smooth'});
+}
+
+function limparFiltros(){
+  corSelecionada=''; ocasiaoSelecionada='';
+  document.getElementById('f-tecido').value='';
+  document.getElementById('f-estampa').value='';
+  document.getElementById('f-busca').value='';
+  document.querySelectorAll('.chip-cor').forEach((b,i)=>b.classList.toggle('ativo', i===0));
+  document.querySelectorAll('.cat-pill').forEach((b,i)=>b.classList.toggle('ativo', i===0));
+  renderizarProdutos();
+}
+
+function estoqueTotal(p){
+  if(!p.estoque) return 0;
+  return Object.values(p.estoque).reduce((s,v)=>s+Number(v||0),0);
+}
+
+function renderizarEstrelas(p){
+  if(!p.avaliacaoNota || !p.avaliacaoQtd) return '';
+  return `<span class="estrelas">⭐ <span class="num">${Number(p.avaliacaoNota).toFixed(1)}</span> (${p.avaliacaoQtd})</span>`;
+}
+
+function renderizarProdutos(){
+  const tecido = document.getElementById('f-tecido').value;
+  const estampa = document.getElementById('f-estampa').value;
+  const busca = document.getElementById('f-busca').value.trim().toLowerCase();
+
+  const filtrados = produtos.filter(p=>{
+    if(corSelecionada && p.cor!==corSelecionada) return false;
+    if(ocasiaoSelecionada && p.ocasiao!==ocasiaoSelecionada) return false;
+    if(tecido && p.tecido!==tecido) return false;
+    if(estampa && p.estampa!==estampa) return false;
+    if(busca && !(p.nome||'').toLowerCase().includes(busca)) return false;
+    return true;
+  });
+
+  const grid = document.getElementById('grid-produtos');
+  if(filtrados.length===0){
+    grid.innerHTML = `<div class="vazio">Nenhuma gravata encontrada com esses filtros.</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtrados.map(p=>{
+    const semEstoque = estoqueTotal(p) <= 0;
+    const imagem = (p.imagens && p.imagens[0]) || '';
+    const preco = Number(p.preco||0);
+    const precoOriginal = Number(p.precoOriginal||0);
+    const primeiraLargura = (p.larguras && p.larguras[0]) || '';
+
+    return `
+      <div class="card-produto" onclick="abrirProduto('${p.id}')">
+        <div class="thumb">
+          ${p.maisVendida ? '<span class="tag-mais-vendida">Mais vendida</span>' : (semEstoque ? '<span class="tag-esgotado">Esgotado</span>' : '')}
+          ${imagem ? `<img src="${imagem}" alt="${p.nome}" loading="lazy">` : ''}
+          ${primeiraLargura ? `<span class="tag-largura">${primeiraLargura}</span>` : ''}
+        </div>
+        <div class="card-info">
+          <div class="linha-meta">
+            <span class="tecido">${p.tecido||''}</span>
+            ${renderizarEstrelas(p)}
+          </div>
+          <div class="nome">${p.nome}</div>
+          ${p.cor ? `<div class="cor-sub">Cor: ${p.cor}</div>` : ''}
+          <div class="preco-linha">
+            ${precoOriginal > preco ? `<span class="preco-original">${formatarPreco(precoOriginal)}</span>` : ''}
+            <span class="preco-atual">${formatarPreco(preco)}</span>
+          </div>
+          <div class="preco-pix">${precoPix(preco)} no PIX (${Math.round(CONFIG.descontoPix*100)}% OFF)</div>
+          <button class="btn btn-gold" onclick="event.stopPropagation();abrirProduto('${p.id}')">${semEstoque?'Ver detalhes':'Ver e comprar'}</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+/* =====================================================================
+   DETALHE DO PRODUTO
+===================================================================== */
+function abrirProduto(id){
+  const p = produtos.find(x=>x.id===id);
+  if(!p) return;
+  produtoAberto = p;
+  indiceGaleria = 0;
+  renderizarDetalheProduto();
+  abrirOverlay('overlay-produto');
+}
+
+function renderizarDetalheProduto(){
+  const p = produtoAberto;
+  const imagens = (p.imagens && p.imagens.length) ? p.imagens : [];
+  const larguras = p.larguras || ['Tradicional (8cm)'];
+  const estoque = p.estoque || {};
+  const preco = Number(p.preco||0);
+  const precoOriginal = Number(p.precoOriginal||0);
+
+  document.getElementById('corpo-produto-detalhe').innerHTML = `
+    <div class="galeria">
+      <div class="principal">${imagens[indiceGaleria] ? `<img id="img-principal" src="${imagens[indiceGaleria]}" alt="${p.nome}">` : ''}</div>
+      <div class="mini-row">
+        ${imagens.map((img,i)=>`<img src="${img}" class="${i===indiceGaleria?'ativo':''}" onclick="trocarGaleria(${i})">`).join('')}
+      </div>
+    </div>
+    <div class="detalhe-info">
+      ${renderizarEstrelas(p)}
+      <h3>${p.nome}</h3>
+      <div class="preco-grande">${precoOriginal>preco?`<span class="original">${formatarPreco(precoOriginal)}</span>`:''}${formatarPreco(preco)}</div>
+      <div class="pix-txt">${precoPix(preco)} no PIX (${Math.round(CONFIG.descontoPix*100)}% OFF)</div>
+      <p class="descricao">${p.descricao||''}</p>
+      <label class="rot">Largura</label>
+      <div class="larguras" id="larguras-container">
+        ${larguras.map(l=>{
+          const disponivel = Number(estoque[l]||0) > 0;
+          return `<button data-largura="${l}" ${disponivel?'':'disabled'} onclick="selecionarLargura('${l}')">${l}</button>`;
+        }).join('')}
+      </div>
+      <div class="estoque-info" id="estoque-info-txt">Selecione uma largura para ver o estoque.</div>
+      <label class="rot">Quantidade</label>
+      <div class="qtd-row">
+        <button onclick="alterarQtdModal(-1)">−</button>
+        <span id="qtd-modal">1</span>
+        <button onclick="alterarQtdModal(1)">+</button>
+      </div>
+      <button class="btn btn-gold" style="margin-top:14px;" onclick="adicionarAoCarrinho()">Adicionar à sacola</button>
+    </div>
+  `;
+  window._larguraSelecionada = null;
+  window._qtdModal = 1;
+}
+
+function trocarGaleria(i){
+  indiceGaleria = i;
+  document.getElementById('img-principal').src = produtoAberto.imagens[i];
+  document.querySelectorAll('.mini-row img').forEach((el,idx)=>el.classList.toggle('ativo', idx===i));
+}
+
+function selecionarLargura(l){
+  window._larguraSelecionada = l;
+  document.querySelectorAll('#larguras-container button').forEach(b=>{
+    b.classList.toggle('selecionado', b.dataset.largura===l);
+  });
+  const estoque = Number((produtoAberto.estoque||{})[l] || 0);
+  document.getElementById('estoque-info-txt').textContent = `${estoque} unidade(s) disponível(is) nesta largura.`;
+}
+
+function alterarQtdModal(delta){
+  window._qtdModal = Math.max(1, (window._qtdModal||1) + delta);
+  document.getElementById('qtd-modal').textContent = window._qtdModal;
+}
+
+function adicionarAoCarrinho(){
+  if(!window._larguraSelecionada){
+    mostrarToast('Selecione a largura da gravata.');
+    return;
+  }
+  const p = produtoAberto;
+  const largura = window._larguraSelecionada;
+  const qtd = window._qtdModal || 1;
+  const estoqueDisp = Number((p.estoque||{})[largura] || 0);
+
+  const existente = carrinho.find(i=>i.produtoId===p.id && i.largura===largura);
+  const qtdAtualNoCarrinho = existente ? existente.qtd : 0;
+
+  if(qtdAtualNoCarrinho + qtd > estoqueDisp){
+    mostrarToast('Quantidade solicitada acima do estoque disponível.');
+    return;
+  }
+
+  if(existente){
+    existente.qtd += qtd;
+  }else{
+    carrinho.push({
+      produtoId: p.id,
+      nome: p.nome,
+      preco: Number(p.preco||0),
+      largura,
+      qtd,
+      imagem: (p.imagens && p.imagens[0]) || ''
+    });
+  }
+  salvarCarrinhoLocal();
+  mostrarToast('Adicionado à sacola.');
+  fecharOverlay('overlay-produto');
+}
+
+/* =====================================================================
+   SACOLA / CARRINHO
+===================================================================== */
+function abrirCarrinho(){
+  renderizarCarrinho();
+  document.getElementById('carrinho-drawer').classList.add('aberto');
+  document.getElementById('carrinho-overlay').classList.add('aberto');
+}
+function fecharCarrinho(){
+  document.getElementById('carrinho-drawer').classList.remove('aberto');
+  document.getElementById('carrinho-overlay').classList.remove('aberto');
+}
+
+function renderizarCarrinho(){
+  const lista = document.getElementById('lista-carrinho');
+  if(carrinho.length===0){
+    lista.innerHTML = `<div class="carrinho-vazio">Sua sacola está vazia.<br>Que tal ver nossa coleção?</div>`;
+    document.getElementById('total-carrinho').textContent = formatarPreco(0);
+    return;
+  }
+  lista.innerHTML = carrinho.map((item, idx)=>`
+    <div class="item-carrinho">
+      <img src="${item.imagem}" alt="${item.nome}">
+      <div class="info">
+        <div class="nome">${item.nome}</div>
+        <div class="meta">Largura: ${item.largura}</div>
+        <div class="linha-baixo">
+          <div class="qtd-mini">
+            <button onclick="alterarQtdCarrinho(${idx},-1)">−</button>
+            <span>${item.qtd}</span>
+            <button onclick="alterarQtdCarrinho(${idx},1)">+</button>
+          </div>
+          <strong>${formatarPreco(item.preco*item.qtd)}</strong>
+        </div>
+        <button class="remover" onclick="removerDoCarrinho(${idx})">Remover</button>
+      </div>
+    </div>
+  `).join('');
+  const total = carrinho.reduce((s,i)=>s+i.preco*i.qtd,0);
+  document.getElementById('total-carrinho').textContent = formatarPreco(total);
+}
+
+function alterarQtdCarrinho(idx, delta){
+  const item = carrinho[idx];
+  const produto = produtos.find(p=>p.id===item.produtoId);
+  const estoqueDisp = produto ? Number((produto.estoque||{})[item.largura] || 0) : 999;
+  const novaQtd = item.qtd + delta;
+  if(novaQtd < 1) return;
+  if(novaQtd > estoqueDisp){
+    mostrarToast('Estoque máximo atingido para esta largura.');
+    return;
+  }
+  item.qtd = novaQtd;
+  salvarCarrinhoLocal();
+  renderizarCarrinho();
+}
+
+function removerDoCarrinho(idx){
+  carrinho.splice(idx,1);
+  salvarCarrinhoLocal();
+  renderizarCarrinho();
+}
+
+/* =====================================================================
+   AUTENTICAÇÃO
+===================================================================== */
+function abrirLogin(){ mostrarLogin(); abrirOverlay('overlay-login'); }
+function mostrarLogin(){
+  document.getElementById('painel-login').classList.remove('hidden');
+  document.getElementById('painel-cadastro').classList.add('hidden');
+}
+function mostrarCadastro(){
+  document.getElementById('painel-login').classList.add('hidden');
+  document.getElementById('painel-cadastro').classList.remove('hidden');
+}
+
+function exibirErro(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function fazerLogin(){
+  const email = document.getElementById('login-email').value.trim();
+  const senha = document.getElementById('login-senha').value;
+  document.getElementById('erro-login').style.display='none';
+  try{
+    await auth.signInWithEmailAndPassword(email, senha);
+    fecharOverlay('overlay-login');
+    mostrarToast('Login realizado com sucesso.');
+  }catch(e){
+    exibirErro('erro-login', traduzirErroFirebase(e));
+  }
+}
+
+async function fazerCadastro(){
+  const nome = document.getElementById('cad-nome').value.trim();
+  const email = document.getElementById('cad-email').value.trim();
+  const telefone = document.getElementById('cad-telefone').value.trim();
+  const senha = document.getElementById('cad-senha').value;
+  document.getElementById('erro-cadastro').style.display='none';
+
+  if(!nome || !email || !senha){
+    exibirErro('erro-cadastro','Preencha nome, e-mail e senha.');
+    return;
+  }
+  try{
+    const cred = await auth.createUserWithEmailAndPassword(email, senha);
+    await db.collection('clientes').doc(cred.user.uid).set({
+      nome, email, telefone, endereco:{}, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    fecharOverlay('overlay-login');
+    mostrarToast('Conta criada com sucesso!');
+  }catch(e){
+    exibirErro('erro-cadastro', traduzirErroFirebase(e));
+  }
+}
+
+function fazerLogout(){
+  auth.signOut();
+  fecharOverlay('overlay-conta');
+  mostrarToast('Você saiu da sua conta.');
+}
+
+function traduzirErroFirebase(e){
+  const map = {
+    'auth/invalid-email':'E-mail inválido.',
+    'auth/user-not-found':'Usuário não encontrado.',
+    'auth/wrong-password':'Senha incorreta.',
+    'auth/email-already-in-use':'Este e-mail já está cadastrado.',
+    'auth/weak-password':'A senha deve ter pelo menos 6 caracteres.',
+    'auth/invalid-credential':'E-mail ou senha incorretos.'
+  };
+  return map[e.code] || 'Ocorreu um erro. Tente novamente.';
+}
+
+auth.onAuthStateChanged(async (user)=>{
+  usuarioAtual = user;
+  if(user){
+    const doc = await db.collection('clientes').doc(user.uid).get();
+    perfilAtual = doc.exists ? doc.data() : {};
+    document.getElementById('label-conta').textContent = perfilAtual?.nome?.split(' ')[0] || 'Minha conta';
+    document.getElementById('topbar-saudacao').textContent = `Olá, ${perfilAtual?.nome?.split(' ')[0] || ''}`;
+  }else{
+    perfilAtual = null;
+    document.getElementById('label-conta').textContent = 'Entrar';
+    document.getElementById('topbar-saudacao').textContent = 'Bem-vindo(a)';
+  }
+});
+
+/* =====================================================================
+   MINHA CONTA
+===================================================================== */
+function abrirConta(){
+  if(!usuarioAtual){
+    abrirLogin();
+    return;
+  }
+  document.getElementById('conta-saudacao').textContent = `Olá, ${perfilAtual?.nome?.split(' ')[0] || ''}`;
+  preencherEnderecoConta();
+  mostrarAbaConta('endereco');
+  abrirOverlay('overlay-conta');
+}
+
+function mostrarAbaConta(aba){
+  document.getElementById('tab-endereco').classList.toggle('ativo', aba==='endereco');
+  document.getElementById('tab-pedidos').classList.toggle('ativo', aba==='pedidos');
+  document.getElementById('aba-endereco').classList.toggle('hidden', aba!=='endereco');
+  document.getElementById('aba-pedidos').classList.toggle('hidden', aba!=='pedidos');
+  if(aba==='pedidos') carregarPedidos();
+}
+
+function preencherEnderecoConta(){
+  const e = perfilAtual?.endereco || {};
+  document.getElementById('end-cep').value = e.cep||'';
+  document.getElementById('end-rua').value = e.rua||'';
+  document.getElementById('end-numero').value = e.numero||'';
+  document.getElementById('end-complemento').value = e.complemento||'';
+  document.getElementById('end-bairro').value = e.bairro||'';
+  document.getElementById('end-cidade').value = e.cidade||'';
+  document.getElementById('end-estado').value = e.estado||'';
+}
+
+async function buscarCep(){
+  const cep = document.getElementById('end-cep').value.replace(/\D/g,'');
+  if(cep.length!==8) return;
+  try{
+    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await res.json();
+    if(data.erro) return;
+    document.getElementById('end-rua').value = data.logradouro||'';
+    document.getElementById('end-bairro').value = data.bairro||'';
+    document.getElementById('end-cidade').value = data.localidade||'';
+    document.getElementById('end-estado').value = data.uf||'';
+  }catch(e){ console.error(e); }
+}
+
+async function salvarEndereco(){
+  if(!usuarioAtual) return;
+  const endereco = {
+    cep: document.getElementById('end-cep').value.trim(),
+    rua: document.getElementById('end-rua').value.trim(),
+    numero: document.getElementById('end-numero').value.trim(),
+    complemento: document.getElementById('end-complemento').value.trim(),
+    bairro: document.getElementById('end-bairro').value.trim(),
+    cidade: document.getElementById('end-cidade').value.trim(),
+    estado: document.getElementById('end-estado').value.trim().toUpperCase()
+  };
+  await db.collection('clientes').doc(usuarioAtual.uid).update({endereco});
+  perfilAtual.endereco = endereco;
+  const ok = document.getElementById('ok-endereco');
+  ok.style.display='block';
+  setTimeout(()=>ok.style.display='none', 2500);
+}
+
+async function carregarPedidos(){
+  const container = document.getElementById('lista-pedidos');
+  container.innerHTML = '<p class="sub">Carregando pedidos...</p>';
+  try{
+    const snap = await db.collection('pedidos')
+      .where('clienteId','==',usuarioAtual.uid)
+      .orderBy('criadoEm','desc').limit(30).get();
+    if(snap.empty){
+      container.innerHTML = '<p class="sub">Você ainda não fez nenhum pedido.</p>';
+      return;
+    }
+    container.innerHTML = snap.docs.map(d=>{
+      const p = d.data();
+      const data = p.criadoEm?.toDate ? p.criadoEm.toDate().toLocaleDateString('pt-BR') : '';
+      return `
+        <div class="pedido-card">
+          <div class="topo"><span>Pedido de ${data}</span><span class="status">${p.status||'Aguardando pagamento'}</span></div>
+          <div style="color:var(--text-dim);font-size:13px;">${(p.itens||[]).map(i=>`${i.qtd}x ${i.nome} (${i.largura})`).join(', ')}</div>
+          <div style="margin-top:8px;font-weight:800;color:#fff;">${formatarPreco(p.total||0)}</div>
+        </div>`;
+    }).join('');
+  }catch(e){
+    console.error(e);
+    container.innerHTML = '<p class="sub">Não foi possível carregar seus pedidos agora.</p>';
+  }
+}
+
+/* =====================================================================
+   CHECKOUT + WHATSAPP
+===================================================================== */
+function irParaCheckout(){
+  if(carrinho.length===0){
+    mostrarToast('Sua sacola está vazia.');
+    return;
+  }
+  fecharCarrinho();
+  if(!usuarioAtual){
+    document.getElementById('checkout-precisa-login').classList.remove('hidden');
+    document.getElementById('checkout-conteudo').classList.add('hidden');
+  }else{
+    document.getElementById('checkout-precisa-login').classList.add('hidden');
+    document.getElementById('checkout-conteudo').classList.remove('hidden');
+    const e = perfilAtual?.endereco || {};
+    document.getElementById('chk-cep').value = e.cep||'';
+    document.getElementById('chk-rua').value = e.rua||'';
+    document.getElementById('chk-numero').value = e.numero||'';
+    document.getElementById('chk-complemento').value = e.complemento||'';
+    document.getElementById('chk-bairro').value = e.bairro||'';
+    document.getElementById('chk-cidade').value = e.cidade||'';
+    document.getElementById('chk-estado').value = e.estado||'';
+    const total = carrinho.reduce((s,i)=>s+i.preco*i.qtd,0);
+    document.getElementById('chk-total').textContent = formatarPreco(total);
+  }
+  abrirOverlay('overlay-checkout');
+}
+
+async function buscarCepCheckout(){
+  const cep = document.getElementById('chk-cep').value.replace(/\D/g,'');
+  if(cep.length!==8) return;
+  try{
+    const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+    const data = await res.json();
+    if(data.erro) return;
+    document.getElementById('chk-rua').value = data.logradouro||'';
+    document.getElementById('chk-bairro').value = data.bairro||'';
+    document.getElementById('chk-cidade').value = data.localidade||'';
+    document.getElementById('chk-estado').value = data.uf||'';
+  }catch(e){ console.error(e); }
+}
+
+async function confirmarPedidoEEnviarWhatsapp(){
+  const erroEl = document.getElementById('erro-checkout');
+  erroEl.style.display='none';
+
+  const endereco = {
+    cep: document.getElementById('chk-cep').value.trim(),
+    rua: document.getElementById('chk-rua').value.trim(),
+    numero: document.getElementById('chk-numero').value.trim(),
+    complemento: document.getElementById('chk-complemento').value.trim(),
+    bairro: document.getElementById('chk-bairro').value.trim(),
+    cidade: document.getElementById('chk-cidade').value.trim(),
+    estado: document.getElementById('chk-estado').value.trim().toUpperCase()
+  };
+  const obs = document.getElementById('chk-obs').value.trim();
+
+  if(!endereco.rua || !endereco.numero || !endereco.cidade){
+    exibirErro('erro-checkout','Preencha ao menos rua, número e cidade para entrega.');
+    return;
+  }
+
+  const total = carrinho.reduce((s,i)=>s+i.preco*i.qtd,0);
+
+  try{
+    await db.collection('pedidos').add({
+      clienteId: usuarioAtual.uid,
+      clienteNome: perfilAtual?.nome || '',
+      clienteTelefone: perfilAtual?.telefone || '',
+      itens: carrinho,
+      total,
+      endereco,
+      observacoes: obs,
+      status: 'Aguardando pagamento',
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('clientes').doc(usuarioAtual.uid).update({endereco});
+  }catch(e){
+    console.error(e);
+    exibirErro('erro-checkout','Não foi possível registrar o pedido agora. Tente novamente.');
+    return;
+  }
+
+  let msg = `*Novo pedido — Vestindo a Verdade*\n\n`;
+  msg += `*Cliente:* ${perfilAtual?.nome || ''}\n`;
+  msg += `*Telefone:* ${perfilAtual?.telefone || ''}\n\n`;
+  msg += `*Itens:*\n`;
+  carrinho.forEach(i=>{
+    msg += `• ${i.qtd}x ${i.nome} — largura ${i.largura} — ${formatarPreco(i.preco*i.qtd)}\n`;
+  });
+  msg += `\n*Total: ${formatarPreco(total)}*\n\n`;
+  msg += `*Endereço de entrega:*\n`;
+  msg += `${endereco.rua}, ${endereco.numero}${endereco.complemento ? ' - '+endereco.complemento : ''}\n`;
+  msg += `${endereco.bairro} — ${endereco.cidade}/${endereco.estado}\n`;
+  msg += `CEP: ${endereco.cep}\n`;
+  if(obs) msg += `\n*Observações:* ${obs}\n`;
+  msg += `\n_Vou enviar o comprovante do pagamento (PIX/transferência) em seguida._`;
+
+  const url = `https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(msg)}`;
+
+  carrinho = [];
+  salvarCarrinhoLocal();
+  fecharOverlay('overlay-checkout');
+  window.open(url, '_blank');
+  mostrarToast('Pedido registrado! Envie o comprovante pelo WhatsApp.');
+}
+
+/* =====================================================================
+   INICIALIZAÇÃO
+===================================================================== */
+carregarProdutos();
+</script>
+</body>
+</html>

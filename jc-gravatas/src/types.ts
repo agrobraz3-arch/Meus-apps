@@ -116,4 +116,5 @@ export interface StoreSettings {
   pixKeyType: 'CNPJ' | 'Email' | 'Telefone' | 'Aleatória';
   freeShippingThreshold: number;
   pixDiscountPercent: number;
+  adminPassword?: string;
 }

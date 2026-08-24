@@ -18,7 +18,6 @@ interface FooterProps {
   onOpenAdvisor: () => void;
   onOpenKnotTutorials: () => void;
   onOpenSupport: () => void;
-  onOpenAdmin?: () => void;
   settings: StoreSettings;
 }
 
@@ -27,7 +26,6 @@ export const Footer: React.FC<FooterProps> = ({
   onOpenAdvisor,
   onOpenKnotTutorials,
   onOpenSupport,
-  onOpenAdmin,
   settings,
 }) => {
   return (
@@ -192,17 +190,7 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Bottom copyright */}
         <div className="pt-8 mt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-500">
           <p>© {new Date().getFullYear()} JC Gravatas - Gravataria & Alfaiataria. Todos os direitos reservados.</p>
-          <div className="flex items-center gap-4">
-            {onOpenAdmin && (
-              <button
-                onClick={onOpenAdmin}
-                className="text-amber-400/80 hover:text-amber-300 font-semibold flex items-center gap-1 cursor-pointer transition-colors"
-              >
-                <span>👑 Acesso Lojista (Painel do Dono)</span>
-              </button>
-            )}
-            <span>Desenvolvido para automatizar vendas com elegância</span>
-          </div>
+          <span>Alta Alfaiataria & Acessórios Masculinos</span>
         </div>
       </div>
     </footer>

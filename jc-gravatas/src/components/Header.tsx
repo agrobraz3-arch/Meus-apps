@@ -25,7 +25,6 @@ interface HeaderProps {
   onOpenSuitAdvisor: () => void;
   onOpenKnotTutorials: () => void;
   onOpenSupport: () => void;
-  onOpenAdmin: () => void;
   currentUser: CustomerUser | null;
   onOpenAccount: () => void;
   searchQuery: string;
@@ -41,7 +40,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSuitAdvisor,
   onOpenKnotTutorials,
   onOpenSupport,
-  onOpenAdmin,
   currentUser,
   onOpenAccount,
   searchQuery,
@@ -84,14 +82,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <User className="w-3.5 h-3.5 text-amber-400" />
               <span>{currentUser ? `Olá, ${currentUser.name.split(' ')[0]}` : 'Entrar / Meus Pedidos'}</span>
-            </button>
-
-            <button
-              onClick={onOpenAdmin}
-              className="bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-slate-950 px-2.5 py-0.5 rounded-full border border-amber-500/40 font-bold cursor-pointer transition-all flex items-center gap-1"
-              title="Acessar o Painel do Dono para editar produtos, preços, fotos e gerenciar pedidos"
-            >
-              <span>👑 Painel do Dono</span>
             </button>
             <a
               href={`https://wa.me/${settings.whatsappNumber}?text=${encodeURIComponent('Olá! Gostaria de atendimento para escolher minhas gravatas.')}`}
@@ -302,16 +292,6 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <User className="w-4 h-4 text-amber-400" />
               <span>{currentUser ? `Minha Conta (${currentUser.name})` : 'Entrar / Criar Conta & Pedidos'}</span>
-            </button>
-
-            <button
-              onClick={() => {
-                onOpenAdmin();
-                setMobileMenuOpen(false);
-              }}
-              className="w-full flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-300 px-3 py-2.5 rounded-lg text-sm font-bold border border-amber-500/50"
-            >
-              <span>👑 Painel do Dono (Gerenciar Produtos & Pedidos)</span>
             </button>
 
             <button

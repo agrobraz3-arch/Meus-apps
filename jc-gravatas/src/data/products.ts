@@ -7,6 +7,7 @@ export const initialStoreSettings: StoreSettings = {
   pixKeyType: 'Telefone',
   freeShippingThreshold: 199.90,
   pixDiscountPercent: 5,
+  adminPassword: '123',
 };
 
 export const sampleProducts: Product[] = [

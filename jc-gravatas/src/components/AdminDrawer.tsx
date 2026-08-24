@@ -32,6 +32,7 @@ import { ProductEditModal } from './ProductEditModal';
 interface AdminDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  onLogout?: () => void;
   orders: Order[];
   onUpdateOrderStatus: (orderId: string, status: Order['status'], trackingCode?: string) => void;
   products: Product[];
@@ -48,6 +49,7 @@ interface AdminDrawerProps {
 export const AdminDrawer: React.FC<AdminDrawerProps> = ({
   isOpen,
   onClose,
+  onLogout,
   orders,
   onUpdateOrderStatus,
   products,
@@ -165,12 +167,27 @@ export const AdminDrawer: React.FC<AdminDrawerProps> = ({
               </div>
             </div>
 
-            <button
-              onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            <div className="flex items-center gap-2">
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onLogout();
+                    onClose();
+                  }}
+                  className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs px-3 py-1.5 rounded-xl border border-rose-500/30 transition-colors font-semibold cursor-pointer"
+                  title="Bloquear painel e sair do modo administrador"
+                >
+                  Sair do Modo Dono
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
           </div>
 
           {/* Quick Metrics Bar */}
@@ -820,6 +837,32 @@ export const AdminDrawer: React.FC<AdminDrawerProps> = ({
                         className="w-full bg-slate-950 text-slate-200 p-2.5 rounded-xl border border-slate-800 focus:outline-none focus:border-amber-500 font-mono"
                       />
                     </div>
+                  </div>
+                </div>
+
+                {/* Admin Password & Protection */}
+                <div className="bg-slate-900/90 p-4 rounded-2xl border border-amber-500/30 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                      Segurança & Senha do Painel do Dono
+                    </h3>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="block font-bold text-slate-200">
+                      Senha de Acesso do Administrador:
+                    </label>
+                    <input
+                      type="text"
+                      value={tempSettings.adminPassword || '123'}
+                      onChange={(e) => setTempSettings({ ...tempSettings, adminPassword: e.target.value })}
+                      placeholder="Ex: 123 ou jc@2026"
+                      className="w-full bg-slate-950 text-amber-300 p-2.5 rounded-xl border border-slate-800 font-mono focus:outline-none focus:border-amber-500 font-bold"
+                    />
+                    <p className="text-[11px] text-slate-400">
+                      Esta senha protege o Painel do Dono para que apenas você possa acessar e alterar produtos, preços e pedidos.
+                    </p>
                   </div>
                 </div>
 

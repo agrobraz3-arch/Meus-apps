@@ -39,6 +39,7 @@ import { SuitAdvisorModal } from './components/SuitAdvisorModal';
 import { KnotTutorialsModal } from './components/KnotTutorialsModal';
 import { CustomerSupportModal } from './components/CustomerSupportModal';
 import { AdminDrawer } from './components/AdminDrawer';
+import { AdminLoginModal } from './components/AdminLoginModal';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { Footer } from './components/Footer';
 import { 
@@ -241,6 +242,81 @@ export default function App() {
   const [isKnotTutorialsOpen, setIsKnotTutorialsOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
+
+  // Store Owner Authentication (Protected Admin Access)
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('jc_admin_authenticated') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+  const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
+
+  // Check URL for /admin or #admin route on load and navigation
+  useEffect(() => {
+    const checkAdminRoute = () => {
+      const path = (window.location.pathname || '').toLowerCase();
+      const hash = (window.location.hash || '').toLowerCase();
+      const isAdminRoute = path.includes('/admin') || hash.includes('admin');
+
+      if (isAdminRoute) {
+        const isAuth = localStorage.getItem('jc_admin_authenticated') === 'true';
+        if (isAuth) {
+          setIsAdminOpen(true);
+          setIsAdminLoginOpen(false);
+        } else {
+          setIsAdminLoginOpen(true);
+        }
+      }
+    };
+
+    checkAdminRoute();
+    window.addEventListener('popstate', checkAdminRoute);
+    window.addEventListener('hashchange', checkAdminRoute);
+
+    return () => {
+      window.removeEventListener('popstate', checkAdminRoute);
+      window.removeEventListener('hashchange', checkAdminRoute);
+    };
+  }, []);
+
+  const handleOpenAdmin = () => {
+    if (isAdminAuthenticated) {
+      setIsAdminOpen(true);
+    } else {
+      setIsAdminLoginOpen(true);
+    }
+  };
+
+  const handleAdminLogin = (passwordInput: string): boolean => {
+    const correctPassword = settings.adminPassword || '123';
+    if (passwordInput === correctPassword) {
+      setIsAdminAuthenticated(true);
+      try {
+        localStorage.setItem('jc_admin_authenticated', 'true');
+      } catch (e) {
+        console.error(e);
+      }
+      setIsAdminLoginOpen(false);
+      setIsAdminOpen(true);
+      return true;
+    }
+    return false;
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdminAuthenticated(false);
+    try {
+      localStorage.removeItem('jc_admin_authenticated');
+    } catch (e) {
+      console.error(e);
+    }
+    setIsAdminOpen(false);
+    if (window.location.pathname.toLowerCase().includes('/admin') || window.location.hash.includes('admin')) {
+      window.history.pushState(null, '', '/');
+    }
+  };
 
   // Added-to-cart Toast feedback
   const [lastAddedId, setLastAddedId] = useState<string | null>(null);
@@ -523,7 +599,9 @@ export default function App() {
         onOpenSuitAdvisor={() => setIsSuitAdvisorOpen(true)}
         onOpenKnotTutorials={() => setIsKnotTutorialsOpen(true)}
         onOpenSupport={() => setIsSupportOpen(true)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenAdmin={handleOpenAdmin}
+        isAdminAuthenticated={isAdminAuthenticated}
+        onAdminLogout={handleAdminLogout}
         currentUser={currentUser}
         onOpenAccount={() => setIsAccountModalOpen(true)}
         searchQuery={searchQuery}
@@ -724,7 +802,9 @@ export default function App() {
         onOpenAdvisor={() => setIsSuitAdvisorOpen(true)}
         onOpenKnotTutorials={() => setIsKnotTutorialsOpen(true)}
         onOpenSupport={() => setIsSupportOpen(true)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
+        onOpenAdmin={handleOpenAdmin}
+        isAdminAuthenticated={isAdminAuthenticated}
+        onAdminLogout={handleAdminLogout}
         settings={settings}
       />
 
@@ -813,10 +893,28 @@ export default function App() {
         settings={settings}
       />
 
+      {/* Store Owner Login Modal (Protected Access) */}
+      <AdminLoginModal
+        isOpen={isAdminLoginOpen}
+        onClose={() => {
+          setIsAdminLoginOpen(false);
+          if (window.location.pathname.toLowerCase().includes('/admin') || window.location.hash.includes('admin')) {
+            window.history.pushState(null, '', '/');
+          }
+        }}
+        onLogin={handleAdminLogin}
+      />
+
       {/* Store Owner Admin Drawer */}
       <AdminDrawer
         isOpen={isAdminOpen}
-        onClose={() => setIsAdminOpen(false)}
+        onClose={() => {
+          setIsAdminOpen(false);
+          if (window.location.pathname.toLowerCase().includes('/admin') || window.location.hash.includes('admin')) {
+            window.history.pushState(null, '', '/');
+          }
+        }}
+        onLogout={handleAdminLogout}
         orders={orders}
         onUpdateOrderStatus={handleUpdateOrderStatus}
         products={products}

@@ -29,7 +29,7 @@ export const INITIAL_MARMITA_SIZES: MarmitaSize[] = [
     id: 'p',
     name: 'Quentinha Pequena (P)',
     label: 'Tamanho P',
-    price: 18.00,
+    price: 17.00,
     description: 'Ideal para 1 pessoa (aprox. 500g). 1 Arroz, 1 Feijão, 1 Carne e até 3 Acompanhamentos.',
     maxRice: 1,
     maxBeans: 1,

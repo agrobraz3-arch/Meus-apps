@@ -85,6 +85,9 @@ interface AppContextType {
   generateOrderWhatsAppUrl: (order: Order) => string;
 }
 
+// 1. Definição da versão do aplicativo para forçar atualização no celular do cliente
+const APP_VERSION = '1.0.1';
+
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_KEYS = {
@@ -101,6 +104,15 @@ const LOCAL_STORAGE_KEYS = {
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // 2. Trava de versão que apaga dados antigos se houver atualização
+  useEffect(() => {
+    if (localStorage.getItem('app_version') !== APP_VERSION) {
+      localStorage.clear();
+      localStorage.setItem('app_version', APP_VERSION);
+      window.location.reload();
+    }
+  }, []);
+
   const [currentDayOfWeek, setCurrentDayOfWeek] = useState<DayOfWeek>(getCurrentDayOfWeek());
   const [activeDaySelected, setActiveDaySelected] = useState<DayOfWeek>(getCurrentDayOfWeek());
 

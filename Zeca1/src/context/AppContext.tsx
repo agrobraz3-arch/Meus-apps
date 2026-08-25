@@ -86,7 +86,7 @@ interface AppContextType {
 }
 
 // 1. Definição da versão do aplicativo para forçar atualização no celular do cliente
-const APP_VERSION = '1.0.2';
+const APP_VERSION = '1.0.3';
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 

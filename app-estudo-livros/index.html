@@ -1,1 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Palavra & Estudo — Biblioteca Bíblica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Spectral:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --bg:#F7F2E9;
+  --bg-elevated:#FFFFFF;
+  --bg-sunken:#EFE8D8;
+  --text:#2B2620;
+  --text-soft:#6B5F4F;
+  --primary:#2F5D50;
+  --primary-dark:#22463C;
+  --primary-soft:#DCE9E3;
+  --accent:#C9973B;
+  --border:#E4DCC8;
+  --danger:#B4453A;
+  --shadow:0 2px 14px rgba(43,38,32,.08);
+  --radius:14px;
+  --font-display:'Spectral',serif;
+  --font-body:'Inter',sans-serif;
+}
+[data-theme="night"]{
+  --bg:#12161A;
+  --bg-elevated:#1B2124;
+  --bg-sunken:#0D1113;
+  --text:#E9E2CC;
+  --text-soft:#9C9483;
+  --primary:#7FB69B;
+  --primary-dark:#5D9880;
+  --primary-soft:#1F332C;
+  --accent:#D9AE5C;
+  --border:#2A3134;
+  --shadow:0 2px 16px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;}
+body{margin:0;}
+html,body{background:var(--bg);color:var(--text);font-family:var(--font-body);transition:background .25s,color .25s;}
+h1,h2,h3,.brand,.material-title{font-family:var(--font-display);}
+button,input,select{font-family:var(--font-body);}
+a{color:inherit;}
+.hidden{display:none !important;}
+button{cursor:pointer;}
+::-webkit-scrollbar{width:10px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
 
+/* ---------- AUTH SCREEN ---------- */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:
+  radial-gradient(circle at 15% 20%, var(--primary-soft) 0%, transparent 45%),
+  radial-gradient(circle at 85% 80%, var(--primary-soft) 0%, transparent 45%), var(--bg);}
+.auth-card{width:100%;max-width:400px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:36px 32px;}
+.auth-card .brand{font-size:28px;color:var(--primary-dark);margin:0 0 2px;}
+.auth-card .brand span{color:var(--accent);}
+.auth-sub{color:var(--text-soft);font-size:14px;margin:0 0 26px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:var(--text-soft);}
+.field input{width:100%;padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:15px;}
+.field input:focus{outline:2px solid var(--primary);outline-offset:1px;}
+.btn-primary{width:100%;padding:12px;border:none;border-radius:10px;background:var(--primary);color:#fff;font-weight:600;font-size:15px;transition:background .15s;}
+.btn-primary:hover{background:var(--primary-dark);}
+.btn-link{background:none;border:none;color:var(--primary-dark);font-size:13.5px;text-decoration:underline;padding:0;margin-top:14px;display:inline-block;}
+.auth-error{background:#F6DEDC;color:var(--danger);border-radius:8px;padding:9px 12px;font-size:13px;margin-bottom:14px;}
+[data-theme="night"] .auth-error{background:#3A1F1E;}
+
+/* ---------- APP SHELL ---------- */
+#app{display:flex;min-height:100vh;}
+.sidebar{width:236px;flex-shrink:0;background:var(--bg-elevated);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:22px 16px;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.sidebar .brand{font-size:20px;color:var(--primary-dark);margin:0 6px 22px;}
+.sidebar .brand span{color:var(--accent);}
+.nav-section-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-soft);margin:18px 6px 8px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;color:var(--text);text-decoration:none;font-size:14.5px;font-weight:500;border:none;background:none;width:100%;text-align:left;}
+.nav-item:hover{background:var(--bg-sunken);}
+.nav-item.active{background:var(--primary-soft);color:var(--primary-dark);font-weight:600;}
+.nav-item .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);}
+.night-toggle{display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:9px;font-size:14px;}
+.switch{position:relative;width:40px;height:22px;background:var(--border);border-radius:20px;border:none;flex-shrink:0;}
+.switch::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;background:var(--bg-elevated);border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.switch.on{background:var(--primary);}
+.switch.on::after{transform:translateX(18px);}
+.user-chip{display:flex;align-items:center;gap:9px;padding:8px 10px;font-size:13.5px;color:var(--text-soft);}
+.user-chip .avatar{width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}
+.logout-btn{font-size:12.5px;color:var(--danger);background:none;border:none;padding:6px 10px;text-decoration:underline;}
+
+.main{flex:1;min-width:0;padding:26px 32px 60px;}
+.topbar{display:flex;align-items:center;gap:16px;margin-bottom:26px;flex-wrap:wrap;}
+.search-box{flex:1;min-width:220px;position:relative;}
+.search-box input{width:100%;padding:11px 14px 11px 40px;border-radius:10px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text);font-size:14.5px;}
+.search-box::before{content:'🔍';position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.6;}
+.mobile-menu-btn{display:none;background:var(--bg-elevated);border:1px solid var(--border);border-radius:9px;padding:8px 11px;font-size:16px;}
+
+.view-title{font-size:24px;margin:2px 0 4px;}
+.view-sub{color:var(--text-soft);font-size:14px;margin:0 0 22px;}
+
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
+.chip{padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg-elevated);font-size:13.5px;font-weight:500;color:var(--text-soft);}
+.chip.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;}
+.card{position:relative;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:18px 16px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;}
+.card .ribbon{position:absolute;top:0;right:18px;width:22px;height:34px;background:var(--accent);border-radius:0 0 4px 4px;}
+.card .ribbon::after{content:'';position:absolute;bottom:-9px;left:0;border-style:solid;border-width:0 11px 9px 11px;border-color:transparent transparent var(--bg-elevated) transparent;}
+.card .cat-badge{align-self:flex-start;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--primary-dark);background:var(--primary-soft);padding:4px 9px;border-radius:20px;margin-bottom:10px;}
+.material-title{font-size:17px;line-height:1.3;margin:0 0 4px;padding-right:20px;}
+.material-theme{font-size:12.5px;color:var(--text-soft);margin:0 0 14px;}
+.progress-track{height:6px;background:var(--bg-sunken);border-radius:6px;overflow:hidden;margin-bottom:12px;}
+.progress-fill{height:100%;background:var(--primary);border-radius:6px;}
+.card-actions{display:flex;align-items:center;gap:8px;margin-top:auto;}
+.icon-btn{width:36px;height:36px;border-radius:9px;border:1px solid var(--border);background:var(--bg);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.icon-btn.active-fav{background:#FBEFD8;border-color:var(--accent);color:var(--accent);}
+.icon-btn.active-done{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dark);}
+.open-btn{flex:1;padding:9px 10px;border-radius:9px;border:none;background:var(--primary);color:#fff;font-weight:600;font-size:13.5px;}
+.open-btn:hover{background:var(--primary-dark);}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text-soft);}
+.empty-state .big{font-size:38px;margin-bottom:12px;}
+
+/* ---------- READER ---------- */
+#reader-view{position:fixed;inset:0;background:var(--bg-sunken);z-index:50;display:flex;flex-direction:column;}
+.reader-top{display:flex;align-items:center;gap:14px;padding:12px 18px;background:var(--bg-elevated);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.reader-top .rt-title{font-family:var(--font-display);font-size:16px;flex:1;min-width:120px;}
+.reader-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:22px;}
+[data-theme="night"] .reader-canvas-wrap canvas{filter:invert(.92) hue-rotate(180deg) brightness(.95) contrast(.9);}
+.reader-canvas-wrap canvas{box-shadow:0 4px 24px rgba(0,0,0,.25);background:#fff;max-width:100%;}
+.reader-bottom{display:flex;align-items:center;justify-content:center;gap:14px;padding:12px;background:var(--bg-elevated);border-top:1px solid var(--border);}
+.reader-bottom button{padding:9px 16px;border-radius:9px;border:1px solid var(--border);background:var(--bg);font-weight:600;font-size:14px;}
+.reader-bottom span{font-size:13.5px;color:var(--text-soft);min-width:90px;text-align:center;}
+.close-reader{background:none;border:none;font-size:22px;color:var(--text-soft);padding:4px 8px;}
+
+/* ---------- REPORTS ---------- */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px;}
+.stat-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
+.stat-card .num{font-family:var(--font-display);font-size:30px;color:var(--primary-dark);}
+.stat-card .label{font-size:12.5px;color:var(--text-soft);margin-top:2px;}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+.bar-row .cat-label{width:150px;flex-shrink:0;font-size:13.5px;font-weight:500;}
+.bar-track{flex:1;height:14px;background:var(--bg-sunken);border-radius:8px;overflow:hidden;}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));border-radius:8px;}
+.bar-pct{width:38px;font-size:12.5px;color:var(--text-soft);text-align:right;}
+
+/* ---------- AGENDA ---------- */
+.agenda-form{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:26px;display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;}
+.agenda-form .field{margin-bottom:0;}
+.agenda-list-item{display:flex;align-items:center;gap:14px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.agenda-date-badge{background:var(--primary-soft);color:var(--primary-dark);border-radius:10px;padding:8px 12px;text-align:center;font-weight:700;font-size:13px;min-width:56px;}
+.agenda-date-badge small{display:block;font-weight:500;font-size:10.5px;text-transform:uppercase;}
+.agenda-info{flex:1;}
+.agenda-info .t{font-weight:600;font-size:14.5px;}
+.agenda-info .s{font-size:12.5px;color:var(--text-soft);}
+.gcal-btn{font-size:12.5px;padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);white-space:nowrap;}
+.del-agenda{background:none;border:none;color:var(--danger);font-size:18px;}
+
+/* ---------- ADMIN ---------- */
+.admin-form{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);max-width:520px;}
+.admin-form .field textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;resize:vertical;min-height:60px;}
+
+@media(max-width:880px){
+  .sidebar{position:fixed;left:0;top:0;z-index:40;transform:translateX(-100%);transition:transform .2s;box-shadow:var(--shadow);}
+  .sidebar.open{transform:translateX(0);}
+  .mobile-menu-btn{display:flex;}
+  .main{padding:18px 16px 50px;}
+  .agenda-form{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body data-theme="light">
+
+<!-- ============ AUTH SCREEN ============ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <h1 class="brand">Palavra <span>&</span> Estudo</h1>
+    <p class="auth-sub">Biblioteca de estudos bíblicos para os irmãos</p>
+    <div id="auth-error" class="auth-error hidden"></div>
+
+    <form id="login-form">
+      <div class="field"><label>E-mail</label><input type="email" id="login-email" required></div>
+      <div class="field"><label>Senha</label><input type="password" id="login-password" required minlength="6"></div>
+      <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+
+    <form id="register-form" class="hidden">
+      <div class="field"><label>Nome</label><input type="text" id="reg-name" required></div>
+      <div class="field"><label>E-mail</label><input type="email" id="reg-email" required></div>
+      <div class="field"><label>Senha</label><input type="password" id="reg-password" required minlength="6"></div>
+      <button type="submit" class="btn-primary">Criar minha conta</button>
+    </form>
+
+    <button class="btn-link" id="toggle-auth-mode">Ainda não tem conta? Cadastre-se</button>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="app" class="hidden">
+  <button class="mobile-menu-btn" id="mobile-menu-btn" style="position:fixed;top:14px;left:14px;z-index:41;">☰</button>
+  <aside class="sidebar" id="sidebar">
+    <h2 class="brand">Palavra <span>&</span> Estudo</h2>
+    <nav>
+      <button class="nav-item active" data-view="dashboard">📖 Biblioteca</button>
+      <button class="nav-item" data-view="favoritos">⭐ Meus favoritos</button>
+      <button class="nav-item" data-view="relatorios">📊 Relatórios</button>
+      <button class="nav-item" data-view="agenda">🗓️ Agenda de estudos</button>
+      <button class="nav-item hidden" data-view="admin" id="nav-admin">🛠️ Painel do professor</button>
+    </nav>
+    <div class="nav-section-title">Categorias</div>
+    <div id="category-nav"></div>
+    <div class="sidebar-footer">
+      <div class="night-toggle">
+        <span>🌙 Modo noturno</span>
+        <button class="switch" id="night-switch"></button>
+      </div>
+      <div class="user-chip">
+        <div class="avatar" id="user-avatar">?</div>
+        <div id="user-name-label" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+      </div>
+      <button class="logout-btn" id="logout-btn">Sair da conta</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="search-box"><input type="text" id="search-input" placeholder="Pesquisar por tema, título ou categoria..."></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard">
+      <h1 class="view-title">Biblioteca de estudos</h1>
+      <p class="view-sub">Materiais organizados por categoria e tema para facilitar sua caminhada de estudo.</p>
+      <div class="chips" id="category-chips"></div>
+      <div class="grid" id="materials-grid"></div>
+    </section>
+
+    <!-- FAVORITOS -->
+    <section id="view-favoritos" class="hidden">
+      <h1 class="view-title">Meus favoritos</h1>
+      <p class="view-sub">Leituras que você marcou para retomar depois.</p>
+      <div class="grid" id="favoritos-grid"></div>
+    </section>
+
+    <!-- RELATORIOS -->
+    <section id="view-relatorios" class="hidden">
+      <h1 class="view-title">Relatórios de estudo</h1>
+      <p class="view-sub">Acompanhe seu progresso e desempenho ao longo do tempo.</p>
+      <div class="stats-row" id="stats-row"></div>
+      <h3 style="margin-bottom:14px;">Progresso por categoria</h3>
+      <div id="bars-container"></div>
+    </section>
+
+    <!-- AGENDA -->
+    <section id="view-agenda" class="hidden">
+      <h1 class="view-title">Agenda de estudos</h1>
+      <p class="view-sub">Programe suas sessões diárias de estudo e sincronize com seu calendário.</p>
+      <form class="agenda-form" id="agenda-form">
+        <div class="field"><label>Data</label><input type="date" id="agenda-data" required></div>
+        <div class="field"><label>Horário</label><input type="time" id="agenda-hora" required></div>
+        <div class="field"><label>Tema da sessão</label><input type="text" id="agenda-tema" placeholder="Ex: Livro de Romanos" required></div>
+        <button type="submit" class="btn-primary" style="width:auto;padding:11px 18px;">Agendar</button>
+      </form>
+      <div id="agenda-list"></div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="view-admin" class="hidden">
+      <h1 class="view-title">Adicionar material</h1>
+      <p class="view-sub">Cadastre novos PDFs, livros e bíblias de estudo na biblioteca.</p>
+      <form class="admin-form" id="admin-form">
+        <div class="field"><label>Título</label><input type="text" id="am-titulo" required></div>
+        <div class="field"><label>Categoria</label><input type="text" id="am-categoria" placeholder="Ex: Doutrina Bíblica" required></div>
+        <div class="field"><label>Tema</label><input type="text" id="am-tema" placeholder="Ex: Salvação, Graça" required></div>
+        <div class="field"><label>Link do PDF (URL pública)</label><input type="url" id="am-url" required></div>
+        <div class="field"><label>Descrição (opcional)</label><textarea id="am-desc"></textarea></div>
+        <button type="submit" class="btn-primary">Salvar material</button>
+      </form>
+      <p id="admin-msg" style="color:var(--primary-dark);font-weight:600;"></p>
+    </section>
+
+    <!-- READER -->
+    <div id="reader-view" class="hidden">
+      <div class="reader-top">
+        <button class="close-reader" id="close-reader">←</button>
+        <div class="rt-title" id="reader-title">Carregando...</div>
+        <button class="icon-btn" id="reader-fav-btn">☆</button>
+        <button class="icon-btn" id="reader-done-btn">✓</button>
+      </div>
+      <div class="reader-canvas-wrap"><canvas id="pdf-canvas"></canvas></div>
+      <div class="reader-bottom">
+        <button id="prev-page">‹ Anterior</button>
+        <span id="page-indicator">Página 1 de 1</span>
+        <button id="next-page">Próxima ›</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURAÇÃO DO FIREBASE
+   Substitua pelos dados do SEU projeto Firebase (mesmo projeto
+   já usado nos outros apps, em novas coleções, OU um projeto novo).
+   Console: https://console.firebase.google.com
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCxYKv1Onwd5cQYtwUrH6FkiFd6u0k7xNs",
+  authDomain: "tilha-aprovado.firebaseapp.com",
+  projectId: "tilha-aprovado",
+  storageBucket: "tilha-aprovado.firebasestorage.app",
+  messagingSenderId: "1010679045402",
+  appId: "1:1010679045402:web:7186d0f4bcb649c22f20a3",
+  measurementId: "G-254E154CVM"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// Nomes das coleções (prefixo próprio para não colidir com outros apps do mesmo projeto)
+const COL_MATERIAIS   = "estudoBiblico_materiais";
+const COL_PROGRESSO   = "estudoBiblico_progresso";
+const COL_FAVORITOS   = "estudoBiblico_favoritos";
+const COL_AGENDA      = "estudoBiblico_agenda";
+const COL_USUARIOS    = "estudoBiblico_usuarios";
+
+// E-mails com acesso ao painel do professor/admin (edite livremente)
+const ADMIN_EMAILS = ["cicero@exemplo.com"];
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+/* ---------------- ESTADO GLOBAL ---------------- */
+let currentUser = null;
+let materiais = [];       // todos os materiais cadastrados
+let progressoMap = {};    // materialId -> {paginaAtual, totalPaginas, concluido, tempoTotalMin}
+let favoritosSet = new Set();
+let categoriaAtiva = "Todos";
+let termoBusca = "";
+
+let pdfDocAtual = null;
+let materialAtualId = null;
+let paginaAtual = 1;
+let tempoInicioLeitura = null;
+let saveDebounce = null;
+
+/* ---------------- AUTENTICAÇÃO ---------------- */
+const authError = document.getElementById('auth-error');
+function showAuthError(msg){ authError.textContent = msg; authError.classList.remove('hidden'); }
+
+document.getElementById('toggle-auth-mode').addEventListener('click', () => {
+  const loginForm = document.getElementById('login-form');
+  const regForm = document.getElementById('register-form');
+  const btn = document.getElementById('toggle-auth-mode');
+  authError.classList.add('hidden');
+  if (loginForm.classList.contains('hidden')) {
+    loginForm.classList.remove('hidden'); regForm.classList.add('hidden');
+    btn.textContent = "Ainda não tem conta? Cadastre-se";
+  } else {
+    loginForm.classList.add('hidden'); regForm.classList.remove('hidden');
+    btn.textContent = "Já tem conta? Entrar";
+  }
+});
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  authError.classList.add('hidden');
+  const email = document.getElementById('login-email').value;
+  const senha = document.getElementById('login-password').value;
+  try {
+    await auth.signInWithEmailAndPassword(email, senha);
+  } catch (err) {
+    showAuthError(traduzErroFirebase(err));
+  }
+});
+
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  authError.classList.add('hidden');
+  const nome = document.getElementById('reg-name').value;
+  const email = document.getElementById('reg-email').value;
+  const senha = document.getElementById('reg-password').value;
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, senha);
+    await db.collection(COL_USUARIOS).doc(cred.user.uid).set({
+      nome, email, criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    showAuthError(traduzErroFirebase(err));
+  }
+});
+
+function traduzErroFirebase(err){
+  const map = {
+    'auth/invalid-email':'E-mail inválido.',
+    'auth/user-not-found':'Usuário não encontrado.',
+    'auth/wrong-password':'Senha incorreta.',
+    'auth/email-already-in-use':'Este e-mail já está cadastrado.',
+    'auth/weak-password':'A senha deve ter pelo menos 6 caracteres.',
+    'auth/invalid-credential':'E-mail ou senha incorretos.'
+  };
+  return map[err.code] || 'Não foi possível concluir. Tente novamente.';
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => auth.signOut());
+
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    const perfil = await db.collection(COL_USUARIOS).doc(user.uid).get();
+    const nome = perfil.exists ? perfil.data().nome : (user.email || 'Estudante');
+    document.getElementById('user-name-label').textContent = nome;
+    document.getElementById('user-avatar').textContent = (nome || '?').charAt(0).toUpperCase();
+    if (ADMIN_EMAILS.includes(user.email)) document.getElementById('nav-admin').classList.remove('hidden');
+    await carregarDadosDoUsuario();
+    aplicarTemaSalvo();
+    renderizarTudo();
+  } else {
+    currentUser = null;
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('auth-screen').classList.remove('hidden');
+  }
+});
+
+/* ---------------- CARREGAMENTO DE DADOS ---------------- */
+async function carregarDadosDoUsuario(){
+  const [matSnap, progSnap, favSnap] = await Promise.all([
+    db.collection(COL_MATERIAIS).orderBy('criadoEm','desc').get(),
+    db.collection(COL_PROGRESSO).where('uid','==', currentUser.uid).get(),
+    db.collection(COL_FAVORITOS).where('uid','==', currentUser.uid).get()
+  ]);
+  materiais = matSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  progressoMap = {};
+  progSnap.forEach(d => { progressoMap[d.data().materialId] = d.data(); });
+  favoritosSet = new Set(favSnap.docs.map(d => d.data().materialId));
+}
+
+/* ---------------- NAVEGAÇÃO ENTRE TELAS ---------------- */
+document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => trocarView(btn.dataset.view));
+});
+function trocarView(view){
+  document.querySelectorAll('.nav-item[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  ['dashboard','favoritos','relatorios','agenda','admin'].forEach(v => {
+    document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
+  });
+  if (view === 'relatorios') renderizarRelatorios();
+  if (view === 'agenda') carregarAgenda();
+  if (view === 'favoritos') renderizarGrid(document.getElementById('favoritos-grid'), materiais.filter(m => favoritosSet.has(m.id)));
+  document.getElementById('sidebar').classList.remove('open');
+}
+document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* ---------------- MODO NOTURNO ---------------- */
+const nightSwitch = document.getElementById('night-switch');
+nightSwitch.addEventListener('click', () => {
+  const isNight = document.body.dataset.theme === 'night';
+  document.body.dataset.theme = isNight ? 'light' : 'night';
+  nightSwitch.classList.toggle('on', !isNight);
+  localStorage.setItem('estudoBiblico_tema', document.body.dataset.theme);
+});
+function aplicarTemaSalvo(){
+  const salvo = localStorage.getItem('estudoBiblico_tema') || 'light';
+  document.body.dataset.theme = salvo;
+  nightSwitch.classList.toggle('on', salvo === 'night');
+}
+
+/* ---------------- BUSCA E CATEGORIAS ---------------- */
+document.getElementById('search-input').addEventListener('input', (e) => {
+  termoBusca = normalizar(e.target.value);
+  renderizarDashboard();
+});
+function normalizar(txt){
+  return (txt || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function renderizarCategorias(){
+  const categorias = ['Todos', ...new Set(materiais.map(m => m.categoria).filter(Boolean))];
+  const chipsEl = document.getElementById('category-chips');
+  const navEl = document.getElementById('category-nav');
+  chipsEl.innerHTML = '';
+  navEl.innerHTML = '';
+  categorias.forEach(cat => {
+    const chip = document.createElement('button');
+    chip.className = 'chip' + (cat === categoriaAtiva ? ' active' : '');
+    chip.textContent = cat;
+    chip.addEventListener('click', () => { categoriaAtiva = cat; trocarView('dashboard'); renderizarDashboard(); });
+    chipsEl.appendChild(chip);
+
+    if (cat !== 'Todos') {
+      const navBtn = document.createElement('button');
+      navBtn.className = 'nav-item';
+      navBtn.innerHTML = '<span class="dot"></span> ' + cat;
+      navBtn.addEventListener('click', () => { categoriaAtiva = cat; trocarView('dashboard'); renderizarDashboard(); });
+      navEl.appendChild(navBtn);
+    }
+  });
+}
+
+/* ---------------- RENDERIZAÇÃO DA BIBLIOTECA ---------------- */
+function renderizarTudo(){
+  renderizarCategorias();
+  renderizarDashboard();
+}
+
+function materiaisFiltrados(){
+  return materiais.filter(m => {
+    const passaCategoria = categoriaAtiva === 'Todos' || m.categoria === categoriaAtiva;
+    const alvo = normalizar(m.titulo + ' ' + m.tema + ' ' + m.categoria);
+    const passaBusca = !termoBusca || alvo.includes(termoBusca);
+    return passaCategoria && passaBusca;
+  });
+}
+
+function renderizarDashboard(){
+  renderizarGrid(document.getElementById('materials-grid'), materiaisFiltrados());
+}
+
+function renderizarGrid(container, lista){
+  container.innerHTML = '';
+  if (!lista.length) {
+    container.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="big">📭</div>Nenhum material encontrado por aqui ainda.</div>';
+    return;
+  }
+  lista.forEach(m => container.appendChild(criarCard(m)));
+}
+
+function criarCard(m){
+  const prog = progressoMap[m.id] || {};
+  const pct = prog.totalPaginas ? Math.round((prog.paginaAtual || 1) / prog.totalPaginas * 100) : 0;
+  const isFav = favoritosSet.has(m.id);
+  const isDone = !!prog.concluido;
+
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="ribbon"></div>
+    <span class="cat-badge">${m.categoria || 'Geral'}</span>
+    <h3 class="material-title">${m.titulo}</h3>
+    <p class="material-theme">${m.tema || ''}</p>
+    <div class="progress-track"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="card-actions">
+      <button class="icon-btn ${isFav ? 'active-fav' : ''}" data-action="fav">${isFav ? '★' : '☆'}</button>
+      <button class="icon-btn ${isDone ? 'active-done' : ''}" data-action="done">✓</button>
+      <button class="open-btn" data-action="abrir">Abrir</button>
+    </div>`;
+  card.querySelector('[data-action="fav"]').addEventListener('click', () => toggleFavorito(m.id, card));
+  card.querySelector('[data-action="done"]').addEventListener('click', () => toggleConcluido(m.id, card));
+  card.querySelector('[data-action="abrir"]').addEventListener('click', () => abrirLeitor(m));
+  return card;
+}
+
+async function toggleFavorito(materialId, cardEl){
+  const docId = currentUser.uid + '_' + materialId;
+  const ref = db.collection(COL_FAVORITOS).doc(docId);
+  if (favoritosSet.has(materialId)) {
+    favoritosSet.delete(materialId);
+    await ref.delete();
+  } else {
+    favoritosSet.add(materialId);
+    await ref.set({ uid: currentUser.uid, materialId, criadoEm: firebase.firestore.FieldValue.serverTimestamp() });
+  }
+  renderizarDashboard();
+}
+
+async function toggleConcluido(materialId, cardEl){
+  const docId = currentUser.uid + '_' + materialId;
+  const atual = progressoMap[materialId] || { uid: currentUser.uid, materialId, paginaAtual: 1 };
+  atual.concluido = !atual.concluido;
+  progressoMap[materialId] = atual;
+  await db.collection(COL_PROGRESSO).doc(docId).set(atual, { merge: true });
+  renderizarDashboard();
+}
+
+/* ---------------- LEITOR DE PDF (com retomada de página) ---------------- */
+async function abrirLeitor(material){
+  materialAtualId = material.id;
+  document.getElementById('reader-view').classList.remove('hidden');
+  document.getElementById('reader-title').textContent = material.titulo;
+  tempoInicioLeitura = Date.now();
+
+  const prog = progressoMap[material.id] || {};
+  atualizarBotoesLeitor(material.id);
+
+  try {
+    pdfDocAtual = await pdfjsLib.getDocument(material.url).promise;
+    paginaAtual = Math.min(prog.paginaAtual || 1, pdfDocAtual.numPages);
+    await renderizarPagina(paginaAtual);
+  } catch (err) {
+    document.getElementById('reader-title').textContent = 'Não foi possível carregar este PDF.';
+  }
+}
+
+async function renderizarPagina(num){
+  const page = await pdfDocAtual.getPage(num);
+  const viewport = page.getViewport({ scale: 1.4 });
+  const canvas = document.getElementById('pdf-canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  document.getElementById('page-indicator').textContent = `Página ${num} de ${pdfDocAtual.numPages}`;
+  salvarProgresso(num, pdfDocAtual.numPages);
+}
+
+function salvarProgresso(pagina, total){
+  clearTimeout(saveDebounce);
+  saveDebounce = setTimeout(async () => {
+    const docId = currentUser.uid + '_' + materialAtualId;
+    const anterior = progressoMap[materialAtualId] || {};
+    const dados = {
+      uid: currentUser.uid,
+      materialId: materialAtualId,
+      paginaAtual: pagina,
+      totalPaginas: total,
+      concluido: anterior.concluido || false,
+      tempoTotalMin: (anterior.tempoTotalMin || 0),
+      ultimaLeitura: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    progressoMap[materialAtualId] = dados;
+    await db.collection(COL_PROGRESSO).doc(docId).set(dados, { merge: true });
+  }, 400);
+}
+
+document.getElementById('prev-page').addEventListener('click', () => {
+  if (paginaAtual > 1) { paginaAtual--; renderizarPagina(paginaAtual); }
+});
+document.getElementById('next-page').addEventListener('click', () => {
+  if (pdfDocAtual && paginaAtual < pdfDocAtual.numPages) { paginaAtual++; renderizarPagina(paginaAtual); }
+});
+
+document.getElementById('reader-fav-btn').addEventListener('click', () => toggleFavorito(materialAtualId));
+document.getElementById('reader-done-btn').addEventListener('click', () => toggleConcluido(materialAtualId));
+function atualizarBotoesLeitor(materialId){
+  document.getElementById('reader-fav-btn').textContent = favoritosSet.has(materialId) ? '★' : '☆';
+  document.getElementById('reader-done-btn').classList.toggle('active-done', !!(progressoMap[materialId] || {}).concluido);
+}
+
+document.getElementById('close-reader').addEventListener('click', fecharLeitor);
+async function fecharLeitor(){
+  if (tempoInicioLeitura && materialAtualId) {
+    const minutos = Math.round((Date.now() - tempoInicioLeitura) / 60000);
+    if (minutos > 0) {
+      const docId = currentUser.uid + '_' + materialAtualId;
+      const anterior = progressoMap[materialAtualId] || {};
+      const novoTempo = (anterior.tempoTotalMin || 0) + minutos;
+      progressoMap[materialAtualId] = { ...anterior, tempoTotalMin: novoTempo };
+      await db.collection(COL_PROGRESSO).doc(docId).set({ tempoTotalMin: novoTempo }, { merge: true });
+    }
+  }
+  document.getElementById('reader-view').classList.add('hidden');
+  pdfDocAtual = null; materialAtualId = null;
+  renderizarDashboard();
+}
+
+/* ---------------- RELATÓRIOS ---------------- */
+function renderizarRelatorios(){
+  const registros = Object.values(progressoMap);
+  const concluidos = registros.filter(r => r.concluido).length;
+  const emAndamento = registros.filter(r => !r.concluido && r.paginaAtual > 1).length;
+  const tempoTotal = registros.reduce((s, r) => s + (r.tempoTotalMin || 0), 0);
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="num">${concluidos}</div><div class="label">Materiais concluídos</div></div>
+    <div class="stat-card"><div class="num">${emAndamento}</div><div class="label">Em andamento</div></div>
+    <div class="stat-card"><div class="num">${tempoTotal}</div><div class="label">Minutos estudados</div></div>
+    <div class="stat-card"><div class="num">${favoritosSet.size}</div><div class="label">Favoritos salvos</div></div>`;
+
+  const categorias = [...new Set(materiais.map(m => m.categoria).filter(Boolean))];
+  const barsEl = document.getElementById('bars-container');
+  barsEl.innerHTML = '';
+  if (!categorias.length) { barsEl.innerHTML = '<p style="color:var(--text-soft);">Cadastre materiais para ver o progresso por categoria.</p>'; return; }
+  categorias.forEach(cat => {
+    const materiaisCat = materiais.filter(m => m.categoria === cat);
+    const concluidosCat = materiaisCat.filter(m => (progressoMap[m.id] || {}).concluido).length;
+    const pct = materiaisCat.length ? Math.round(concluidosCat / materiaisCat.length * 100) : 0;
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    row.innerHTML = `<div class="cat-label">${cat}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-pct">${pct}%</div>`;
+    barsEl.appendChild(row);
+  });
+}
+
+/* ---------------- AGENDA DE ESTUDOS ---------------- */
+document.getElementById('agenda-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = document.getElementById('agenda-data').value;
+  const hora = document.getElementById('agenda-hora').value;
+  const tema = document.getElementById('agenda-tema').value;
+  await db.collection(COL_AGENDA).add({
+    uid: currentUser.uid, data, hora, tema,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  e.target.reset();
+  carregarAgenda();
+});
+
+async function carregarAgenda(){
+  const snap = await db.collection(COL_AGENDA).where('uid','==', currentUser.uid).get();
+  const lista = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a,b) => (a.data + a.hora).localeCompare(b.data + b.hora));
+  const el = document.getElementById('agenda-list');
+  el.innerHTML = '';
+  if (!lista.length) { el.innerHTML = '<div class="empty-state"><div class="big">🗓️</div>Nenhuma sessão agendada ainda.</div>'; return; }
+  lista.forEach(item => {
+    const [ano, mes, dia] = item.data.split('-');
+    const meses = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+    const div = document.createElement('div');
+    div.className = 'agenda-list-item';
+    div.innerHTML = `
+      <div class="agenda-date-badge">${dia}<small>${meses[parseInt(mes,10)-1]}</small></div>
+      <div class="agenda-info"><div class="t">${item.tema}</div><div class="s">${item.hora}</div></div>
+      <button class="gcal-btn" data-id="${item.id}" data-cal="1">+ Google Agenda</button>
+      <button class="del-agenda" data-id="${item.id}" data-del="1">✕</button>`;
+    div.querySelector('[data-cal]').addEventListener('click', () => adicionarAoGoogleCalendar(item));
+    div.querySelector('[data-del]').addEventListener('click', async () => { await db.collection(COL_AGENDA).doc(item.id).delete(); carregarAgenda(); });
+    el.appendChild(div);
+  });
+}
+
+function adicionarAoGoogleCalendar(item){
+  const inicio = item.data.replace(/-/g,'') + 'T' + item.hora.replace(':','') + '00';
+  const fimDate = new Date(`${item.data}T${item.hora}:00`);
+  fimDate.setHours(fimDate.getHours() + 1);
+  const fim = fimDate.toISOString().replace(/[-:]/g,'').split('.')[0];
+  const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Estudo: ' + item.tema)}&dates=${inicio}/${fim}&details=${encodeURIComponent('Sessão de estudo agendada em Palavra & Estudo')}`;
+  window.open(url, '_blank');
+}
+
+/* ---------------- PAINEL DO PROFESSOR (ADMIN) ---------------- */
+document.getElementById('admin-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const titulo = document.getElementById('am-titulo').value;
+  const categoria = document.getElementById('am-categoria').value;
+  const tema = document.getElementById('am-tema').value;
+  const url = document.getElementById('am-url').value;
+  const descricao = document.getElementById('am-desc').value;
+  await db.collection(COL_MATERIAIS).add({
+    titulo, categoria, tema, url, descricao,
+    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  document.getElementById('admin-msg').textContent = 'Material salvo com sucesso!';
+  e.target.reset();
+  await carregarDadosDoUsuario();
+  renderizarTudo();
+  setTimeout(() => document.getElementById('admin-msg').textContent = '', 2500);
+});
+</script>
+</body>
+</html>

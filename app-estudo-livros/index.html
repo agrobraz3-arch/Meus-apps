@@ -128,11 +128,18 @@ button{cursor:pointer;}
 .reader-top .rt-title{font-family:var(--font-display);font-size:16px;flex:1;min-width:120px;}
 .reader-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:22px;}
 [data-theme="night"] .reader-canvas-wrap canvas{filter:invert(.92) hue-rotate(180deg) brightness(.95) contrast(.9);}
-.reader-canvas-wrap canvas{box-shadow:0 4px 24px rgba(0,0,0,.25);background:#fff;max-width:100%;}
+.reader-canvas-wrap canvas{box-shadow:0 4px 24px rgba(0,0,0,.25);background:#fff;max-width:none;}
 .reader-bottom{display:flex;align-items:center;justify-content:center;gap:14px;padding:12px;background:var(--bg-elevated);border-top:1px solid var(--border);}
 .reader-bottom button{padding:9px 16px;border-radius:9px;border:1px solid var(--border);background:var(--bg);font-weight:600;font-size:14px;}
 .reader-bottom span{font-size:13.5px;color:var(--text-soft);min-width:90px;text-align:center;}
 .close-reader{background:none;border:none;font-size:22px;color:var(--text-soft);padding:4px 8px;}
+.zoom-controls,.font-controls{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:3px 6px;}
+.zoom-controls span,.font-controls span{font-size:12.5px;color:var(--text-soft);min-width:40px;text-align:center;}
+.zoom-controls .icon-btn,.font-controls .icon-btn{width:30px;height:30px;border:none;background:none;font-size:16px;}
+#download-btn{text-decoration:none;font-size:17px;}
+#modo-leitura-btn.active-mode{background:var(--primary-soft);border-color:var(--primary);color:var(--primary-dark);}
+.reader-text-wrap{flex:1;overflow-y:auto;display:flex;justify-content:center;padding:36px 20px;}
+.reader-text-page{max-width:660px;width:100%;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:48px 44px;font-family:var(--font-display);line-height:1.85;color:var(--text);white-space:pre-wrap;}
 
 /* ---------- REPORTS ---------- */
 .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:28px;}
@@ -285,10 +292,25 @@ button{cursor:pointer;}
       <div class="reader-top">
         <button class="close-reader" id="close-reader">←</button>
         <div class="rt-title" id="reader-title">Carregando...</div>
+        <button class="icon-btn" id="modo-leitura-btn" title="Alternar modo de leitura em texto">📖</button>
+        <div class="zoom-controls" id="zoom-controls">
+          <button class="icon-btn" id="zoom-out" title="Diminuir zoom">−</button>
+          <span id="zoom-label">140%</span>
+          <button class="icon-btn" id="zoom-in" title="Aumentar zoom">+</button>
+        </div>
+        <div class="font-controls hidden" id="font-controls">
+          <button class="icon-btn" id="font-out" title="Diminuir letra">A−</button>
+          <span id="font-label">18px</span>
+          <button class="icon-btn" id="font-in" title="Aumentar letra">A+</button>
+        </div>
+        <a class="icon-btn" id="download-btn" download title="Baixar PDF">⬇</a>
         <button class="icon-btn" id="reader-fav-btn">☆</button>
         <button class="icon-btn" id="reader-done-btn">✓</button>
       </div>
-      <div class="reader-canvas-wrap"><canvas id="pdf-canvas"></canvas></div>
+      <div class="reader-canvas-wrap" id="reader-canvas-wrap"><canvas id="pdf-canvas"></canvas></div>
+      <div class="reader-text-wrap hidden" id="reader-text-wrap">
+        <div class="reader-text-page" id="reader-text-page"></div>
+      </div>
       <div class="reader-bottom">
         <button id="prev-page">‹ Anterior</button>
         <span id="page-indicator">Página 1 de 1</span>
@@ -577,11 +599,21 @@ async function toggleConcluido(materialId, cardEl){
 }
 
 /* ---------------- LEITOR DE PDF (com retomada de página) ---------------- */
+let escalaZoom = 1.4;
+let modoLeitura = localStorage.getItem('estudoBiblico_modoLeitura') === '1';
+let tamanhoFonte = parseInt(localStorage.getItem('estudoBiblico_tamanhoFonte') || '18', 10);
+
 async function abrirLeitor(material){
   materialAtualId = material.id;
   document.getElementById('reader-view').classList.remove('hidden');
   document.getElementById('reader-title').textContent = material.titulo;
+  document.getElementById('download-btn').href = material.url;
+  document.getElementById('download-btn').setAttribute('download', material.titulo + '.pdf');
   tempoInicioLeitura = Date.now();
+  escalaZoom = 1.4;
+  atualizarLabelZoom();
+  atualizarLabelFonte();
+  aplicarModoVisual();
 
   const prog = progressoMap[material.id] || {};
   atualizarBotoesLeitor(material.id);
@@ -589,22 +621,89 @@ async function abrirLeitor(material){
   try {
     pdfDocAtual = await pdfjsLib.getDocument(material.url).promise;
     paginaAtual = Math.min(prog.paginaAtual || 1, pdfDocAtual.numPages);
-    await renderizarPagina(paginaAtual);
+    await renderizarPaginaAtual();
   } catch (err) {
     document.getElementById('reader-title').textContent = 'Não foi possível carregar este PDF.';
   }
 }
 
+/* Escolhe entre desenhar a página como imagem (canvas) ou extrair o texto (modo leitura) */
+async function renderizarPaginaAtual(){
+  if (modoLeitura) { await renderizarPaginaTexto(paginaAtual); }
+  else { await renderizarPagina(paginaAtual); }
+  document.getElementById('page-indicator').textContent = `Página ${paginaAtual} de ${pdfDocAtual.numPages}`;
+  salvarProgresso(paginaAtual, pdfDocAtual.numPages);
+}
+
 async function renderizarPagina(num){
   const page = await pdfDocAtual.getPage(num);
-  const viewport = page.getViewport({ scale: 1.4 });
+  const viewport = page.getViewport({ scale: escalaZoom });
   const canvas = document.getElementById('pdf-canvas');
   canvas.width = viewport.width;
   canvas.height = viewport.height;
   await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-  document.getElementById('page-indicator').textContent = `Página ${num} de ${pdfDocAtual.numPages}`;
-  salvarProgresso(num, pdfDocAtual.numPages);
 }
+
+/* Extrai o texto puro da página e mostra como um livro, com fonte ajustável */
+async function renderizarPaginaTexto(num){
+  const page = await pdfDocAtual.getPage(num);
+  const conteudo = await page.getTextContent();
+  let texto = '';
+  let ultimoY = null;
+  conteudo.items.forEach(item => {
+    if (ultimoY !== null && Math.abs(item.transform[5] - ultimoY) > 4) texto += '\n';
+    else if (texto && !texto.endsWith('\n')) texto += ' ';
+    texto += item.str;
+    ultimoY = item.transform[5];
+  });
+  const pageEl = document.getElementById('reader-text-page');
+  pageEl.style.fontSize = tamanhoFonte + 'px';
+  pageEl.textContent = texto.trim() || '(Esta página não tem texto reconhecível — pode ser uma imagem digitalizada. Use o modo de página normal para vê-la.)';
+  document.getElementById('reader-text-wrap').scrollTop = 0;
+}
+
+/* Alterna entre visual de página/imagem e visual de texto corrido */
+document.getElementById('modo-leitura-btn').addEventListener('click', async () => {
+  modoLeitura = !modoLeitura;
+  localStorage.setItem('estudoBiblico_modoLeitura', modoLeitura ? '1' : '0');
+  aplicarModoVisual();
+  if (pdfDocAtual) await renderizarPaginaAtual();
+});
+function aplicarModoVisual(){
+  document.getElementById('modo-leitura-btn').classList.toggle('active-mode', modoLeitura);
+  document.getElementById('reader-canvas-wrap').classList.toggle('hidden', modoLeitura);
+  document.getElementById('reader-text-wrap').classList.toggle('hidden', !modoLeitura);
+  document.getElementById('zoom-controls').classList.toggle('hidden', modoLeitura);
+  document.getElementById('font-controls').classList.toggle('hidden', !modoLeitura);
+}
+
+/* Zoom da página em modo imagem */
+function atualizarLabelZoom(){ document.getElementById('zoom-label').textContent = Math.round(escalaZoom / 1.4 * 100) + '%'; }
+document.getElementById('zoom-in').addEventListener('click', async () => {
+  escalaZoom = Math.min(escalaZoom + 0.28, 4.2);
+  atualizarLabelZoom();
+  if (pdfDocAtual && !modoLeitura) await renderizarPagina(paginaAtual);
+});
+document.getElementById('zoom-out').addEventListener('click', async () => {
+  escalaZoom = Math.max(escalaZoom - 0.28, 0.7);
+  atualizarLabelZoom();
+  if (pdfDocAtual && !modoLeitura) await renderizarPagina(paginaAtual);
+});
+
+/* Tamanho da letra no modo leitura */
+function atualizarLabelFonte(){ document.getElementById('font-label').textContent = tamanhoFonte + 'px'; }
+document.getElementById('font-in').addEventListener('click', () => {
+  tamanhoFonte = Math.min(tamanhoFonte + 2, 32);
+  localStorage.setItem('estudoBiblico_tamanhoFonte', tamanhoFonte);
+  atualizarLabelFonte();
+  document.getElementById('reader-text-page').style.fontSize = tamanhoFonte + 'px';
+});
+document.getElementById('font-out').addEventListener('click', () => {
+  tamanhoFonte = Math.max(tamanhoFonte - 2, 14);
+  localStorage.setItem('estudoBiblico_tamanhoFonte', tamanhoFonte);
+  atualizarLabelFonte();
+  document.getElementById('reader-text-page').style.fontSize = tamanhoFonte + 'px';
+});
 
 function salvarProgresso(pagina, total){
   clearTimeout(saveDebounce);
@@ -626,10 +725,10 @@ function salvarProgresso(pagina, total){
 }
 
 document.getElementById('prev-page').addEventListener('click', () => {
-  if (paginaAtual > 1) { paginaAtual--; renderizarPagina(paginaAtual); }
+  if (paginaAtual > 1) { paginaAtual--; renderizarPaginaAtual(); }
 });
 document.getElementById('next-page').addEventListener('click', () => {
-  if (pdfDocAtual && paginaAtual < pdfDocAtual.numPages) { paginaAtual++; renderizarPagina(paginaAtual); }
+  if (pdfDocAtual && paginaAtual < pdfDocAtual.numPages) { paginaAtual++; renderizarPaginaAtual(); }
 });
 
 document.getElementById('reader-fav-btn').addEventListener('click', () => toggleFavorito(materialAtualId));

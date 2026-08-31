@@ -118,6 +118,10 @@
   .categoria-card, .maquina-card-rel { background: var(--header-bg); color:#fff; border-radius: 10px; padding: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
   .categoria-title { font-family:'Fraunces', serif; margin:0 0 6px; font-size:1rem; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:4px; }
   .categoria-row { display:flex; justify-content:space-between; font-size:0.78rem; margin-bottom:4px; opacity:0.95; }
+  .categoria-row-linha { display:flex; align-items:center; font-size:0.78rem; margin-bottom:4px; opacity:0.95; }
+  .categoria-row-linha > span:first-child { white-space:nowrap; }
+  .categoria-row-linha .linha-pontos { flex:1; border-bottom:1px dotted #94A3B8; margin:0 8px; height:0; align-self:center; }
+  .categoria-row-linha input { margin:0; }
   .categoria-card label { color: rgba(255,255,255,0.75); margin: 10px 0 6px; }
   .manut-status { font-size:0.7rem; font-weight:700; padding:3px 9px; border-radius:20px; display:inline-block; }
   .whatsapp-float-btn { position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%); z-index: 10001; background:#25D366; color:#fff; border:none; padding:12px 20px; border-radius:30px; font-weight:700; font-size:0.85rem; cursor:pointer; box-shadow:0 4px 14px rgba(0,0,0,0.35); display:none; align-items:center; gap:8px; }
@@ -187,6 +191,13 @@
   .an-chip { padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.8); font-size: 0.78rem; font-weight: 600; cursor:pointer; transition: all 0.15s; white-space:nowrap; }
   .an-chip.active { background: #F5B700; border-color: #F5B700; color: #1E293B; }
   .an-chip:not(.active):hover { background: rgba(255,255,255,0.14); }
+  .lista-sugestao-add { display:flex; gap:8px; margin-bottom:8px; }
+  .lista-sugestao-add input { flex:1; margin-top:0; }
+  .lista-sugestao-add button { flex-shrink:0; white-space:nowrap; }
+  .lista-sugestao-chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+  .ls-chip { display:flex; align-items:center; gap:6px; background:#F1F5F9; border:1px solid #E2E8F0; border-radius:999px; padding:6px 6px 6px 12px; font-size:0.78rem; color:#1E293B; }
+  .ls-chip button { background:none; border:none; color:#DC2626; cursor:pointer; font-weight:700; font-size:0.9rem; line-height:1; padding:2px 6px; border-radius:50%; }
+  .ls-chip button:hover { background:#FEE2E2; }
   .an-seletor-row-periodo { display:flex; flex-wrap:wrap; gap: 14px; align-items:flex-end; }
   .an-seletor-row-periodo .an-seletor-campo { flex: 1 1 200px; min-width: 180px; }
   .an-datas-personalizadas { display:flex; gap: 10px; flex: 1 1 260px; }
@@ -231,6 +242,7 @@
 <datalist id="listaOperadoresRetro"></datalist>
 <datalist id="listaCacambasRP"></datalist>
 <datalist id="listaLocaisDestino"><option value="Pindorama"><option value="Botafogo"><option value="Santa Terezinha"><option value="Monte Feliz"><option value="Pescoço"><option value="Palmeira Alta"><option value="Chã da Lagoa"><option value="Vila Machado/Pindorama"><option value="Coruripe"><option value="Miai de Cima"><option value="Barreira"><option value="Pontal de Coruripe"></datalist>
+<datalist id="listaClientes"></datalist>
 <datalist id="listaTiposServicoManutencao"><option value="Troca de óleo e filtro"><option value="Troca do filtro de ar do motor"><option value="Troca do filtro de ar condicionado"><option value="Troca do fluido de freio"><option value="Troca das velas"><option value="Troca das correias"><option value="Troca da bateria"><option value="Alinhamento e balanceamento"><option value="Troca de pneu"><option value="Revisão geral"></datalist>
 <datalist id="listaMaquinasManutencao"></datalist>
 
@@ -447,7 +459,7 @@
         <label>Local / saída</label><input type="text" id="cbCLocalSaida" list="listaLocaisSaida" placeholder="Local de saída">
         <label>Entrega / destino</label><input type="text" id="cbCDestino" list="listaLocaisDestino" placeholder="Destino da entrega">
         <label>Tipo de Material</label><input type="text" id="cbCTipoMaterial" list="listaTiposMaterial" placeholder="Selecione ou digite o material...">
-        <label>Cliente</label><input type="text" id="cbCCliente" placeholder="Nome do cliente">
+        <label>Cliente</label><input type="text" id="cbCCliente" list="listaClientes" placeholder="Nome do cliente">
         <label>Km percorrido</label>
         <input type="number" id="cbCKm" class="mono" step="0.1" placeholder="0" oninput="cbCalcularValorPorKm()">
         <div id="cbCKmFaixaInfo" class="km-faixa-info dono-only"></div>
@@ -656,6 +668,27 @@
       </div>
       <button class="btn-submit" onclick="uCadastrar()">Cadastrar Usuário</button>
       <div style="margin-top:28px;"><label style="font-size:0.82rem; margin-bottom:8px; color:var(--header-bg);">Usuários Cadastrados</label><div id="uListaContainer"></div></div>
+
+      <div style="margin-top:32px;">
+        <div class="categorias-section-title" style="margin-top:0;">📋 Listas de Sugestão (Novo Serviço da Caçamba)</div>
+        <div class="campo-msg" style="margin-top:0;">Adicione ou remova as opções que aparecem sugeridas nos campos de Material, Local de Saída, Local de Destino e Cliente. As mudanças aparecem pra todos os funcionários automaticamente.</div>
+
+        <label style="margin-top:14px;">TIPO DE MATERIAL</label>
+        <div class="lista-sugestao-add"><input type="text" id="lsNovoMaterial" placeholder="Ex: AREIA GROSSA"><button class="tools-btn" onclick="lsAdicionar('materiais','lsNovoMaterial')">+ Adicionar</button></div>
+        <div id="lsListaMateriais" class="lista-sugestao-chips"></div>
+
+        <label style="margin-top:18px;">LOCAL DE SAÍDA</label>
+        <div class="lista-sugestao-add"><input type="text" id="lsNovoLocalSaida" placeholder="Ex: Pedreira Nova"><button class="tools-btn" onclick="lsAdicionar('locaisSaida','lsNovoLocalSaida')">+ Adicionar</button></div>
+        <div id="lsListaLocaisSaida" class="lista-sugestao-chips"></div>
+
+        <label style="margin-top:18px;">LOCAL DE DESTINO</label>
+        <div class="lista-sugestao-add"><input type="text" id="lsNovoLocalDestino" placeholder="Ex: Barra Nova"><button class="tools-btn" onclick="lsAdicionar('locaisDestino','lsNovoLocalDestino')">+ Adicionar</button></div>
+        <div id="lsListaLocaisDestino" class="lista-sugestao-chips"></div>
+
+        <label style="margin-top:18px;">CLIENTE</label>
+        <div class="lista-sugestao-add"><input type="text" id="lsNovoCliente" placeholder="Ex: João da Construtora"><button class="tools-btn" onclick="lsAdicionar('clientes','lsNovoCliente')">+ Adicionar</button></div>
+        <div id="lsListaClientes" class="lista-sugestao-chips"></div>
+      </div>
     </main>
   </div>
 
@@ -911,10 +944,21 @@ function manutSalvarIntervaloRetro(valor) {
   const chaveFixa = 'RETROESCAVADEIRA';
   manutColRef.doc('retro__' + manutSlug(chaveFixa)).set({ tipo: 'retro', maquina: chaveFixa, intervaloHoras: n, atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Intervalo salvo!')).catch(err => alert('Erro: ' + err.message));
 }
+function manutSalvarBaselineRetro(valor) {
+  const n = parseFloat(valor) || 0;
+  const chaveFixa = 'RETROESCAVADEIRA';
+  manutColRef.doc('retro__' + manutSlug(chaveFixa)).set({ tipo: 'retro', maquina: chaveFixa, baselineHorimetro: n, atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Horímetro da troca de óleo salvo!')).catch(err => alert('Erro: ' + err.message));
+}
+function manutSalvarAtualManualRetro(valor) {
+  const n = parseFloat(valor) || 0;
+  const chaveFixa = 'RETROESCAVADEIRA';
+  manutColRef.doc('retro__' + manutSlug(chaveFixa)).set({ tipo: 'retro', maquina: chaveFixa, horimetroAtualManual: n, atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Horímetro atual salvo!')).catch(err => alert('Erro: ' + err.message));
+}
 function manutMarcarFeitaRetro() {
   const chaveFixa = 'RETROESCAVADEIRA';
   if(!confirm('Confirma que a manutenção da Retroescavadeira foi realizada hoje?')) return;
-  const atual = rtHorimetroIndependente;
+  const cfgAtual = manutCache['retro__' + manutSlug(chaveFixa)] || {};
+  const atual = Math.max(rtHorimetroIndependente, cfgAtual.horimetroAtualManual || 0);
   manutColRef.doc('retro__' + manutSlug(chaveFixa)).set({ tipo: 'retro', maquina: chaveFixa, baselineHorimetro: atual, baselineData: fmtDataISO(new Date()), atualizadoEm: new Date().toISOString() }, { merge: true }).then(() => showToast('Manutenção registrada!')).catch(err => alert('Erro: ' + err.message));
 }
 function manutSalvarIntervaloCacamba(maquina, valor) {
@@ -1093,6 +1137,7 @@ function aposLogin() {
   else if(usuarioAtual.papel === 'motorista_cacamba') badgePapel.textContent = 'MOTORISTA CAÇAMBA — ' + usuarioAtual.nome.toUpperCase();
 
   configIniciar();
+  lsIniciar();
   const navModulos = document.getElementById('navModulos');
   if(souDono()) {
     navModulos.style.display = 'flex';
@@ -1251,23 +1296,26 @@ function rtAtualizarListaOperadores() {
 function rtRenderManutencao() {
   const cont = document.getElementById('rtManutencaoContainer');
   if(!cont || !souDono()) return;
+  if(document.activeElement && (document.activeElement.id === 'rtBaselineInput' || document.activeElement.id === 'rtIntervaloInput' || document.activeElement.id === 'rtAtualInput')) return;
   if(!rtHorimetroTemDados) { cont.innerHTML = ''; return; }
   const chaveFixa = 'RETROESCAVADEIRA';
   const cfg = manutCache['retro__' + manutSlug(chaveFixa)] || {};
   const intervalo = cfg.intervaloHoras || 250;
   const baseline = cfg.baselineHorimetro || 0;
-  const atual = rtHorimetroIndependente;
+  const atual = Math.max(rtHorimetroIndependente, cfg.horimetroAtualManual || 0);
   const desde = Math.max(0, atual - baseline);
   const pct = Math.min(100, Math.round((desde / intervalo) * 100));
   const cor = pct >= 100 ? '#DC2626' : (pct >= 85 ? '#D97706' : '#16A34A');
   const statusTxt = pct >= 100 ? '⚠️ MANUTENÇÃO VENCIDA' : (pct >= 85 ? '⚠️ Próxima' : 'Em dia');
   cont.innerHTML = `<div class="categorias-section-title" style="margin-top:0;">🔧 Manutenção Preventiva</div><div class="categoria-card" style="margin-bottom:10px;">
       <div class="categoria-title">Retroescavadeira <span class="manut-status" style="background:${cor};margin-left:6px;">${statusTxt}</span></div>
-      <div class="categoria-row"><span>Horímetro atual:</span><span>${atual.toFixed(1).replace('.', ',')} h</span></div>
+      <div class="categoria-row-linha"><span>Horímetro atual</span><span class="linha-pontos"></span><input type="number" id="rtAtualInput" step="0.1" value="${atual}" style="width:110px;text-align:right;padding:4px 8px;margin:0;" onchange="manutSalvarAtualManualRetro(this.value)"></div>
+      <div class="categoria-row-linha"><span>Horímetro da Troca de Óleo</span><span class="linha-pontos"></span><input type="number" id="rtBaselineInput" step="0.1" value="${baseline}" style="width:110px;text-align:right;padding:4px 8px;margin:0;" onchange="manutSalvarBaselineRetro(this.value)"></div>
       <div class="categoria-row"><span>Desde a última manutenção:</span><span style="color:${cor};font-weight:700;">${desde.toFixed(1).replace('.', ',')} h de ${intervalo} h</span></div>
+      <div class="categoria-row-linha"><span>${pct >= 100 ? 'Vencida há' : 'Horas a Vencer'}</span><span class="linha-pontos"></span><span style="color:#F59E0B;font-weight:700;">${Math.abs(intervalo - desde).toFixed(1).replace('.', ',')} h</span></div>
       <div class="comparativo-bar-track" style="margin:8px 0;"><div class="comparativo-bar-fill" style="width:${pct}%;background:${cor};"></div></div>
       <div class="row2" style="margin-top:6px;">
-        <div><label>Intervalo (h)</label><input type="number" value="${intervalo}" onchange="manutSalvarIntervaloRetro(this.value)"></div>
+        <div><label>Intervalo (h)</label><input type="number" id="rtIntervaloInput" value="${intervalo}" onchange="manutSalvarIntervaloRetro(this.value)"></div>
         <div style="display:flex;align-items:flex-end;"><button class="tools-btn" style="width:100%;" onclick="manutMarcarFeitaRetro()">✅ Manutenção feita</button></div>
       </div>
     </div>`;
@@ -2238,6 +2286,73 @@ const CB_TABELA_PRECOS_KM_PADRAO = [{min:0,max:5,valorAgregado:200},{min:5.1,max
 let CB_TABELA_PRECOS_KM = CB_TABELA_PRECOS_KM_PADRAO.map(f => ({...f}));
 let pcModoEdicao = false;
 const pcPrecosDocRef = colConfig.doc('precos_km');
+const LS_PADRAO = {
+  materiais: ["AREIA FINA","AREIA LAVADA","PIÇARRA PENEIRADA","PIÇARRA GROSSA","BRITA ZERO","BRITA 3/4","BARRO","AREIA DE ATERRO"],
+  locaisSaida: ["Areal","Depósito Agrobraz","Alegrin","Piçarreira Penedo","Mibasa"],
+  locaisDestino: ["Pindorama","Botafogo","Santa Terezinha","Monte Feliz","Pescoço","Palmeira Alta","Chã da Lagoa","Vila Machado/Pindorama","Coruripe","Miai de Cima","Barreira","Pontal de Coruripe"],
+  clientes: []
+};
+let lsListas = { materiais: [...LS_PADRAO.materiais], locaisSaida: [...LS_PADRAO.locaisSaida], locaisDestino: [...LS_PADRAO.locaisDestino], clientes: [] };
+const lsDocRef = colConfig.doc('listas_sugestao');
+
+function lsIniciar() {
+  lsDocRef.onSnapshot(doc => {
+    if(doc.exists && doc.data()) {
+      const d = doc.data();
+      lsListas = {
+        materiais: Array.isArray(d.materiais) ? d.materiais : LS_PADRAO.materiais,
+        locaisSaida: Array.isArray(d.locaisSaida) ? d.locaisSaida : LS_PADRAO.locaisSaida,
+        locaisDestino: Array.isArray(d.locaisDestino) ? d.locaisDestino : LS_PADRAO.locaisDestino,
+        clientes: Array.isArray(d.clientes) ? d.clientes : []
+      };
+    } else {
+      lsListas = { materiais: [...LS_PADRAO.materiais], locaisSaida: [...LS_PADRAO.locaisSaida], locaisDestino: [...LS_PADRAO.locaisDestino], clientes: [] };
+      if(souDono()) lsDocRef.set(lsListas).catch(err => console.warn('Erro ao semear listas de sugestão:', err));
+    }
+    lsRenderTudo();
+  }, err => console.warn('Listener listas de sugestão:', err));
+}
+
+function lsAtualizarDatalist(id, valores) {
+  const dl = document.getElementById(id); if(!dl) return;
+  dl.innerHTML = valores.map(v => `<option value="${escapeHtml(v)}">`).join('');
+}
+
+function lsRenderChips(campo, containerId) {
+  const cont = document.getElementById(containerId); if(!cont) return;
+  if(lsListas[campo].length === 0) { cont.innerHTML = '<span style="font-size:0.78rem;color:var(--text-muted);">Nenhuma opção cadastrada ainda.</span>'; return; }
+  cont.innerHTML = lsListas[campo].map((v, idx) => `<div class="ls-chip">${escapeHtml(v)}<button onclick="lsRemover('${campo}', ${idx})" title="Remover">×</button></div>`).join('');
+}
+
+function lsRenderTudo() {
+  lsAtualizarDatalist('listaTiposMaterial', lsListas.materiais);
+  lsAtualizarDatalist('listaLocaisSaida', lsListas.locaisSaida);
+  lsAtualizarDatalist('listaLocaisDestino', lsListas.locaisDestino);
+  lsAtualizarDatalist('listaClientes', lsListas.clientes);
+  lsRenderChips('materiais', 'lsListaMateriais');
+  lsRenderChips('locaisSaida', 'lsListaLocaisSaida');
+  lsRenderChips('locaisDestino', 'lsListaLocaisDestino');
+  lsRenderChips('clientes', 'lsListaClientes');
+}
+
+function lsAdicionar(campo, inputId) {
+  if(!souDono()) return;
+  const input = document.getElementById(inputId);
+  const valor = input.value.trim();
+  if(!valor) return;
+  if(lsListas[campo].some(v => v.toLowerCase() === valor.toLowerCase())) { showToast('Essa opção já existe na lista.'); input.value = ''; return; }
+  const novaLista = [...lsListas[campo], valor];
+  lsDocRef.set({ [campo]: novaLista }, { merge: true }).then(() => { showToast('Adicionado!'); input.value = ''; }).catch(err => alert('Erro ao salvar: ' + err.message));
+}
+
+function lsRemover(campo, idx) {
+  if(!souDono()) return;
+  if(!confirm('Remover essa opção da lista?')) return;
+  const novaLista = lsListas[campo].slice();
+  novaLista.splice(idx, 1);
+  lsDocRef.set({ [campo]: novaLista }, { merge: true }).catch(err => alert('Erro ao remover: ' + err.message));
+}
+
 
 function pcIniciarListener() {
   pcPrecosDocRef.onSnapshot(doc => {

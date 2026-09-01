@@ -173,6 +173,9 @@
   .comparativo-bar-track { flex:1; height:14px; background:rgba(255,255,255,0.12); border-radius:7px; overflow:hidden; }
   .comparativo-bar-fill { height:100%; border-radius:7px; }
   .comparativo-bar-val { width: 105px; text-align:right; font-weight:700; font-family:'IBM Plex Mono', monospace; }
+  .cmp-selecao-grid { display:flex; flex-wrap:wrap; gap:8px; margin: 10px 0 18px; }
+  .cmp-check-item { display:flex; align-items:center; gap:7px; background:#F1F5F9; border:1.5px solid var(--border-color); padding:9px 13px; border-radius:20px; font-size:0.8rem; font-weight:700; color:var(--header-bg); cursor:pointer; }
+  .cmp-check-item input { width:auto; padding:0; accent-color: var(--header-bg); }
 
   /* ===== ANÁLISE (DASHBOARD) ===== */
   .an-hero { background: linear-gradient(135deg, #0F172A 0%, #1E293B 55%, #0B3B36 100%); border-radius: 18px; padding: 26px 22px; color:#fff; margin-bottom: 18px; box-shadow: 0 10px 30px rgba(15,23,42,0.25); }
@@ -378,6 +381,9 @@
           <div><label>Até (Fim):</label><input type="date" id="rtFDataFim" onchange="rtOnDataRangeChange()"></div>
         </div>
         <div class="periodo-info-row"><a href="javascript:void(0)" onclick="rtLimparPeriodo()">Ver todos os períodos</a></div>
+        <div class="select-row" style="grid-template-columns:1fr;">
+          <select id="rtFSemanaSelect" onchange="rtOnSemanaFiltroChange()"><option value="">Todas as semanas</option></select>
+        </div>
         <div class="select-row">
           <select id="rtFAno" onchange="rtOnAnoMesChange()"><option value="todos">Todos os anos</option></select>
           <select id="rtFMes" onchange="rtOnAnoMesChange()">
@@ -497,6 +503,9 @@
           <div><label>Até (Fim):</label><input type="date" id="cbFDataFim" onchange="cbOnDataRangeChange()"></div>
         </div>
         <div class="periodo-info-row"><a href="javascript:void(0)" onclick="cbLimparPeriodo()">Ver todos os períodos</a></div>
+        <div class="select-row" style="grid-template-columns:1fr;">
+          <select id="cbFSemanaSelect" onchange="cbOnSemanaFiltroChange()"><option value="">Todas as semanas</option></select>
+        </div>
         <div class="select-row">
           <select id="cbFAno" onchange="cbOnAnoMesChange()"><option value="todos">Todos os anos</option></select>
           <select id="cbFMes" onchange="cbOnAnoMesChange()">
@@ -1014,6 +1023,35 @@ function fmtSemanaLabel(seg, dom) {
   const ano = seg.getFullYear();
   return m1===m2 ? `${d1} a ${d2}/${m1}/${ano}` : `${d1}/${m1} a ${d2}/${m2}/${ano}`;
 }
+function gerarSemanasDoMes(ano, mesIdx) {
+  const ultimoDia = new Date(ano, mesIdx + 1, 0);
+  let cursor = new Date(ano, mesIdx, 1);
+  while(cursor.getDay() !== 1) cursor.setDate(cursor.getDate() + 1);
+  const periodos = [];
+  while(cursor <= ultimoDia) {
+    let fim = new Date(cursor); fim.setDate(fim.getDate() + 6);
+    const diasRestantesDepois = (ultimoDia - fim) / 86400000;
+    if(fim >= ultimoDia || diasRestantesDepois < 7) {
+      fim = new Date(ultimoDia);
+      periodos.push({ seg: new Date(cursor), dom: fim });
+      break;
+    }
+    periodos.push({ seg: new Date(cursor), dom: fim });
+    cursor.setDate(cursor.getDate() + 7);
+  }
+  return periodos;
+}
+function gerarOpcoesSemanasDoPeriodo(anoSel, mesSel) {
+  const hoje = new Date();
+  const anoUsar = (anoSel && anoSel !== 'todos') ? parseInt(anoSel, 10) : hoje.getFullYear();
+  let periodos = [];
+  if(mesSel && mesSel !== 'todos') {
+    periodos = gerarSemanasDoMes(anoUsar, parseInt(mesSel, 10) - 1);
+  } else {
+    for(let m = 0; m < 12; m++) periodos = periodos.concat(gerarSemanasDoMes(anoUsar, m));
+  }
+  return periodos;
+}
 function agruparFatCombPorSemana(itensFat, campoDataFat, itensComb, campoDataComb) {
   const semanas = new Map();
   const add = (item, campoData, chave) => {
@@ -1327,6 +1365,7 @@ function rtIniciar() {
   document.getElementById('rtAData').valueAsDate = new Date();
   rtPrepararFormularioOperador();
   rtAtualizarOpcoesAnoMes();
+  rtPopularSemanasSelect();
   if(rtListenerAtivo) return;
   rtListenerAtivo = true;
   rtSetModoFiltro('mensal');
@@ -1334,13 +1373,19 @@ function rtIniciar() {
 
 function rtRecarregarComPeriodo() {
   if(rtUnsubscribeAtual) { rtUnsubscribeAtual(); rtUnsubscribeAtual = null; }
-  const inicioStr = document.getElementById('rtFDataInicio').value;
-  const fimStr = document.getElementById('rtFDataFim').value;
+  let inicioStr = document.getElementById('rtFDataInicio').value;
+  let fimStr = document.getElementById('rtFDataFim').value;
+  if(!inicioStr || !fimStr) {
+    // Nunca busca o histórico inteiro: sem período definido, usa o mês atual (evita sobrecarregar o app).
+    const hoje = new Date();
+    inicioStr = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+    fimStr = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0));
+    document.getElementById('rtFDataInicio').value = inicioStr;
+    document.getElementById('rtFDataFim').value = fimStr;
+  }
   let rtQuery;
   if(souDono()) {
-    rtQuery = (inicioStr && fimStr)
-      ? rtColRef.where('dataServico', '>=', inicioStr).where('dataServico', '<=', fimStr)
-      : rtColRef;
+    rtQuery = rtColRef.where('dataServico', '>=', inicioStr).where('dataServico', '<=', fimStr);
   } else {
     rtQuery = rtColRef.where('operadorUid', '==', usuarioAtual.uid);
   }
@@ -1570,26 +1615,27 @@ function rtSetModoFiltro(modo) {
   document.getElementById('rtBtnModoMensal').classList.toggle('active', modo==='mensal');
   document.getElementById('rtBtnModoSemanal').classList.toggle('active', modo==='semanal');
   document.getElementById('rtBtnModoAnual').classList.toggle('active', modo==='anual');
-  document.getElementById('rtFAno').value = 'todos'; document.getElementById('rtFMes').value = 'todos';
   const hoje = new Date(); let inicio, fim;
+  document.getElementById('rtFAno').value = String(hoje.getFullYear());
+  document.getElementById('rtFMes').value = String(hoje.getMonth() + 1).padStart(2, '0');
   if(modo==='diario') { inicio = hoje; fim = hoje; }
   else if(modo==='semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
   else if(modo==='anual') { inicio = new Date(hoje.getFullYear(), 0, 1); fim = new Date(hoje.getFullYear(), 11, 31); }
   else { inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0); }
   document.getElementById('rtFDataInicio').value = fmtDataISO(inicio);
   document.getElementById('rtFDataFim').value = fmtDataISO(fim);
+  rtPopularSemanasSelect();
   rtRecarregarComPeriodo();
 }
 function rtOnDataRangeChange() {
   ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('rtFAno').value = 'todos'; document.getElementById('rtFMes').value = 'todos';
+  rtPopularSemanasSelect();
   rtRecarregarComPeriodo();
 }
 function rtLimparPeriodo() {
-  document.getElementById('rtFDataInicio').value = ''; document.getElementById('rtFDataFim').value = '';
-  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('rtFAno').value = 'todos'; document.getElementById('rtFMes').value = 'todos';
-  rtRecarregarComPeriodo();
+  rtOnAnoMesChange();
 }
 function rtAtualizarOpcoesAnoMes() {
   const sel = document.getElementById('rtFAno'); if(!sel) return;
@@ -1600,13 +1646,43 @@ function rtAtualizarOpcoesAnoMes() {
   sel.innerHTML = '<option value="todos">Todos os anos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
   if(anos.map(String).includes(valorAtual)) sel.value = valorAtual;
 }
+function rtPopularSemanasSelect() {
+  const sel = document.getElementById('rtFSemanaSelect'); if(!sel) return;
+  const valorAtual = sel.value;
+  const anoSel = document.getElementById('rtFAno').value;
+  const mesSel = document.getElementById('rtFMes').value;
+  const periodos = gerarOpcoesSemanasDoPeriodo(anoSel, mesSel);
+  let html = '<option value="">Todas as semanas</option>';
+  periodos.forEach(p => {
+    html += `<option value="${fmtDataISO(p.seg)}|${fmtDataISO(p.dom)}">${fmtSemanaLabel(p.seg, p.dom)}</option>`;
+  });
+  sel.innerHTML = html;
+  sel.value = valorAtual;
+  if(sel.selectedIndex === -1) sel.value = '';
+}
+function rtOnSemanaFiltroChange() {
+  const val = document.getElementById('rtFSemanaSelect').value;
+  ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if(!val) {
+    document.getElementById('rtFDataInicio').value = '';
+    document.getElementById('rtFDataFim').value = '';
+  } else {
+    const [ini, fim] = val.split('|');
+    document.getElementById('rtFDataInicio').value = ini;
+    document.getElementById('rtFDataFim').value = fim;
+  }
+  rtRecarregarComPeriodo();
+}
 function rtOnAnoMesChange() {
   const ano = document.getElementById('rtFAno').value;
   const mes = document.getElementById('rtFMes').value;
   ['rtBtnModoDiario','rtBtnModoSemanal','rtBtnModoMensal','rtBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  rtPopularSemanasSelect();
   if(ano === 'todos' && mes === 'todos') {
-    document.getElementById('rtFDataInicio').value = '';
-    document.getElementById('rtFDataFim').value = '';
+    // Em vez de buscar TODOS os anos/meses (pesado), busca o mês/ano atual por padrão.
+    const hoje = new Date();
+    document.getElementById('rtFDataInicio').value = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+    document.getElementById('rtFDataFim').value = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0));
   } else {
     const anoUsar = ano !== 'todos' ? parseInt(ano, 10) : new Date().getFullYear();
     if(mes === 'todos') {
@@ -2135,6 +2211,7 @@ function cbIniciar() {
   cbConfigurarInterface();
   cbEscutarMaquinasCustom();
   cbAtualizarOpcoesAnoMes();
+  cbPopularSemanasSelect();
   if(cbListenerAtivo) return;
   cbListenerAtivo = true;
   cbSetModoFiltro('mensal');
@@ -2142,13 +2219,19 @@ function cbIniciar() {
 
 function cbRecarregarComPeriodo() {
   if(cbUnsubscribeAtual) { cbUnsubscribeAtual(); cbUnsubscribeAtual = null; }
-  const inicioStr = document.getElementById('cbFDataInicio').value;
-  const fimStr = document.getElementById('cbFDataFim').value;
+  let inicioStr = document.getElementById('cbFDataInicio').value;
+  let fimStr = document.getElementById('cbFDataFim').value;
+  if(!inicioStr || !fimStr) {
+    // Nunca busca o histórico inteiro: sem período definido, usa o mês atual (evita sobrecarregar o app).
+    const hoje = new Date();
+    inicioStr = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+    fimStr = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0));
+    document.getElementById('cbFDataInicio').value = inicioStr;
+    document.getElementById('cbFDataFim').value = fimStr;
+  }
   let cbQuery;
   if(souDono()) {
-    cbQuery = (inicioStr && fimStr)
-      ? cbColRef.where('dataEntrega', '>=', inicioStr).where('dataEntrega', '<=', fimStr)
-      : cbColRef;
+    cbQuery = cbColRef.where('dataEntrega', '>=', inicioStr).where('dataEntrega', '<=', fimStr);
   } else {
     cbQuery = cbColRef.where('motoristaUid', '==', usuarioAtual.uid);
   }
@@ -2588,26 +2671,27 @@ function cbSetModoFiltro(modo) {
   document.getElementById('cbBtnModoMensal').classList.toggle('active', modo==='mensal');
   document.getElementById('cbBtnModoSemanal').classList.toggle('active', modo==='semanal');
   document.getElementById('cbBtnModoAnual').classList.toggle('active', modo==='anual');
-  document.getElementById('cbFAno').value = 'todos'; document.getElementById('cbFMes').value = 'todos';
   const hoje = new Date(); let inicio, fim;
+  document.getElementById('cbFAno').value = String(hoje.getFullYear());
+  document.getElementById('cbFMes').value = String(hoje.getMonth() + 1).padStart(2, '0');
   if(modo === 'diario') { inicio = hoje; fim = hoje; }
   else if(modo === 'semanal') { const b = getSemanaBounds(fmtDataISO(hoje)); inicio = b.seg; fim = b.dom; }
   else if(modo === 'anual') { inicio = new Date(hoje.getFullYear(), 0, 1); fim = new Date(hoje.getFullYear(), 11, 31); }
   else { inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1); fim = new Date(hoje.getFullYear(), hoje.getMonth()+1, 0); }
   document.getElementById('cbFDataInicio').value = fmtDataISO(inicio);
   document.getElementById('cbFDataFim').value = fmtDataISO(fim);
+  cbPopularSemanasSelect();
   cbRecarregarComPeriodo();
 }
 function cbOnDataRangeChange() {
   ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('cbFAno').value = 'todos'; document.getElementById('cbFMes').value = 'todos';
+  cbPopularSemanasSelect();
   cbRecarregarComPeriodo();
 }
 function cbLimparPeriodo() {
-  document.getElementById('cbFDataInicio').value = ''; document.getElementById('cbFDataFim').value = '';
-  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
   document.getElementById('cbFAno').value = 'todos'; document.getElementById('cbFMes').value = 'todos';
-  cbRecarregarComPeriodo();
+  cbOnAnoMesChange();
 }
 function cbAtualizarOpcoesAnoMes() {
   const sel = document.getElementById('cbFAno'); if(!sel) return;
@@ -2618,13 +2702,43 @@ function cbAtualizarOpcoesAnoMes() {
   sel.innerHTML = '<option value="todos">Todos os anos</option>' + anos.map(a => `<option value="${a}">${a}</option>`).join('');
   if(anos.map(String).includes(valorAtual)) sel.value = valorAtual;
 }
+function cbPopularSemanasSelect() {
+  const sel = document.getElementById('cbFSemanaSelect'); if(!sel) return;
+  const valorAtual = sel.value;
+  const anoSel = document.getElementById('cbFAno').value;
+  const mesSel = document.getElementById('cbFMes').value;
+  const periodos = gerarOpcoesSemanasDoPeriodo(anoSel, mesSel);
+  let html = '<option value="">Todas as semanas</option>';
+  periodos.forEach(p => {
+    html += `<option value="${fmtDataISO(p.seg)}|${fmtDataISO(p.dom)}">${fmtSemanaLabel(p.seg, p.dom)}</option>`;
+  });
+  sel.innerHTML = html;
+  sel.value = valorAtual;
+  if(sel.selectedIndex === -1) sel.value = '';
+}
+function cbOnSemanaFiltroChange() {
+  const val = document.getElementById('cbFSemanaSelect').value;
+  ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if(!val) {
+    document.getElementById('cbFDataInicio').value = '';
+    document.getElementById('cbFDataFim').value = '';
+  } else {
+    const [ini, fim] = val.split('|');
+    document.getElementById('cbFDataInicio').value = ini;
+    document.getElementById('cbFDataFim').value = fim;
+  }
+  cbRecarregarComPeriodo();
+}
 function cbOnAnoMesChange() {
   const ano = document.getElementById('cbFAno').value;
   const mes = document.getElementById('cbFMes').value;
   ['cbBtnModoDiario','cbBtnModoSemanal','cbBtnModoMensal','cbBtnModoAnual'].forEach(id => document.getElementById(id).classList.remove('active'));
+  cbPopularSemanasSelect();
   if(ano === 'todos' && mes === 'todos') {
-    document.getElementById('cbFDataInicio').value = '';
-    document.getElementById('cbFDataFim').value = '';
+    // Em vez de buscar TODOS os anos/meses (pesado), busca o mês/ano atual por padrão.
+    const hoje = new Date();
+    document.getElementById('cbFDataInicio').value = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+    document.getElementById('cbFDataFim').value = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0));
   } else {
     const anoUsar = ano !== 'todos' ? parseInt(ano, 10) : new Date().getFullYear();
     if(mes === 'todos') {
@@ -3839,9 +3953,7 @@ function cmpOnDataRangeChange() {
   cmpRenderizar();
 }
 function cmpLimparPeriodo() {
-  document.getElementById('cmpDataInicio').value = ''; document.getElementById('cmpDataFim').value = '';
-  ['cmpBtnModoDiario','cmpBtnModoSemanal','cmpBtnModoMensal'].forEach(id => document.getElementById(id).classList.remove('active'));
-  cmpRenderizar();
+  cmpSetModoFiltro('mensal');
 }
 function cmpDentroDoFiltro(dataStr) {
   const inicio = document.getElementById('cmpDataInicio').value, fim = document.getElementById('cmpDataFim').value;
@@ -4267,16 +4379,34 @@ function anRenderDetalhado(servicos) {
   cont.innerHTML = html;
 }
 
+let cmpSelecionados = new Set();
+let cmpIdsConhecidos = new Set();
+let cmpEntidadesAtuais = [];
+let cmpTextoPeriodoAtual = '';
+
+function cmpGetTextoPeriodoAtual() {
+  const inicio = document.getElementById('cmpDataInicio').value, fim = document.getElementById('cmpDataFim').value;
+  if(!inicio && !fim) return 'Todos os períodos';
+  if(inicio && fim) return fmtData(inicio) + ' a ' + fmtData(fim);
+  if(inicio) return 'A partir de ' + fmtData(inicio);
+  return 'Até ' + fmtData(fim);
+}
+
 async function cmpRenderizar() {
   if(!souDono()) return;
-  const inicioStr = document.getElementById('cmpDataInicio').value;
-  const fimStr = document.getElementById('cmpDataFim').value;
-
-  let rtQuery = rtColRef, cbQuery = cbColRef;
-  if(inicioStr && fimStr) {
-    rtQuery = rtColRef.where('dataServico', '>=', inicioStr).where('dataServico', '<=', fimStr);
-    cbQuery = cbColRef.where('dataEntrega', '>=', inicioStr).where('dataEntrega', '<=', fimStr);
+  let inicioStr = document.getElementById('cmpDataInicio').value;
+  let fimStr = document.getElementById('cmpDataFim').value;
+  if(!inicioStr || !fimStr) {
+    // Nunca busca o histórico inteiro: sem período definido, usa o mês atual (evita sobrecarregar o app).
+    const hoje = new Date();
+    inicioStr = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+    fimStr = fmtDataISO(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0));
+    document.getElementById('cmpDataInicio').value = inicioStr;
+    document.getElementById('cmpDataFim').value = fimStr;
   }
+
+  let rtQuery = rtColRef.where('dataServico', '>=', inicioStr).where('dataServico', '<=', fimStr);
+  let cbQuery = cbColRef.where('dataEntrega', '>=', inicioStr).where('dataEntrega', '<=', fimStr);
 
   let rtF = [], cbF = [];
   try {
@@ -4325,7 +4455,40 @@ async function cmpRenderizar() {
     return { maquina: maq, lanc, fat, comb, liq: fat - comb };
   });
 
-  document.getElementById('cmpConteudo').innerHTML = `
+  // Lista de entidades selecionáveis (Retro por categoria + cada caçamba) para comparar/exportar.
+  const entidades = [
+    { id: 'retro:carregamento', label: '🚜 Retro - Carregamento', lanc: rtCatCarr.lanc, fat: rtCatCarr.fat, comb: rtCatCarr.comb, liq: rtCatCarr.liq },
+    { id: 'retro:particular', label: '🚜 Retro - Particular', lanc: rtCatPart.lanc, fat: rtCatPart.fat, comb: rtCatPart.comb, liq: rtCatPart.liq },
+    ...cbPorVeiculo.map(v => ({ id: 'cb:' + v.maquina, label: '🚛 ' + v.maquina, lanc: v.lanc, fat: v.fat, comb: v.comb, liq: v.liq }))
+  ];
+  entidades.forEach(e => { if(!cmpIdsConhecidos.has(e.id)) { cmpIdsConhecidos.add(e.id); cmpSelecionados.add(e.id); } });
+  cmpEntidadesAtuais = entidades;
+  cmpTextoPeriodoAtual = cmpGetTextoPeriodoAtual();
+
+  const totalSel = entidades.filter(e => cmpSelecionados.has(e.id))
+    .reduce((acc,e) => { acc.lanc+=e.lanc; acc.fat+=e.fat; acc.comb+=e.comb; acc.liq+=e.liq; return acc; }, {lanc:0,fat:0,comb:0,liq:0});
+
+  const selecaoHtml = `
+    <div class="section-title" style="margin-top:0;">Selecionar para comparar / exportar</div>
+    <div class="cmp-selecao-grid">
+      ${entidades.map(e => `<label class="cmp-check-item"><input type="checkbox" ${cmpSelecionados.has(e.id)?'checked':''} onchange="cmpToggleSelecao('${e.id}')"> ${escapeHtml(e.label)}</label>`).join('')}
+    </div>
+    <div class="summary-dashboard" style="margin-bottom:18px;">
+      <div class="sum-row-2">
+        <div class="sum-card dark"><div class="sum-title">FATURAMENTO (SELEÇÃO)</div><div class="sum-value mono">${fmtMoeda(totalSel.fat)}</div></div>
+        <div class="sum-card dark"><div class="sum-title">LANÇAMENTOS (SELEÇÃO)</div><div class="sum-value mono">${totalSel.lanc}</div></div>
+      </div>
+      <div class="sum-row-2">
+        <div class="sum-card brown"><div class="sum-title">COMBUSTÍVEL (SELEÇÃO)</div><div class="sum-value mono">${fmtMoeda(totalSel.comb)}</div></div>
+        <div class="sum-card green"><div class="sum-title">LÍQUIDO (SELEÇÃO)</div><div class="sum-value mono">${fmtMoeda(totalSel.liq)}</div></div>
+      </div>
+    </div>
+    <div class="tools-grid" style="margin-bottom:20px;">
+      <button class="tools-btn pdf" onclick="cmpExportarPDF()">📄 Gerar PDF da Seleção</button>
+      <button class="tools-btn excel" onclick="cmpExportarExcel()">🟢 Exportar Excel da Seleção</button>
+    </div>`;
+
+  document.getElementById('cmpConteudo').innerHTML = selecaoHtml + `
     <div class="comparativo-grid">
       <div class="comparativo-col retro">
         <h3>🚜 Retroescavadeira</h3>
@@ -4375,6 +4538,37 @@ async function cmpRenderizar() {
       <div class="comparativo-bar-row"><div class="comparativo-bar-label">Caçamba</div><div class="comparativo-bar-track"><div class="comparativo-bar-fill" style="width:${Math.round(Math.abs(cbLiq)/maxLiq*100)}%; background:var(--accent-caca);"></div></div><div class="comparativo-bar-val">${fmtMoeda(cbLiq)}</div></div>
     </div>
   `;
+}
+
+function cmpToggleSelecao(id) {
+  if(cmpSelecionados.has(id)) cmpSelecionados.delete(id); else cmpSelecionados.add(id);
+  cmpRenderizar();
+}
+
+function cmpExportarPDF() {
+  const selecionadas = cmpEntidadesAtuais.filter(e => cmpSelecionados.has(e.id));
+  if(selecionadas.length === 0) return alert('Selecione pelo menos um item (Retro ou uma caçamba) para gerar o PDF.');
+  const totais = selecionadas.reduce((acc,e) => { acc.lanc+=e.lanc; acc.fat+=e.fat; acc.comb+=e.comb; acc.liq+=e.liq; return acc; }, {lanc:0,fat:0,comb:0,liq:0});
+  const nomes = selecionadas.map(e => e.label.replace(/^[^\w]+/, '').trim()).join(', ');
+  const linhas = selecionadas.map(e => `<tr><td>${escapeHtml(e.label)}</td><td class="mono">${e.lanc}</td><td class="mono">${fmtMoeda(e.fat)}</td><td class="mono" style="color:#DC2626;">${fmtMoeda(e.comb)}</td><td class="mono" style="text-align:right;font-weight:700;color:#16A34A;">${fmtMoeda(e.liq)}</td></tr>`).join('');
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Comparativo Selecionado</title><style>body{font-family:Helvetica,Arial,sans-serif;color:#1E293B;margin:20px;font-size:11px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}h1{font-size:1.3rem;color:#1E293B;}.meta{font-size:0.8rem;color:#64748B;margin-bottom:15px;}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}.card{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px;}.card-title{font-size:0.65rem;font-weight:700;text-transform:uppercase;color:#64748B;margin-bottom:4px;}.card-val{font-size:1.1rem;font-weight:700;color:#1E293B;font-family:monospace;}table{width:100%;border-collapse:collapse;margin-top:10px;font-size:0.82rem;}th{background:#1E293B;color:#fff;padding:8px 6px;text-align:left;font-size:0.7rem;}td{padding:8px 6px;border-bottom:1px solid #E2E8F0;}tr:nth-child(even){background:#F8FAFC;}table{page-break-inside:avoid;}.cards{page-break-inside:avoid;}</style></head><body><h1>Comparativo — ${escapeHtml(nomes)}</h1><div class="meta">Período: <b>${cmpTextoPeriodoAtual}</b> | Emitido em ${new Date().toLocaleDateString('pt-BR')}</div><div class="cards"><div class="card"><div class="card-title">Faturamento Total</div><div class="card-val">${fmtMoeda(totais.fat)}</div></div><div class="card"><div class="card-title">Combustível Total</div><div class="card-val" style="color:#DC2626;">${fmtMoeda(totais.comb)}</div></div><div class="card"><div class="card-title">Líquido Total</div><div class="card-val" style="color:#16A34A;">${fmtMoeda(totais.liq)}</div></div><div class="card"><div class="card-title">Qtd. Lançamentos</div><div class="card-val">${totais.lanc}</div></div></div><table><thead><tr><th>Item</th><th>Lançamentos</th><th>Faturamento</th><th>Combustível</th><th style="text-align:right;">Líquido</th></tr></thead><tbody>${linhas}</tbody></table><script>window.onload=function(){window.print();}<\/script></body></html>`);
+  win.document.close();
+}
+
+function cmpExportarExcel() {
+  const selecionadas = cmpEntidadesAtuais.filter(e => cmpSelecionados.has(e.id));
+  if(selecionadas.length === 0) return alert('Selecione pelo menos um item (Retro ou uma caçamba) para exportar.');
+  const totais = selecionadas.reduce((acc,e) => { acc.lanc+=e.lanc; acc.fat+=e.fat; acc.comb+=e.comb; acc.liq+=e.liq; return acc; }, {lanc:0,fat:0,comb:0,liq:0});
+  let csv = '\uFEFFCOMPARATIVO SELECIONADO\n';
+  csv += `Período;${cmpTextoPeriodoAtual}\n\n`;
+  csv += 'Item;Lançamentos;Faturamento;Combustível;Líquido\n';
+  selecionadas.forEach(e => {
+    csv += `${e.label.replace(/^[^\w]+/, '').trim()};${e.lanc};${e.fat.toFixed(2).replace('.',',')};${e.comb.toFixed(2).replace('.',',')};${e.liq.toFixed(2).replace('.',',')}\n`;
+  });
+  csv += `\nTOTAL;${totais.lanc};${totais.fat.toFixed(2).replace('.',',')};${totais.comb.toFixed(2).replace('.',',')};${totais.liq.toFixed(2).replace('.',',')}\n`;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `comparativo_selecao_${new Date().toISOString().slice(0,10)}.csv`; a.click();
 }
 
 </script>

@@ -1023,34 +1023,30 @@ function fmtSemanaLabel(seg, dom) {
   const ano = seg.getFullYear();
   return m1===m2 ? `${d1} a ${d2}/${m1}/${ano}` : `${d1}/${m1} a ${d2}/${m2}/${ano}`;
 }
-function gerarSemanasDoMes(ano, mesIdx) {
-  const ultimoDia = new Date(ano, mesIdx + 1, 0);
-  let cursor = new Date(ano, mesIdx, 1);
-  while(cursor.getDay() !== 1) cursor.setDate(cursor.getDate() + 1);
+function gerarTodasSemanasDoAno(ano) {
+  // Semanas reais (segunda a domingo) cobrindo o ano inteiro, sem pular nenhum dia — mesmo nas transições de mês.
+  let cursor = new Date(ano, 0, 1);
+  while(cursor.getDay() !== 1) cursor.setDate(cursor.getDate() - 1);
+  const fimAno = new Date(ano, 11, 31);
   const periodos = [];
-  while(cursor <= ultimoDia) {
-    let fim = new Date(cursor); fim.setDate(fim.getDate() + 6);
-    const diasRestantesDepois = (ultimoDia - fim) / 86400000;
-    if(fim >= ultimoDia || diasRestantesDepois < 7) {
-      fim = new Date(ultimoDia);
-      periodos.push({ seg: new Date(cursor), dom: fim });
-      break;
-    }
-    periodos.push({ seg: new Date(cursor), dom: fim });
-    cursor.setDate(cursor.getDate() + 7);
+  while(cursor <= fimAno) {
+    const dom = new Date(cursor); dom.setDate(dom.getDate() + 6);
+    periodos.push({ seg: new Date(cursor), dom: new Date(dom) });
+    cursor = new Date(cursor); cursor.setDate(cursor.getDate() + 7);
   }
   return periodos;
 }
 function gerarOpcoesSemanasDoPeriodo(anoSel, mesSel) {
   const hoje = new Date();
   const anoUsar = (anoSel && anoSel !== 'todos') ? parseInt(anoSel, 10) : hoje.getFullYear();
-  let periodos = [];
+  const todas = gerarTodasSemanasDoAno(anoUsar);
   if(mesSel && mesSel !== 'todos') {
-    periodos = gerarSemanasDoMes(anoUsar, parseInt(mesSel, 10) - 1);
-  } else {
-    for(let m = 0; m < 12; m++) periodos = periodos.concat(gerarSemanasDoMes(anoUsar, m));
+    const mesIdx = parseInt(mesSel, 10) - 1;
+    const inicioMes = new Date(anoUsar, mesIdx, 1), fimMes = new Date(anoUsar, mesIdx + 1, 0);
+    // Inclui qualquer semana que tenha ao menos um dia dentro do mês selecionado (mesmo cruzando a virada do mês).
+    return todas.filter(p => p.dom >= inicioMes && p.seg <= fimMes);
   }
-  return periodos;
+  return todas;
 }
 function agruparFatCombPorSemana(itensFat, campoDataFat, itensComb, campoDataComb) {
   const semanas = new Map();

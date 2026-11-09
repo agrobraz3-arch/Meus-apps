@@ -46,4 +46,4 @@ Agro Braz – Desenvolvimento de soluções agrícolas e operacionais.
 
 ## Licença
 
-A licença deste projeto ainda será definida.
+Este projeto está licenciado sob a [Licença MIT](LICENSE).
